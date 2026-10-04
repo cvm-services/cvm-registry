@@ -64,10 +64,14 @@ from the register in `contextvm-services/docs/spec/service-inputs.md`
   `t=cvm:req:none` sentinel (needs no user-supplied data).
 - User-facing control is the **tier shorthand** — "no personal data" = tiers
   `none` + `financial` — not a wall of field names.
-- **The relay `#t` filter is a prefilter only.** Several values for one tag letter
-  in a `REQ` are OR, never AND, so the AND is computed **locally on the cache**
-  (consistent with "cache, not proxy"). Reporting a match count without the local
-  AND is wrong.
+- **The relay `#t` filter is a prefilter only — but a good one.** Filter server-side
+  on `cvm:tier:*` (the max tier the provider declares), so "no personal data" is one
+  `REQ`: `#t:[cvm:tier:none,cvm:tier:financial]`. Several values for one tag letter
+  are OR, never AND, so the **field-level** AND is computed **locally on the cache**
+  (consistent with "cache, not proxy"). Reporting a server-side count as the
+  field-level result is wrong.
+- **Recompute the tier** from the declared fields; when it disagrees with the
+  published `cvm:tier:*` tag, use the recomputed value and surface the mismatch.
 - **Absent is not `none`**: no `cvm:req:*` tag at all → group as **unclassified**.
 - **Unknown field names fail loud**: render as an unknown requirement, never count
   the service as `cvm:req:none`. A filter that silently drops what it does not
