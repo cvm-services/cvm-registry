@@ -53,3 +53,24 @@ deployment's curation history is its own git history.
 Rules that do not bend: the dashboard is a **cache, not a proxy** (never make a
 per-service CVM call to paint the list), and a stale cache must **disable**, not
 silently show old state as live.
+
+## Input-requirement filters (privacy)
+
+The dashboard MUST be able to filter services by **what they ask of the user**,
+from the register in `contextvm-services/docs/spec/service-inputs.md`
+(machine copy `vocab/service-inputs.json`, which this repo reads):
+
+- `t=cvm:req:<field>` required, `t=cvm:opt:<field>` optional,
+  `t=cvm:req:none` sentinel (needs no user-supplied data).
+- User-facing control is the **tier shorthand** — "no personal data" = tiers
+  `none` + `financial` — not a wall of field names.
+- **The relay `#t` filter is a prefilter only.** Several values for one tag letter
+  in a `REQ` are OR, never AND, so the AND is computed **locally on the cache**
+  (consistent with "cache, not proxy"). Reporting a match count without the local
+  AND is wrong.
+- **Absent is not `none`**: no `cvm:req:*` tag at all → group as **unclassified**.
+- **Unknown field names fail loud**: render as an unknown requirement, never count
+  the service as `cvm:req:none`. A filter that silently drops what it does not
+  understand is worse than no filter.
+- The declaration is the provider's word on a public tag. Show it as a
+  declaration; do not badge it as audited.
