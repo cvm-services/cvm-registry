@@ -35,3 +35,21 @@ Status: **planned.** No code yet. Spec first, then implement against it.
 - No multi-letter tag is used as a filter anywhere.
 - Dashboard renders from cache with the relay unreachable, and says so.
 - Recorded: which relays index which tags.
+
+## Curator allow-list (`curators.json`)
+
+The dashboard renders **only** announcements whose signing npub is in
+`curators.json`. It is a plain committed file — there is no admin UI and no
+runtime trust fetch — so **a fork changes the list, not the code**, and the
+deployment's curation history is its own git history.
+
+- Unknown npub → **not rendered** (fail closed). An empty list renders nothing.
+- Registry #1 is curated by us: `npub1ftjlarsn0k4g5wmxnjcae48u2nl20vfu2lf3rjdqrht89h9z0fhsah7hqu`
+  (see the `derived_from` field for how it was derived; re-derive, do not trust
+  this line blindly).
+- Dashboard #1 is hosted **publicly** behind a subdomain of `orangesync.tech`
+  (target `cvm.orangesync.tech`) — per ADR-0001 D6/D12a.
+
+Rules that do not bend: the dashboard is a **cache, not a proxy** (never make a
+per-service CVM call to paint the list), and a stale cache must **disable**, not
+silently show old state as live.

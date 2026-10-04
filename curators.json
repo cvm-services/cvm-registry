@@ -1,0 +1,23 @@
+{
+  "_comment": "Hardcoded allow-list of npubs whose CVM announcements the dashboard may render. Fork this repo and edit THIS FILE for your own deployment - curation is a claim, so it lives in your git history, not in a database. Unknown npub => not rendered. Empty list => nothing rendered (fail closed).",
+  "version": 1,
+  "updated": "2026-10-04",
+  "dashboard_host": "cvm.orangesync.tech",
+  "policy": {
+    "unknown_npub": "not rendered",
+    "empty_list": "renders nothing (fail closed)",
+    "change_process": "edit this file, commit, redeploy"
+  },
+  "registries": [
+    "restaurants-berlin",
+    "ev-charging-berlin"
+  ],
+  "curators": [
+    {
+      "npub": "npub1ftjlarsn0k4g5wmxnjcae48u2nl20vfu2lf3rjdqrht89h9z0fhsah7hqu",
+      "role": "curator",
+      "derived_from": "secp256k1 key 4ae5fe8e (operator's active signing key; npub re-derived with nak encode npub on 2026-10-04)",
+      "note": "Registry #1. Publishes the kind-30000 lists referenced by the 'a' tag in provider announcements."
+    }
+  ]
+}
