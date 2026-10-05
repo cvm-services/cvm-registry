@@ -33,6 +33,14 @@ import {
   type Review,
 } from "./reviews.ts";
 
+import {
+  attachZaps,
+  classifyZap,
+  tallyZapsByTarget,
+  ZAP_RECEIPT_KIND,
+  type Zap,
+} from "./zaps.ts";
+
 interface Args {
   relays: string[];
   out: string;
@@ -152,7 +160,7 @@ async function main() {
     relayStatus.push({ relay: `file:${args.input}`, ok: true, events: events.length, error: null });
   } else {
     const results = await Promise.all(
-      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND], args.limit, args.timeoutMs)),
+      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND], args.limit, args.timeoutMs)),
     );
     for (const r of results) {
       events = events.concat(r.events);
@@ -162,10 +170,11 @@ async function main() {
 
   const raw = events.length;
 
-  // Services and reviews arrive in one REQ but are two different things: a
-  // review is not a catalogue entry and must not be classified as one.
-  const serviceEvents = events.filter((e) => e.kind !== REVIEW_KIND);
+  // Services, reviews and zap receipts arrive in one REQ but are three different
+  // things: a review is not a catalogue entry, and a receipt is not a review.
+  const serviceEvents = events.filter((e) => e.kind !== REVIEW_KIND && e.kind !== ZAP_RECEIPT_KIND);
   const reviewEvents = events.filter((e) => e.kind === REVIEW_KIND);
+  const zapEvents = events.filter((e) => e.kind === ZAP_RECEIPT_KIND);
 
   const deduped = dedupe(serviceEvents);
   const { kept, dropped } = applyAllowList(deduped, allow.hex);
@@ -184,9 +193,17 @@ async function main() {
   const reviewsAllowed = reviewsDeduped.filter((r) => allowSet.has(r.pubkey));
   const reviewsDropped = reviewsDeduped.length - reviewsAllowed.length;
 
+  // Zaps are attached AFTER allow-listing and never influence the order: a zap
+  // is a spend signal, not a score (ADR-0002 §R3).
+  const zapsParsed = zapEvents
+    .map((e) => classifyZap(e))
+    .filter((z): z is Zap => z !== null);
+  const zapsByTarget = tallyZapsByTarget(zapsParsed);
+  const withZaps = attachZaps(reviewsAllowed, zapsByTarget);
+
   const bindings = attachReviews(
     entries as unknown as Array<Record<string, unknown>>,
-    reviewsAllowed,
+    withZaps.reviews,
   );
   const entriesWithReviews = bindings.entries;
 
@@ -198,6 +215,8 @@ async function main() {
     const k = r.rating === null ? "unrated" : String(r.rating);
     ratingHistogram[k] = (ratingHistogram[k] ?? 0) + 1;
   }
+
+  const zapAmountUnknown = zapsParsed.filter((z) => z.sats === null).length;
 
   const catalog = {
     generated_at: generatedAt,
@@ -234,9 +253,17 @@ async function main() {
       attached: bindings.attached,
       orphaned_no_catalogue_entry: bindings.orphaned.length,
       rating_histogram: ratingHistogram,
-      // No score. Zaps (R3) are a spend signal to be shown, never folded into a
-      // single authoritative number, and this collector does not rank by them.
+      // No score. Zaps (R3) are a spend signal shown beside a review, never
+      // folded into a single authoritative number, and this collector does not
+      // rank by them: order stays newest-first.
       scoring: "none:reviews-are-listed-newest-first",
+      zaps: {
+        receipts: zapsParsed.length,
+        reviews_with_zaps: withZaps.reviews_with_zaps,
+        sats_total_known: withZaps.sats_total,
+        receipts_amount_unknown: zapAmountUnknown,
+        label: "zaps are a spend signal, not a score",
+      },
     },
     class_tally: tally,
     // Every entry here is from an allow-listed curator. Nothing was fetched per service.

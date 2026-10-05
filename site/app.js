@@ -270,6 +270,10 @@ function reviewsBlock(e) {
   const ul = el("ul", "review-list");
   for (const r of reviews) {
     const li = el("li", "review");
+    // Exposed so the E2E can assert the ordering claim from the rendered DOM
+    // rather than trusting the collector's own JSON.
+    li.dataset.createdAt = String(r.created_at);
+    li.dataset.zapSats = String(r.zaps ? r.zaps.sats_known : 0);
     const head = el("div", "review-head");
     head.append(el("span", "rating " + (r.rating === null ? "unrated" : "r" + r.rating),
       r.rating === null ? "unrated" : `${r.rating}/5`));
@@ -277,6 +281,15 @@ function reviewsBlock(e) {
     head.append(el("span", "when", new Date(r.created_at * 1000).toISOString().slice(0, 10)));
     li.append(head);
     li.append(el("p", "review-body", r.content));
+    // R3: zaps are shown BESIDE the review and never reorder it. The list stays
+    // newest-first regardless of how many sats are behind any one review.
+    if (r.zaps) {
+      const unknown = r.zaps.count_amount_unknown
+        ? `, ${r.zaps.count_amount_unknown} with an unreadable amount`
+        : "";
+      li.append(el("p", "zaps",
+        `${r.zaps.count} zap(s) · ${r.zaps.sats_known} sats${unknown} — ${r.zaps.label}`));
+    }
     if ((r.warnings || []).length) {
       li.append(el("p", "warn", "flags: " + r.warnings.join(", ")));
     }
