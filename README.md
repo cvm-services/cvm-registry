@@ -3,7 +3,9 @@
 **Collector / aggregator for [ContextVM](https://www.contextvm.org/) services.**
 Crawls CEP-6 announcements, dedupes, caches, and serves the discovery dashboard.
 
-Status: **planned.** No code yet. Spec first, then implement against it.
+Status: **v1 implemented and deployed.** The collector, the cached dashboard and
+the freshness policy live in this repo; `cvm.orangesync.tech` serves the cache.
+Deployment runbook and live evidence: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Scope
 
