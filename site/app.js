@@ -249,6 +249,46 @@ function controls(verdict, decision, entries) {
   return box;
 }
 
+/**
+ * Reviews for one entry (kind 30316, R2).
+ *
+ * Deliberately unranked: newest first, and no score is computed. The rating is
+ * the author's own claim and is printed as such. Nothing here weights a review
+ * by zaps — a zap is a spend signal, not truth, so it must be shown next to the
+ * review rather than folded into a number that looks authoritative.
+ */
+function reviewsBlock(e) {
+  const box = el("div", "reviews");
+  const reviews = e.reviews || [];
+  box.append(el("h4", null, `Reviews (${reviews.length})`));
+
+  if (!reviews.length) {
+    box.append(el("p", "muted", "No review from an allow-listed reviewer yet."));
+    return box;
+  }
+
+  const ul = el("ul", "review-list");
+  for (const r of reviews) {
+    const li = el("li", "review");
+    const head = el("div", "review-head");
+    head.append(el("span", "rating " + (r.rating === null ? "unrated" : "r" + r.rating),
+      r.rating === null ? "unrated" : `${r.rating}/5`));
+    head.append(el("span", "reviewer", r.npub.slice(0, 16) + "…"));
+    head.append(el("span", "when", new Date(r.created_at * 1000).toISOString().slice(0, 10)));
+    li.append(head);
+    li.append(el("p", "review-body", r.content));
+    if ((r.warnings || []).length) {
+      li.append(el("p", "warn", "flags: " + r.warnings.join(", ")));
+    }
+    ul.append(li);
+  }
+  box.append(ul);
+  box.append(el("p", "muted",
+    "Newest first, unranked. Ratings are the reviewers' own claims — not audited, " +
+    "not weighted by payments."));
+  return box;
+}
+
 function card(e, verdict, decision) {
   const c = el("article", "card" + (decision.live_claims ? "" : " cached-only"));
   const h = el("h3");
@@ -294,6 +334,8 @@ function card(e, verdict, decision) {
     c.append(el("h4", null, "Declared price per tool (call price, not settlement)"));
     c.append(ul);
   }
+
+  c.append(reviewsBlock(e));
 
   // ---- what it asks of YOU: the declaration, never an audit badge ----
   const req = e.requirements;

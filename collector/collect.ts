@@ -25,6 +25,13 @@ import {
   parseCurators,
   type Vocab,
 } from "./lib.ts";
+import {
+  attachReviews,
+  classifyReview,
+  dedupeReviews,
+  REVIEW_KIND,
+  type Review,
+} from "./reviews.ts";
 
 interface Args {
   relays: string[];
@@ -145,7 +152,7 @@ async function main() {
     relayStatus.push({ relay: `file:${args.input}`, ok: true, events: events.length, error: null });
   } else {
     const results = await Promise.all(
-      args.relays.map((r) => fetchRelay(r, KINDS, args.limit, args.timeoutMs)),
+      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND], args.limit, args.timeoutMs)),
     );
     for (const r of results) {
       events = events.concat(r.events);
@@ -154,21 +161,51 @@ async function main() {
   }
 
   const raw = events.length;
-  const deduped = dedupe(events);
+
+  // Services and reviews arrive in one REQ but are two different things: a
+  // review is not a catalogue entry and must not be classified as one.
+  const serviceEvents = events.filter((e) => e.kind !== REVIEW_KIND);
+  const reviewEvents = events.filter((e) => e.kind === REVIEW_KIND);
+
+  const deduped = dedupe(serviceEvents);
   const { kept, dropped } = applyAllowList(deduped, allow.hex);
   const entries = kept.map((e) => classify(e, vocab)).sort((a, b) =>
     a.kind - b.kind || a.pubkey.localeCompare(b.pubkey) || a.d.localeCompare(b.d)
   );
 
+  // Reviews are allow-listed on the REVIEWER's pubkey: the same fail-closed
+  // list, applied to a different role. An unlisted reviewer's review is never
+  // shown, and never silently either — the count is reported.
+  const allowSet = new Set<string>(allow.hex as unknown as Iterable<string>);
+  const reviewsParsed = reviewEvents
+    .map((e) => classifyReview(e))
+    .filter((r): r is Review => r !== null);
+  const reviewsDeduped = dedupeReviews(reviewsParsed);
+  const reviewsAllowed = reviewsDeduped.filter((r) => allowSet.has(r.pubkey));
+  const reviewsDropped = reviewsDeduped.length - reviewsAllowed.length;
+
+  const bindings = attachReviews(
+    entries as unknown as Array<Record<string, unknown>>,
+    reviewsAllowed,
+  );
+  const entriesWithReviews = bindings.entries;
+
   const tally: Record<string, number> = {};
   for (const e of entries) for (const c of e.classes) tally[c] = (tally[c] ?? 0) + 1;
+
+  const ratingHistogram: Record<string, number> = {};
+  for (const r of reviewsAllowed) {
+    const k = r.rating === null ? "unrated" : String(r.rating);
+    ratingHistogram[k] = (ratingHistogram[k] ?? 0) + 1;
+  }
 
   const catalog = {
     generated_at: generatedAt,
     generated_at_iso: new Date(generatedAt * 1000).toISOString(),
     collector: {
-      version: 1,
-      kinds: KINDS,
+      version: 2,
+      kinds: [...KINDS, REVIEW_KIND],
+      review_kind: REVIEW_KIND,
       relays: args.input ? [] : args.relays,
       relay_status: relayStatus,
       offline_input: args.input,
@@ -188,9 +225,22 @@ async function main() {
       kept: kept.length,
       dropped_not_allowlisted: dropped.length,
     },
+    reviews: {
+      raw_events: reviewEvents.length,
+      parsed: reviewsParsed.length,
+      after_dedupe: reviewsDeduped.length,
+      shown: reviewsAllowed.length,
+      dropped_not_allowlisted: reviewsDropped,
+      attached: bindings.attached,
+      orphaned_no_catalogue_entry: bindings.orphaned.length,
+      rating_histogram: ratingHistogram,
+      // No score. Zaps (R3) are a spend signal to be shown, never folded into a
+      // single authoritative number, and this collector does not rank by them.
+      scoring: "none:reviews-are-listed-newest-first",
+    },
     class_tally: tally,
     // Every entry here is from an allow-listed curator. Nothing was fetched per service.
-    entries,
+    entries: entriesWithReviews,
   };
 
   await Deno.mkdir(args.out.replace(/\/[^/]+$/, ""), { recursive: true }).catch(() => {});
@@ -199,7 +249,10 @@ async function main() {
   const errs = relayStatus.filter((s) => !s.ok).map((s) => s.relay);
   console.log(
     `catalog: raw=${raw} deduped=${deduped.length} kept=${kept.length} ` +
-      `dropped=${dropped.length} relays_failed=${errs.length ? errs.join(" ") : "none"} -> ${args.out}`,
+      `dropped=${dropped.length} relays_failed=${errs.length ? errs.join(" ") : "none"} ` +
+      `| reviews raw=${reviewEvents.length} shown=${reviewsAllowed.length} ` +
+      `attached=${bindings.attached} orphaned=${bindings.orphaned.length} ` +
+      `dropped=${reviewsDropped} -> ${args.out}`,
   );
   if (allow.errors.length) console.error("allow-list errors: " + allow.errors.join("; "));
 }

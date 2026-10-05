@@ -29,6 +29,16 @@
       "role": "service",
       "slug": "pizza-e-pasta-ruedesheimerplatz",
       "note": "S4a venue service key — pizza-e-pasta-ruedesheimerplatz. E2E allow-list only."
+    },
+    {
+      "npub": "npub1fevhqwgrq0khc9a7r40jv44k5lkl3j5u96thj6ldj72khftc55xsgknehn",
+      "role": "reviewer",
+      "note": "R2 E2E reviewer A (authors doppelt-koese review). E2E allow-list only."
+    },
+    {
+      "npub": "npub1slp6y87snl5f8g30zz6qf4y48n5468y79l0dvnph6wk24djmstvs7dstqv",
+      "role": "reviewer",
+      "note": "R2 E2E reviewer B (pizza e pasta). E2E allow-list only."
     }
   ]
 }
