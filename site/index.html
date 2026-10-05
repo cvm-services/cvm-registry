@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ContextVM services — cvm.orangesync.tech</title>
+<meta name="description" content="Allow-list driven cache of ContextVM (CEP-6) service announcements. A cache, not a proxy.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<noscript>
+  <p class="banner disabled">This dashboard needs JavaScript to read the cached catalog. Nothing is rendered without it (fail closed).</p>
+</noscript>
+<main id="app">
+  <p class="banner">Loading the cached catalog…</p>
+</main>
+<footer>
+  <p>
+    Cache, not proxy: this page renders a static <code>catalog.json</code> written by
+    <code>collector/collect.ts</code>. It never opens a relay connection and never makes a
+    per-service CVM call.
+  </p>
+  <p>
+    Only announcements signed by an npub in <code>curators.json</code> are rendered; an
+    unknown npub is not rendered (fail closed). A stale cache says so and disables every
+    live claim; past the hard limit it is disabled outright.
+  </p>
+  <p><a href="catalog.json">catalog.json</a> · <a href="policy.json">policy.json</a> · <a href="curators.json">curators.json</a></p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
