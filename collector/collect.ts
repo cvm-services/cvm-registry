@@ -49,6 +49,14 @@ import {
   type Attestation,
 } from "./attestations.ts";
 
+import {
+  attachPaymentViews,
+  DECLARED_LABEL,
+  DOCTRINE,
+  RECEIVED_LABEL,
+  tallyObservedSats,
+} from "./paid.ts";
+
 interface Args {
   relays: string[];
   out: string;
@@ -245,12 +253,32 @@ async function main() {
 
   const zapAmountUnknown = zapsParsed.filter((z) => z.sats === null).length;
 
+  // Part 2: the declared-vs-received view. Receipts are tallied by TARGET event
+  // id, keeping the amount provenance apart (a receipt `amount` tag is the
+  // LNURL server's word; a zap-request amount is the client's claim). This is a
+  // different aggregation from the review-side tally above on purpose: see the
+  // header of collector/paid.ts for why blending the two overstates payment.
+  const observedByTarget = tallyObservedSats(zapsParsed);
+  const paid = attachPaymentViews(
+    entries as unknown as Array<{ event_id: string; caps?: { tool: string; amount: number; unit: string }[] }>,
+    observedByTarget,
+  );
+  let paidReceiptSats = 0;
+  let paidRequestSats = 0;
+  let paidAmountUnknown = 0;
+  for (const v of paid.views) {
+    if (!v.received) continue;
+    paidReceiptSats += v.received.sats_from_receipt_tag;
+    paidRequestSats += v.received.sats_from_zap_request;
+    paidAmountUnknown += v.received.count_amount_unknown;
+  }
+
   const catalog = {
     generated_at: generatedAt,
     generated_at_iso: new Date(generatedAt * 1000).toISOString(),
     collector: {
-      version: 2,
-      kinds: [...KINDS, REVIEW_KIND],
+      version: 3,
+      kinds: [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND, ATTESTATION_KIND],
       review_kind: REVIEW_KIND,
       relays: args.input ? [] : args.relays,
       relay_status: relayStatus,
@@ -301,6 +329,28 @@ async function main() {
         label: "zaps are a spend signal, not a score",
       },
     },
+    // Part 1 + Part 2 of paid-CVM discovery. Two labelled sides, never one
+    // "paid" verdict: `declared_*` is what the announcement advertises,
+    // `received_*` is what receipts show moving. The dashboard renders both
+    // columns and knows nothing about a blended total because none exists.
+    paid: {
+      declared_label: DECLARED_LABEL,
+      received_label: RECEIVED_LABEL,
+      doctrine: DOCTRINE,
+      filter: "declared_price_amount_gt_zero",
+      counts: {
+        entries_with_declared_price: paid.entries_with_declared_price,
+        entries_with_receipts: paid.entries_with_receipts,
+        entries_with_receipt_amount: paid.entries_with_receipt_amount,
+        receipts_matched_to_entries: paid.receipts_matched,
+        receipts_unmatched: paid.receipts_unmatched,
+        sats_from_receipt_tag: paidReceiptSats,
+        sats_from_zap_request: paidRequestSats,
+        receipts_amount_unknown: paidAmountUnknown,
+      },
+      // keyed by the entry's event id; absence means "nothing to show"
+      entries: paid.views,
+    },
     class_tally: tally,
     // Every entry here is from an allow-listed curator. Nothing was fetched per service.
     entries: entriesWithReviews,
@@ -316,7 +366,10 @@ async function main() {
       `| attest ${attestationsParsed.length}/${attestationIndex.size}=${withAttestations.confirmed}` +
       ` | reviews raw=${reviewEvents.length} shown=${reviewsAllowed.length} ` +
       `attached=${bindings.attached} orphaned=${bindings.orphaned.length} ` +
-      `dropped=${reviewsDropped} -> ${args.out}`,
+      `dropped=${reviewsDropped}` +
+      ` | paid declared=${paid.entries_with_declared_price} ` +
+      `receipts=${paid.receipts_matched}/${paid.receipts_matched + paid.receipts_unmatched} ` +
+      `sats(receipt-tag)=${paidReceiptSats} sats(zap-request)=${paidRequestSats} -> ${args.out}`,
   );
   if (allow.errors.length) console.error("allow-list errors: " + allow.errors.join("; "));
 }
