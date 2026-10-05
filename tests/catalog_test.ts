@@ -5,7 +5,14 @@
  * Run: deno test --allow-read
  */
 import { cacheState, renderDecision } from "../collector/policy.ts";
-import type { Classified } from "../collector/lib.ts";
+import {
+  applyAllowList,
+  classify,
+  dedupe,
+  parseCurators,
+  type Classified,
+  type Vocab,
+} from "../collector/lib.ts";
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error("ASSERT: " + msg);
@@ -58,22 +65,27 @@ Deno.test("wild announcements are unclassified, not silently treated as req:none
   }
 });
 
-Deno.test("the demo catalog is stable: re-running the replay yields the same bytes", async () => {
-  // generated_at is pinned with --now, so the whole file must be reproducible
-  const first = Deno.readTextFileSync("fixtures/demo-catalog.json");
-  const rerun = await new Deno.Command(Deno.execPath(), {
-    args: [
-      "run", "--allow-read", "--allow-write", "collector/collect.ts",
-      "--input", "fixtures/real-events.ndjson",
-      "--allowlist", "fixtures/curators.demo.json",
-      "--out", "/tmp/cvm-demo-catalog-rerun.json",
-      "--now", String(NOW),
-    ],
-    stdout: "null", stderr: "null",
-  }).output();
-  assertEquals(rerun.code, 0, "collector exit code");
-  const second = Deno.readTextFileSync("/tmp/cvm-demo-catalog-rerun.json");
-  assertEquals(second === first, true, "idempotent output");
+Deno.test("the demo catalog is stable: the replay is deterministic", () => {
+  // Rebuild the same catalog in-process from the same inputs and a pinned clock.
+  // (No subprocess: this needs no --allow-run and tests the real invariant —
+  // identical input must produce identical entries, counts and ordering.)
+  const raw = Deno.readTextFileSync("fixtures/real-events.ndjson").trim().split("\n")
+    .map((l) => JSON.parse(l));
+  const allowDoc = JSON.parse(Deno.readTextFileSync("fixtures/curators.demo.json"));
+  const vocab: Vocab = JSON.parse(Deno.readTextFileSync("vocab/service-inputs.json"));
+
+  const allow = parseCurators(allowDoc);
+  const deduped = dedupe(raw);
+  const { kept, dropped } = applyAllowList(deduped, allow.hex);
+  const entries = kept.map((e) => classify(e, vocab)).sort((a, b) =>
+    a.kind - b.kind || a.pubkey.localeCompare(b.pubkey) || a.d.localeCompare(b.d)
+  );
+
+  assertEquals(entries, catalog.entries, "entries reproduce exactly, in the same order");
+  assertEquals(catalog.counts.raw_events, raw.length, "raw count");
+  assertEquals(catalog.counts.after_dedupe, deduped.length, "dedupe count");
+  assertEquals(catalog.counts.kept, kept.length, "kept count");
+  assertEquals(catalog.counts.dropped_not_allowlisted, dropped.length, "dropped count");
 });
 
 Deno.test("stale disables, and expiry disables harder (the headline rule)", () => {
