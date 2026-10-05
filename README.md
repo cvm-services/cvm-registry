@@ -52,6 +52,26 @@ deployment's curation history is its own git history.
 - Dashboard #1 is hosted **publicly** behind a subdomain of `orangesync.tech`
   (target `cvm.orangesync.tech`) — per ADR-0001 D6/D12a.
 
+### Two roles, and why `registries` is not the place for a class
+
+The list holds the keys that may be rendered, each with a `role`:
+
+- **`curator`** — publishes a NIP-51 **kind-30000 list** (`d=<category>-<area>`)
+  that provider announcements reference from their `a` tag. These are the entries
+  named in `registries`.
+- **`provider`** — signs a service's own CEP-6 announcement. Added on
+  2026-10-05 for the `nosms` CVM
+  (`npub1al953lfy7nv5qjwhcw8u2p0uuq0dwmjes3g4rgjxqlke75nxsd9q6lw3w9`,
+  `d=nosms`, class `cvm:service:sms`), whose signing key is **not** registry
+  #1's curator key and was therefore dropped at collect time before.
+
+`sms` is deliberately **not** added to `registries`: a registry is a curated
+*kind-30000 list* that a provider points at, and the nosms announcement
+references no list. `sms` is a **class** (`cvm:service:sms`), which rides the
+existing single-letter `t` tag (ADR-0001 D2/D3) and needs no registry entry — a
+class is discoverable the moment a listed key announces it. Adding a bare class
+name to `registries` would imply a kind-30000 list that does not exist.
+
 Rules that do not bend: the dashboard is a **cache, not a proxy** (never make a
 per-service CVM call to paint the list), and a stale cache must **disable**, not
 silently show old state as live.
