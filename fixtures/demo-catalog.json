@@ -1,0 +1,237 @@
+{
+  "generated_at": 1791167000,
+  "generated_at_iso": "2026-10-05T02:23:20.000Z",
+  "collector": {
+    "version": 1,
+    "kinds": [
+      11316,
+      11317,
+      11318,
+      11319,
+      11320
+    ],
+    "relays": [],
+    "relay_status": [
+      {
+        "relay": "file:fixtures/real-events.ndjson",
+        "ok": true,
+        "events": 66,
+        "error": null
+      }
+    ],
+    "offline_input": "fixtures/real-events.ndjson"
+  },
+  "allowlist": {
+    "source": "fixtures/curators.demo.json",
+    "dashboard_host": "cvm.orangesync.tech",
+    "curators": [
+      {
+        "npub": "npub1udtyhwrh4kcvnxn7f9euev3w29khm8k2qqnap0tz5pqhfmt8q5cqvwraru",
+        "role": "fixture-demo",
+        "derived_from": "real relay author, captured for a render test"
+      },
+      {
+        "npub": "npub1e6km04dh8yvflvlvkupr5rpl2hvfj4qy6a6s75rgsew7e79nqnxqp0555p",
+        "role": "fixture-demo",
+        "derived_from": "real relay author, captured for a render test"
+      },
+      {
+        "npub": "npub19x7kgc0hsrq8k2wgndxlsqtahyyh84tq3g7dsydq2g43tsgxfu2s95fu48",
+        "role": "fixture-demo",
+        "derived_from": "real relay author, captured for a render test"
+      }
+    ],
+    "pubkey_count": 3,
+    "errors": [],
+    "policy": null
+  },
+  "policy": {
+    "_comment": "Freshness policy for the public cvm-registry dashboard. Single source of truth: the collector copies this object verbatim into site/catalog.json under 'policy', and the client reads it from there. Change the numbers here, rebuild, redeploy. ADR-0001 D6 is the rule this file implements.",
+    "version": 1,
+    "updated": "2026-10-05",
+    "dashboard_host": "cvm.orangesync.tech",
+    "freshness": {
+      "fresh_ttl_seconds": 900,
+      "max_age_seconds": 21600,
+      "clock_skew_seconds": 120
+    },
+    "semantics": {
+      "fresh": "age <= fresh_ttl_seconds: announcements may be presented as current",
+      "stale": "fresh_ttl_seconds < age <= max_age_seconds: entries are shown ONLY as an explicitly labelled cached snapshot; every live claim (freshness, refresh, 'current') is disabled",
+      "expired": "age > max_age_seconds: the catalog is DISABLED and no entry is rendered",
+      "invalid": "generated_at missing, unparseable, or future-dated beyond clock_skew_seconds: DISABLED (fail closed)",
+      "rule": "stale must disable, never silently show old state as live (ADR-0001 D6)"
+    }
+  },
+  "counts": {
+    "raw_events": 66,
+    "after_dedupe": 66,
+    "kept": 6,
+    "dropped_not_allowlisted": 60
+  },
+  "class_tally": {},
+  "entries": [
+    {
+      "event_id": "c44e08627f6ef4345dd6681c6d86e93e72fc8115431ac5313e6c82004f220d3a",
+      "kind": 11316,
+      "pubkey": "29bd6461f780c07b29c89b4df8017db90973d5608a3cd811a0522b15c1064f15",
+      "npub": "npub19x7kgc0hsrq8k2wgndxlsqtahyyh84tq3g7dsydq2g43tsgxfu2s95fu48",
+      "d": "",
+      "created_at": 1790803639,
+      "classes": [],
+      "name": "Plebeian Currency Server",
+      "about": "BTC exchange rate server aggregating Yadio, CoinDesk, Binance, and CoinGecko prices via median calculation.",
+      "website": "https://plebeian.market",
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    },
+    {
+      "event_id": "fcd346c5dd2503a3b354435a3fcaed8f1908d71a91ddcb529c459a441e0d6bfe",
+      "kind": 11316,
+      "pubkey": "ceadb7d5b739189fb3ecb7023a0c3f55d8995404d7750f5068865decf8b304cc",
+      "npub": "npub1e6km04dh8yvflvlvkupr5rpl2hvfj4qy6a6s75rgsew7e79nqnxqp0555p",
+      "d": "",
+      "created_at": 1790935821,
+      "classes": [],
+      "name": "Earthly Geo Server",
+      "about": "Fast self-hosted geography catalog, geocoding, OSM fallback queries, Valhalla routing, web search, URL fetching, and provenance-aware Wikipedia extraction.",
+      "website": "https://earthly.city",
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    },
+    {
+      "event_id": "4f8e8822ec104f02512413e7261ef3c967eb357ca9808c671198d9520c8c563f",
+      "kind": 11316,
+      "pubkey": "e3564bb877adb0c99a7e4973ccb22e516d7d9eca0027d0bd62a04174ed670530",
+      "npub": "npub1udtyhwrh4kcvnxn7f9euev3w29khm8k2qqnap0tz5pqhfmt8q5cqvwraru",
+      "d": "",
+      "created_at": 1791158420,
+      "classes": [],
+      "name": "SkateSpots Data Server",
+      "about": "Structured query access to the global SkateSpots database on Nostr. Find skate spots, events, coaches, filmers, video editors, and gear listings.",
+      "website": "https://skate-spots.org",
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    },
+    {
+      "event_id": "a0ec6a2b69d45d36065ce67477c4664c6ade8ce7ace31d3de1f9089ba7ef9acf",
+      "kind": 11317,
+      "pubkey": "29bd6461f780c07b29c89b4df8017db90973d5608a3cd811a0522b15c1064f15",
+      "npub": "npub19x7kgc0hsrq8k2wgndxlsqtahyyh84tq3g7dsydq2g43tsgxfu2s95fu48",
+      "d": "",
+      "created_at": 1790803639,
+      "classes": [],
+      "name": null,
+      "about": null,
+      "website": null,
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    },
+    {
+      "event_id": "cd2ef31fb640e21d3dc05a08bbc7dfaba334b066864dfea11855ee5f5d9745a2",
+      "kind": 11317,
+      "pubkey": "ceadb7d5b739189fb3ecb7023a0c3f55d8995404d7750f5068865decf8b304cc",
+      "npub": "npub1e6km04dh8yvflvlvkupr5rpl2hvfj4qy6a6s75rgsew7e79nqnxqp0555p",
+      "d": "",
+      "created_at": 1790940321,
+      "classes": [],
+      "name": null,
+      "about": null,
+      "website": null,
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    },
+    {
+      "event_id": "123e63365d49ec6c9613050513d9de2e7cf6267eaed86d4eee9738929c90b97f",
+      "kind": 11317,
+      "pubkey": "e3564bb877adb0c99a7e4973ccb22e516d7d9eca0027d0bd62a04174ed670530",
+      "npub": "npub1udtyhwrh4kcvnxn7f9euev3w29khm8k2qqnap0tz5pqhfmt8q5cqvwraru",
+      "d": "",
+      "created_at": 1791166521,
+      "classes": [],
+      "name": null,
+      "about": null,
+      "website": null,
+      "links": [],
+      "geohashes": [],
+      "caps": [],
+      "tier": {
+        "declared": [],
+        "recomputed": null,
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [],
+        "optional": [],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": true
+      }
+    }
+  ]
+}

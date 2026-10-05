@@ -1,0 +1,18 @@
+{
+  "_comment": "Freshness policy for the public cvm-registry dashboard. Single source of truth: the collector copies this object verbatim into site/catalog.json under 'policy', and the client reads it from there. Change the numbers here, rebuild, redeploy. ADR-0001 D6 is the rule this file implements.",
+  "version": 1,
+  "updated": "2026-10-05",
+  "dashboard_host": "cvm.orangesync.tech",
+  "freshness": {
+    "fresh_ttl_seconds": 900,
+    "max_age_seconds": 21600,
+    "clock_skew_seconds": 120
+  },
+  "semantics": {
+    "fresh": "age <= fresh_ttl_seconds: announcements may be presented as current",
+    "stale": "fresh_ttl_seconds < age <= max_age_seconds: entries are shown ONLY as an explicitly labelled cached snapshot; every live claim (freshness, refresh, 'current') is disabled",
+    "expired": "age > max_age_seconds: the catalog is DISABLED and no entry is rendered",
+    "invalid": "generated_at missing, unparseable, or future-dated beyond clock_skew_seconds: DISABLED (fail closed)",
+    "rule": "stale must disable, never silently show old state as live (ADR-0001 D6)"
+  }
+}

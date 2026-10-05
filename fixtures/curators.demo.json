@@ -1,0 +1,24 @@
+{
+  "_comment": "DEMO allow-list for the fixture render proof only. These are REAL relay authors whose announcements were captured into fixtures/real-events.ndjson; they are NOT the curated registry allow-list (that is ../curators.json). Nothing here is deployed as live curation.",
+  "version": 1,
+  "updated": "2026-10-05",
+  "dashboard_host": "cvm.orangesync.tech",
+  "registries": [],
+  "curators": [
+    {
+      "npub": "npub1udtyhwrh4kcvnxn7f9euev3w29khm8k2qqnap0tz5pqhfmt8q5cqvwraru",
+      "role": "fixture-demo",
+      "derived_from": "real relay author, captured for a render test"
+    },
+    {
+      "npub": "npub1e6km04dh8yvflvlvkupr5rpl2hvfj4qy6a6s75rgsew7e79nqnxqp0555p",
+      "role": "fixture-demo",
+      "derived_from": "real relay author, captured for a render test"
+    },
+    {
+      "npub": "npub19x7kgc0hsrq8k2wgndxlsqtahyyh84tq3g7dsydq2g43tsgxfu2s95fu48",
+      "role": "fixture-demo",
+      "derived_from": "real relay author, captured for a render test"
+    }
+  ]
+}

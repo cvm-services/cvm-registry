@@ -1,0 +1,92 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel-2: #1c2230;
+  --line: #2a3240;
+  --fg: #e6edf3;
+  --dim: #9aa7b4;
+  --accent: #6cb6ff;
+  --ok: #3fb950;
+  --warn: #d29922;
+  --loud: #f85149;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1rem 3rem;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main, footer p { max-width: 1000px; margin-left: auto; margin-right: auto; }
+
+header { padding: 1.4rem 0 .6rem; }
+h1 { font-size: 1.5rem; margin: 0 0 .35rem; letter-spacing: -.01em; }
+h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 1.8rem 0 .6rem; }
+h3 { font-size: 1.05rem; margin: 0 0 .4rem; }
+h4 { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 1rem 0 .35rem; }
+.sub { color: var(--dim); margin: .2rem 0 .7rem; }
+.host { color: var(--accent); font-weight: 600; }
+
+.pill {
+  display: inline-block; padding: .12rem .55rem; border-radius: 999px;
+  font-size: .78rem; font-weight: 600; border: 1px solid var(--line);
+}
+.pill.fresh { color: var(--ok); border-color: #2b5a34; background: #0f2a17; }
+.pill.stale { color: var(--warn); border-color: #5c4715; background: #2a2210; }
+.pill.expired, .pill.invalid { color: var(--loud); border-color: #6b2620; background: #2c1413; }
+
+.banner { padding: .7rem .9rem; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); }
+.banner.stale { border-color: #5c4715; background: #241d0d; color: #ffdf8a; }
+.banner.disabled { border-color: #6b2620; background: #2a1312; color: #ffb4ad; }
+.summary { color: var(--dim); font-size: .9rem; }
+
+.controls {
+  display: flex; flex-wrap: wrap; gap: .6rem 1.1rem; align-items: center;
+  padding: .8rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+  margin: 1rem 0 1.4rem;
+}
+.control-group { display: flex; flex-wrap: wrap; gap: .3rem; align-items: center; }
+.control-group .label { color: var(--dim); font-size: .82rem; margin-right: .2rem; }
+.chip {
+  font: inherit; font-size: .82rem; color: var(--fg); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: .18rem .6rem; cursor: pointer;
+}
+.chip:hover { border-color: var(--accent); }
+.chip.on { background: #11314f; border-color: var(--accent); color: #cfe7ff; }
+.chip.reset { margin-left: auto; }
+input[type=text] {
+  font: inherit; font-size: .85rem; color: var(--fg); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 6px; padding: .2rem .5rem; width: 9rem;
+}
+
+.cards { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: .95rem 1rem 1.1rem;
+}
+.card.cached-only { border-style: dashed; }
+.badge {
+  font-size: .7rem; padding: .1rem .45rem; border-radius: 999px; margin-left: .4rem;
+  border: 1px solid var(--line); color: var(--dim); vertical-align: middle;
+}
+.badge.tier { color: var(--accent); border-color: #29527a; }
+.badge.warn { color: var(--warn); border-color: #5c4715; }
+.about { color: var(--dim); margin: .35rem 0 .6rem; }
+.facts { list-style: none; margin: .4rem 0; padding: 0; font-size: .86rem; }
+.facts li { padding: .12rem 0; overflow-wrap: anywhere; }
+.facts .k { display: inline-block; min-width: 5.6rem; color: var(--dim); }
+.facts a { color: var(--accent); }
+.caps { margin: .3rem 0; padding-left: 1.1rem; font-size: .88rem; }
+.reqs { border-top: 1px solid var(--line); margin-top: .7rem; padding-top: .2rem; }
+.reqs p { margin: .25rem 0; font-size: .88rem; }
+.reqs .ok { color: var(--ok); }
+.reqs .warn { color: var(--warn); }
+.reqs .loud { color: var(--loud); font-weight: 600; }
+.fineprint { color: var(--dim); font-size: .78rem; margin-top: .45rem; }
+
+footer { margin-top: 2.4rem; color: var(--dim); font-size: .82rem; }
+footer code { color: var(--fg); background: var(--panel); padding: 0 .25rem; border-radius: 4px; }
+footer a { color: var(--accent); }
