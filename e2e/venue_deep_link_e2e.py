@@ -132,6 +132,29 @@ def main() -> int:
             assert "unranked" in note, f"{slug}: the block must state it is unranked, got '{note}'"
         assert sum(review_counts.values()) >= 2, f"expected >=2 reviews rendered, got {review_counts}"
 
+        # R3: assert the no-ranking claim from the RENDERED DOM, not from the
+        # collector's JSON. On the venue that has two reviews, the older one has
+        # far more sats behind it and must still render LAST.
+        two_review_slug = next((s for s, n in review_counts.items() if n >= 2), None)
+        if two_review_slug:
+            rows = page.locator(
+                f"article.card:has-text('{two_review_slug}') li.review"
+            )
+            stamps = [int(rows.nth(i).get_attribute("data-created-at")) for i in range(rows.count())]
+            sats = [int(rows.nth(i).get_attribute("data-zap-sats")) for i in range(rows.count())]
+            log(f"{two_review_slug}: created_at={stamps} zap_sats={sats} (rendered order)")
+            assert stamps == sorted(stamps, reverse=True), f"reviews are not newest-first: {stamps}"
+            if max(sats) > 0 and sats[0] != max(sats):
+                log(f"{two_review_slug}: richest review ({max(sats)} sats) renders at index "
+                    f"{sats.index(max(sats))}, NOT first — zaps did not promote it")
+            else:
+                log(f"{two_review_slug}: WARNING — the richest review is first, which does not "
+                    f"demonstrate non-promotion with this data")
+            zap_lines = page.locator("article.card p.zaps")
+            assert zap_lines.count() >= 1, "expected at least one zap line rendered"
+            first_zap = zap_lines.first.inner_text()
+            assert "spend signal" in first_zap, f"zap line must be labelled: '{first_zap}'"
+
         for idx, (slug, url) in enumerate(VENUES.items(), start=2):
             card = page.locator("article.card", has_text=slug).first
             assert card.count() == 1, f"card for {slug} not found"
