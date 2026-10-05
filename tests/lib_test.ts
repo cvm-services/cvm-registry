@@ -14,6 +14,7 @@ import {
   matchesTierShorthand,
   npubToHex,
   parseCaps,
+  parseLinks,
   parseCurators,
   tierPrefilter,
   type NostrEvent,
@@ -232,4 +233,31 @@ Deno.test("geohash precisions are kept, deduped and sorted", () => {
 Deno.test("parseCaps ignores malformed cap tags instead of inventing a price", () => {
   assertEquals(parseCaps([["cap", "menu", "10", "sats"], ["cap", "tool:x", "abc", "sats"], ["cap", "tool:y", "5", "sats"]]),
     [{ tool: "y", amount: 5, unit: "sats" }], "only well-formed caps survive");
+});
+
+// ---------------------------------------------------------------- links -----
+
+Deno.test("r tags become outbound links (the venue ordering deep-link)", () => {
+  const c = classify(
+    ev({ tags: [["t", "cvm:service:restaurant"], ["r", "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"]] }),
+    VOCAB,
+  );
+  assertEquals(c.links, ["https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"], "deep-link kept");
+});
+
+Deno.test("parseLinks drops non-http schemes and junk instead of rendering them", () => {
+  assertEquals(
+    parseLinks([
+      ["r", "javascript:alert(1)"],
+      ["r", "data:text/html,<script>1</script>"],
+      ["r", "file:///etc/passwd"],
+      ["r", "not a url"],
+      ["r", ""],
+      ["r", "http://ok.example/x"],
+      ["r", "https://ok.example/y"],
+      ["x", "https://ignored.example/z"],
+    ]),
+    ["http://ok.example/x", "https://ok.example/y"],
+    "only absolute http(s) survive, deduped + sorted",
+  );
 });

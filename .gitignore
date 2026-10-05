@@ -1,3 +1,5 @@
 site/catalog.json
 *.tmp
 node_modules/
+.worktrees/
+docs/e2e/video/

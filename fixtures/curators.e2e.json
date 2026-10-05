@@ -1,0 +1,34 @@
+{
+  "_comment": "Curator allow-list for the HERMETIC end-to-end evidence run (S4d). Not the public deployment: the public host keeps curators.json. This file adds the two restaurant venue service keys that the S4a emitter uses, so the collector renders them instead of dropping them fail-closed. Provenance: keys are generated per venue by tools/emit-venue-announcement.ts (see cvm-services/contextvm-services, branch pr/s4a-announce-two-venues).",
+  "version": 1,
+  "updated": "2026-10-05",
+  "dashboard_host": "127.0.0.1 (hermetic e2e run only)",
+  "policy": {
+    "unknown_npub": "not rendered",
+    "empty_list": "renders nothing (fail closed)",
+    "change_process": "edit this file, commit, redeploy"
+  },
+  "registries": [
+    "restaurants-berlin",
+    "ev-charging-berlin"
+  ],
+  "curators": [
+    {
+      "npub": "npub1ftjlarsn0k4g5wmxnjcae48u2nl20vfu2lf3rjdqrht89h9z0fhsah7hqu",
+      "role": "curator",
+      "note": "Registry #1 (unchanged from the public allow-list)."
+    },
+    {
+      "npub": "npub14cchqw9eerp0k6qmzclfjq7309u99y4etktymjufh5znh2p7sj7sc6upxg",
+      "role": "service",
+      "slug": "doppelt-kaese-berlin",
+      "note": "S4a venue service key — doppelt-kaese-berlin. E2E allow-list only."
+    },
+    {
+      "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",
+      "role": "service",
+      "slug": "pizza-e-pasta-ruedesheimerplatz",
+      "note": "S4a venue service key — pizza-e-pasta-ruedesheimerplatz. E2E allow-list only."
+    }
+  ]
+}

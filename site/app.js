@@ -271,6 +271,18 @@ function card(e, verdict, decision) {
     li.append(a);
     facts.append(li);
   }
+  // ---- the provider's own links: for a venue, the ordering deep-link --------
+  if ((e.links || []).length) {
+    const li = el("li");
+    li.append(el("span", "k", "order"));
+    for (const [i, url] of e.links.entries()) {
+      if (i) li.append(document.createTextNode("  "));
+      const a = el("a", "deep-link", url);
+      a.href = url; a.rel = "noopener noreferrer"; a.target = "_blank";
+      li.append(a);
+    }
+    facts.append(li);
+  }
   if ((e.geohashes || []).length) facts.append(factItem("geohash", e.geohashes.join(", ")));
   facts.append(factItem("announced", new Date(e.created_at * 1000).toISOString()));
   facts.append(factItem("curator", e.npub));

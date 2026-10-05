@@ -315,10 +315,34 @@ export interface Classified {
   name: string | null;
   about: string | null;
   website: string | null;
+  links: string[];
   geohashes: string[];
   caps: Cap[];
   tier: TierAssessment;
   requirements: RequirementAssessment;
+}
+
+/**
+ * The `r` tags: the provider's own outbound links — for a venue, the ordering
+ * deep-link. Only absolute http(s) URLs are kept, so a hostile announcement
+ * cannot smuggle a `javascript:`/`data:` href onto the rendered page.
+ */
+export function parseLinks(tags: string[][]): string[] {
+  const out: string[] = [];
+  for (const t of tags) {
+    if (!Array.isArray(t) || t[0] !== "r") continue;
+    const raw = typeof t[1] === "string" ? t[1].trim() : "";
+    if (!raw) continue;
+    let u: URL;
+    try {
+      u = new URL(raw);
+    } catch {
+      continue;
+    }
+    if (u.protocol !== "http:" && u.protocol !== "https:") continue;
+    out.push(u.toString());
+  }
+  return uniqSorted(out);
 }
 
 /** Per-tool prices: ["cap","tool:<name>","<n>","sats"]. */
@@ -389,6 +413,7 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
     name: tagValues(e.tags, "name")[0] ?? null,
     about: tagValues(e.tags, "about")[0] ?? null,
     website: tagValues(e.tags, "website")[0] ?? null,
+    links: parseLinks(e.tags),
     geohashes: uniqSorted(tagValues(e.tags, "g")),
     caps: parseCaps(e.tags),
     tier: { declared, recomputed, mismatch },

@@ -1,0 +1,65 @@
+{
+  "catalog": "/home/c03rad0r/repos/cvm-registry/site/catalog.json",
+  "entries": {
+    "pizza-e-pasta-ruedesheimerplatz": {
+      "event_id": "7767889b1ac103537cade59a4376af5b14e3ceeab932b86050b831f613314cae",
+      "pubkey": "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891",
+      "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",
+      "tier": {
+        "declared": [
+          "fulfilment"
+        ],
+        "recomputed": "fulfilment",
+        "mismatch": false
+      },
+      "links": [
+        "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"
+      ],
+      "classes": [
+        "restaurant"
+      ],
+      "geohashes": [
+        "u336",
+        "u336wb",
+        "u336wbrd"
+      ]
+    },
+    "doppelt-kaese-berlin": {
+      "event_id": "8924044ead30ede3659113a8397bb3ca59e90989b152e618423b9bd05b8dfa2f",
+      "pubkey": "ae317038b9c8c2fb681b163e9903d179785292b95d964dcb89bd053ba83e84bd",
+      "npub": "npub14cchqw9eerp0k6qmzclfjq7309u99y4etktymjufh5znh2p7sj7sc6upxg",
+      "tier": {
+        "declared": [
+          "fulfilment"
+        ],
+        "recomputed": "fulfilment",
+        "mismatch": false
+      },
+      "links": [
+        "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+      ],
+      "classes": [
+        "restaurant"
+      ],
+      "geohashes": [
+        "u336",
+        "u336x0",
+        "u336x058"
+      ]
+    }
+  },
+  "venue_pages": {
+    "doppelt-kaese-berlin": {
+      "announced_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
+      "final_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
+      "title": "Speisekarte | doppelt K\u00e4se Berlin",
+      "body_head": "Doppelt K\u00e4se Laubacher Stra\u00dfe\n\nLaubacher Stra\u00dfe 11, Berlin \u00b7 Ge\u00f6ffnet 16:30 - 21:15\n\nDeutsch\nAnmelden\nRegistrieren\n\nMen\u00fc\n\nPr\u00e4mien\n\nStore-Details\n\nStartseite\n\nAbholung\n\nLieferung\n\nAbholung an Laubacher Stra\u00dfe 11, 14197 Berlin\n|\nBereit in 10 min\n4,00\u00a0\u20ac, 3,00\u00a0\u20ac, 3,00\u00a0\u20ac Rabatt (MBW: 20,00\u00a0\u20ac)\n\nJetzt verf\u00fcgbar\n\n10% Rabatt auf Abholung \u00fcber den Webshop\nBereits automatisch angewandt\n5,00\u00a0\u20ac AppAnmelde-Bonus\nErhalte 5,00\u00a0\u20ac Cashback, wenn du dich in unserer App anmeldest.\nAm Beliebtesten\n\ud83c\udfc5 #1 Beliebtesten\n\nCheeseburger\n\n9,50\u00a0\u20ac\n\n8,90\u00a0\u20ac\n\n46\n\ud83c\udfc5 #2 Beliebtesten\n\nCurly Fries\n\n4,90\u00a0\u20ac\n\n4,50\u00a0\u20ac\n\n11\n\ud83c\udfc5 #3 Beliebtest"
+    },
+    "pizza-e-pasta-ruedesheimerplatz": {
+      "announced_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
+      "final_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
+      "title": "Essen bestellen bei Pizza e Pasta in Berlin",
+      "body_head": "Speisekarte anzeigen\nRestaurant Info\nAnmeldung\nWillkommen in unserem neuen Shop!\n\nVielen Dank f\u00fcr deinen Besuch auf der neuen Website von unserem Restaurant Pizza e Pasta! Wir freuen uns darauf, dir k\u00f6stliche Speisen zu servieren.\n\nPizza e Pasta\nRu\u0308desheimer Str. 9, 14197 Berlin\nOffen f\u00fcr Abholung 12:00 - 23:00\nVorbereitungsdauer 20 min\nSpeisekarte anzeigen\n\u2764\ufe0f Die beliebtesten Produkte\nSalat / Vorspeisen\nPasta und Nudelgerichte\nSteinofenpizza\nVegane Pizza\nDessert\nAlkoholfreie Getr\u00e4nke\nAlkoholische Getr\u00e4nke | Bier\nAlkoholische Getr\u00e4nke | Wein\nAlkoholische Getr\u00e4nke | Flaschenweine\nProdukt suchen"
+    }
+  }
+}
