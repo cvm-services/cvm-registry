@@ -41,6 +41,14 @@ import {
   type Zap,
 } from "./zaps.ts";
 
+import {
+  applyAttestations,
+  ATTESTATION_KIND,
+  classifyAttestation,
+  indexAttestations,
+  type Attestation,
+} from "./attestations.ts";
+
 interface Args {
   relays: string[];
   out: string;
@@ -160,7 +168,7 @@ async function main() {
     relayStatus.push({ relay: `file:${args.input}`, ok: true, events: events.length, error: null });
   } else {
     const results = await Promise.all(
-      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND], args.limit, args.timeoutMs)),
+      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND, ATTESTATION_KIND], args.limit, args.timeoutMs)),
     );
     for (const r of results) {
       events = events.concat(r.events);
@@ -172,9 +180,12 @@ async function main() {
 
   // Services, reviews and zap receipts arrive in one REQ but are three different
   // things: a review is not a catalogue entry, and a receipt is not a review.
-  const serviceEvents = events.filter((e) => e.kind !== REVIEW_KIND && e.kind !== ZAP_RECEIPT_KIND);
+  const serviceEvents = events.filter((e) =>
+    e.kind !== REVIEW_KIND && e.kind !== ZAP_RECEIPT_KIND && e.kind !== ATTESTATION_KIND
+  );
   const reviewEvents = events.filter((e) => e.kind === REVIEW_KIND);
   const zapEvents = events.filter((e) => e.kind === ZAP_RECEIPT_KIND);
+  const attestationEvents = events.filter((e) => e.kind === ATTESTATION_KIND);
 
   const deduped = dedupe(serviceEvents);
   const { kept, dropped } = applyAllowList(deduped, allow.hex);
@@ -201,9 +212,25 @@ async function main() {
   const zapsByTarget = tallyZapsByTarget(zapsParsed);
   const withZaps = attachZaps(reviewsAllowed, zapsByTarget);
 
+  // R4a: a vouched review gets a badge ONLY when the attestation's author is the
+  // pubkey that announced that venue. Anyone can publish a kind-30317 event, so
+  // without this check the badge would be decorative. Rejections are counted.
+  const attestationsParsed = attestationEvents
+    .map((e) => classifyAttestation(e))
+    .filter((a): a is Attestation => a !== null);
+  const attestationIndex = indexAttestations(attestationsParsed);
+  const providerBySlug = new Map<string, string>(
+    (entries as unknown as Array<{ d: string; pubkey: string }>).map((e) => [e.d, e.pubkey]),
+  );
+  const withAttestations = applyAttestations(
+    withZaps.reviews,
+    providerBySlug,
+    attestationIndex,
+  );
+
   const bindings = attachReviews(
     entries as unknown as Array<Record<string, unknown>>,
-    withZaps.reviews,
+    withAttestations.reviews,
   );
   const entriesWithReviews = bindings.entries;
 
@@ -257,6 +284,15 @@ async function main() {
       // folded into a single authoritative number, and this collector does not
       // rank by them: order stays newest-first.
       scoring: "none:reviews-are-listed-newest-first",
+      attestations: {
+        parsed: attestationsParsed.length,
+        indexed: attestationIndex.size,
+        confirmed_reviews: withAttestations.confirmed,
+        rejected_wrong_author: withAttestations.rejected_wrong_author,
+        rejected_unknown_venue: withAttestations.rejected_unknown_venue,
+        badge: "venue-confirmed",
+        label: "the venue vouched for this reviewer; not proof the reviewer was present",
+      },
       zaps: {
         receipts: zapsParsed.length,
         reviews_with_zaps: withZaps.reviews_with_zaps,
@@ -277,7 +313,8 @@ async function main() {
   console.log(
     `catalog: raw=${raw} deduped=${deduped.length} kept=${kept.length} ` +
       `dropped=${dropped.length} relays_failed=${errs.length ? errs.join(" ") : "none"} ` +
-      `| reviews raw=${reviewEvents.length} shown=${reviewsAllowed.length} ` +
+      `| attest ${attestationsParsed.length}/${attestationIndex.size}=${withAttestations.confirmed}` +
+      ` | reviews raw=${reviewEvents.length} shown=${reviewsAllowed.length} ` +
       `attached=${bindings.attached} orphaned=${bindings.orphaned.length} ` +
       `dropped=${reviewsDropped} -> ${args.out}`,
   );

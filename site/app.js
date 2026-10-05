@@ -274,6 +274,7 @@ function reviewsBlock(e) {
     // rather than trusting the collector's own JSON.
     li.dataset.createdAt = String(r.created_at);
     li.dataset.zapSats = String(r.zaps ? r.zaps.sats_known : 0);
+    li.dataset.attestation = r.attestation ? r.attestation.status : "none";
     const head = el("div", "review-head");
     head.append(el("span", "rating " + (r.rating === null ? "unrated" : "r" + r.rating),
       r.rating === null ? "unrated" : `${r.rating}/5`));
@@ -292,6 +293,14 @@ function reviewsBlock(e) {
     }
     if ((r.warnings || []).length) {
       li.append(el("p", "warn", "flags: " + r.warnings.join(", ")));
+    }
+    // R4a: the venue's own vouch. The badge says "venue-confirmed" and the honest
+    // limit of that claim is printed underneath — deliberately NOT "verified
+    // visit". The stronger claim is the ring tier (R4b), which is not implemented.
+    if (r.attestation) {
+      li.append(el("span", "badge venue-confirmed", "venue-confirmed"));
+      li.append(el("p", "attestation-note",
+        `${r.attestation.claim} (${r.attestation.limit})`));
     }
     ul.append(li);
   }

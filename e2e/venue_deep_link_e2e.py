@@ -155,6 +155,24 @@ def main() -> int:
             first_zap = zap_lines.first.inner_text()
             assert "spend signal" in first_zap, f"zap line must be labelled: '{first_zap}'"
 
+        # R4a: exactly ONE review carries the venue-confirmed badge — the one the
+        # venue actually vouched for. A badge on both reviews of the same venue
+        # would mean the author check is not doing anything.
+        badges = page.locator("article.card li.review span.badge.venue-confirmed")
+        n_badges = badges.count()
+        confirmed_rows = page.locator("article.card li.review[data-attestation='venue-signed']")
+        n_confirmed = confirmed_rows.count()
+        total_rows = page.locator("article.card li.review").count()
+        log(f"venue-confirmed badges={n_badges} confirmed rows={n_confirmed} of {total_rows} review rows")
+        assert n_badges == 1, f"expected exactly 1 venue-confirmed badge, got {n_badges}"
+        assert n_confirmed == 1, f"expected exactly 1 confirmed review row, got {n_confirmed}"
+        assert total_rows > 1, "need more than one review to show the badge is discriminating"
+        note = page.locator("article.card li.review[data-attestation='venue-signed'] p.attestation-note").first.inner_text()
+        log(f"badge note: {note}")
+        assert "not proof" in note, f"the badge must state its limit, got '{note}'"
+        assert "verified visit" not in note.lower(), "the badge must not overclaim"
+        page.screenshot(path=str(OUT / "04-review-venue-confirmed.png"), full_page=True)
+
         for idx, (slug, url) in enumerate(VENUES.items(), start=2):
             card = page.locator("article.card", has_text=slug).first
             assert card.count() == 1, f"card for {slug} not found"
