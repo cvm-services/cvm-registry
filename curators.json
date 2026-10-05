@@ -1,7 +1,7 @@
 {
   "_comment": "Hardcoded allow-list of npubs whose CVM announcements the dashboard may render. Fork this repo and edit THIS FILE for your own deployment - curation is a claim, so it lives in your git history, not in a database. Unknown npub => not rendered. Empty list => nothing rendered (fail closed).",
   "version": 1,
-  "updated": "2026-10-04",
+  "updated": "2026-10-05",
   "dashboard_host": "cvm.orangesync.tech",
   "policy": {
     "unknown_npub": "not rendered",
@@ -18,6 +18,12 @@
       "role": "curator",
       "derived_from": "secp256k1 key 4ae5fe8e (operator's active signing key; npub re-derived with nak encode npub on 2026-10-04)",
       "note": "Registry #1. Publishes the kind-30000 lists referenced by the 'a' tag in provider announcements."
+    },
+    {
+      "npub": "npub1al953lfy7nv5qjwhcw8u2p0uuq0dwmjes3g4rgjxqlke75nxsd9q6lw3w9",
+      "role": "provider",
+      "derived_from": "secp256k1 key efcb48fd (the nosms provider's own signing key; npub re-derived with nak decode on 2026-10-05, matching the pubkey of the kind-11316 announcement event 6b3e96f4 d=nosms)",
+      "note": "S5b. Signs the nosms CVM announcement (kind 11316, d=nosms, class cvm:service:sms) on wss://relay.primal.net. Added so the dashboard may render that row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a)."
     }
   ]
 }
