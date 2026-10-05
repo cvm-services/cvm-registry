@@ -111,6 +111,27 @@ def main() -> int:
 
         page.screenshot(path=str(OUT / "01-dashboard-two-venues.png"), full_page=True)
 
+        # R2: reviews must actually be on the card, with a rating, and the block
+        # must say it is unranked. A review feature whose reviews do not render is
+        # indistinguishable from no review feature at all.
+        review_counts = {}
+        for slug in VENUES:
+            rcard = page.locator("article.card", has_text=slug).first
+            block = rcard.locator("div.reviews")
+            assert block.count() == 1, f"{slug}: no reviews block on the card"
+            items = block.locator("li.review")
+            review_counts[slug] = items.count()
+            log(f"card {slug}: {items.count()} review(s) rendered")
+            for i in range(items.count()):
+                item = items.nth(i)
+                head = item.locator("span.rating").first.inner_text()
+                body = item.locator("p.review-body").first.inner_text()
+                assert head.endswith("/5") or head == "unrated", f"{slug}: odd rating badge '{head}'"
+                assert len(body) > 0, f"{slug}: review with empty body"
+            note = block.locator("p.muted").first.inner_text()
+            assert "unranked" in note, f"{slug}: the block must state it is unranked, got '{note}'"
+        assert sum(review_counts.values()) >= 2, f"expected >=2 reviews rendered, got {review_counts}"
+
         for idx, (slug, url) in enumerate(VENUES.items(), start=2):
             card = page.locator("article.card", has_text=slug).first
             assert card.count() == 1, f"card for {slug} not found"
