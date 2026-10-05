@@ -21,7 +21,9 @@ const TIER_SHORTHAND = {
 
 let CATALOG = null;
 let RELOAD_TIMER = null;
-const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set() };
+/** event_id -> the catalogue's DECLARED/RECEIVED view for that entry (Part 2). */
+let PAYMENTS = new Map();
+const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set(), paidOnly: false };
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, text) => {
@@ -79,11 +81,30 @@ function entryDeclaredFields(e) {
   return new Set([...(e.requirements.required || []), ...(e.requirements.optional || [])]);
 }
 
+/**
+ * Part 1 — the DECLARED-price filter.
+ *
+ * `amount > 0`, never "has caps": the real catalogue carries
+ * `[{tool:"order", amount:0, unit:"sats"}]`, and a filter keyed on the presence
+ * of `caps` would offer a free tool as a paid one. This mirrors
+ * `pricedCaps`/`hasDeclaredPrice` in collector/lib.ts; the DOM-stub test
+ * `dashboard: the declared-price filter is amount-based` runs both against the
+ * same entries so the two cannot drift apart silently.
+ */
+function pricedCaps(e) {
+  return (e.caps || []).filter((c) => Number.isFinite(c.amount) && c.amount > 0);
+}
+
+function hasDeclaredPrice(e) {
+  return pricedCaps(e).length > 0;
+}
+
 function passesFilters(e) {
   if (UI.classFilter.size) {
     const hit = (e.classes || []).some((c) => UI.classFilter.has(c));
     if (!hit) return false;
   }
+  if (UI.paidOnly && !hasDeclaredPrice(e)) return false;
   if (UI.shorthand) {
     const allowed = TIER_SHORTHAND[UI.shorthand];
     if (e.requirements.unclassified) return false;
@@ -116,6 +137,10 @@ function render() {
   const verdict = cacheState(CATALOG.generated_at, now, policy);
   const decision = renderDecision(verdict);
   const allow = new Set((CATALOG.allowlist?.curators ?? []).map((c) => c.npub));
+
+  // Part 2: the declared/received views, keyed by entry. Never merged into the
+  // entry itself, so nothing downstream can mistake one for the other.
+  PAYMENTS = new Map((CATALOG.paid?.entries ?? []).map((p) => [p.event_id, p]));
 
   // header
   const header = el("header");
@@ -157,10 +182,17 @@ function render() {
   }
 
   const summary = el("p", "summary");
+  const paidCounts = CATALOG.paid?.counts;
   summary.textContent =
     allowedEntries.length + " allow-listed announcement(s) from " + allow.size + " curator(s), " +
     visible.length + " shown after filters, " + (CATALOG.counts?.dropped_not_allowlisted ?? 0) +
-    " dropped by the allow-list at collect time" + (dropped ? ", " + dropped + " dropped by the client re-check" : "") + ".";
+    " dropped by the allow-list at collect time" + (dropped ? ", " + dropped + " dropped by the client re-check" : "") + "." +
+    (paidCounts
+      ? " Declared a price > 0 sats: " + paidCounts.entries_with_declared_price +
+        ". Receipts observed against a shown announcement: " + paidCounts.receipts_matched +
+        " (" + paidCounts.sats_from_receipt_tag + " sats from receipt tags, " +
+        paidCounts.sats_from_zap_request + " sats only claimed in a zap request)."
+      : "");
   host.append(summary);
 
   if (!visible.length) {
@@ -207,6 +239,18 @@ function controls(verdict, decision, entries) {
   shorthand.append(mkBtn("contact only", "contact_only"));
   box.append(shorthand);
 
+  // Part 1: surface only entries with at least one tool priced ABOVE ZERO.
+  // Labelled "declared", because a cap is an advertisement, not a payment.
+  const priceGroup = el("div", "control-group");
+  priceGroup.append(el("span", "label", "Price:"));
+  const paidChip = el("button", "chip" + (UI.paidOnly ? " on" : ""), "declares a price > 0 sats (declared)");
+  paidChip.title = "keep only announcements that advertise a price above zero for at least one tool — a declaration, not evidence of payment";
+  paidChip.onclick = () => { UI.paidOnly = !UI.paidOnly; render(); };
+  priceGroup.append(paidChip);
+  const declaredCount = entries.filter(hasDeclaredPrice).length;
+  priceGroup.append(el("span", "muted", declaredCount + " of " + entries.length + " declare a price > 0"));
+  box.append(priceGroup);
+
   const classGroup = el("div", "control-group");
   classGroup.append(el("span", "label", "Class:"));
   for (const c of [...classes].sort()) {
@@ -236,7 +280,7 @@ function controls(verdict, decision, entries) {
   box.append(geo);
 
   const reset = el("button", "chip reset", "reset filters");
-  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; render(); };
+  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; UI.paidOnly = false; render(); };
   box.append(reset);
 
   const refresh = el("button", "chip", "reload cache");
@@ -350,14 +394,53 @@ function card(e, verdict, decision) {
   facts.append(factItem("curator", e.npub));
   c.append(facts);
 
-  if ((e.caps || []).length) {
-    const ul = el("ul", "caps");
-    for (const cap of e.caps) ul.append(el("li", null, cap.tool + " — " + cap.amount + " " + cap.unit));
-    c.append(el("h4", null, "Declared price per tool (call price, not settlement)"));
-    c.append(ul);
+  // ---- what the announcement ADVERTISES --------------------------------
+  // Two labelled blocks: DECLARED (an advertisement, Part 1) and RECEIVED (sats
+  // seen moving, Part 2). Separate elements, separate classes, separate
+  // headers, and no combined "paid" field anywhere in the catalogue to print.
+  const paidView = PAYMENTS.get(e.event_id) || null;
+  const declaredCaps = paidView ? paidView.declared : pricedCaps(e);
+  const notPriced = (e.caps || []).filter((cap) => !(Number.isFinite(cap.amount) && cap.amount > 0));
+
+  if (declaredCaps.length || notPriced.length) {
+    const box = el("div", "declared");
+    box.append(el("h4", null, paidView ? paidView.declared_label : (CATALOG.paid?.declared_label ?? "Declared price per tool — an advertisement, not a settlement")));
+    if (declaredCaps.length) {
+      const ul = el("ul", "caps");
+      for (const cap of declaredCaps) ul.append(el("li", "priced", cap.tool + " — " + cap.amount + " " + cap.unit + " declared"));
+      box.append(ul);
+    }
+    if (notPriced.length) {
+      box.append(el("p", "muted", "Declared at no charge, so NOT counted as a price (amount ≤ 0): " +
+        notPriced.map((cap) => cap.tool + " (" + cap.amount + " " + (cap.unit || "sats") + ")").join(", ")));
+    }
+    box.append(el("p", "fineprint", "A cap tag is the provider's advertisement of a call price. It is not a payment and it is not a settlement."));
+    c.append(box);
   }
 
   c.append(reviewsBlock(e));
+
+  // ---- what was OBSERVED moving: receipts, split by provenance ----------
+  if (paidView && paidView.received) {
+    const r = paidView.received;
+    const box = el("div", "received");
+    box.append(el("h4", null, paidView.received_label));
+    box.append(el("p", "receipt-count", r.count + " receipt(s) point at this announcement, " +
+      r.count_amount_unknown + " of them with an unreadable amount."));
+    const ul = el("ul", "received-split");
+    ul.append(el("li", "receipt-amount", r.sats_from_receipt_tag +
+      " sats from the receipt `amount` tag (strong evidence — the LNURL server's record)"));
+    ul.append(el("li", "request-amount", r.sats_from_zap_request +
+      " sats only from the zap request (the client's claim, not the server's record)"));
+    if (r.count_amount_unknown) {
+      ul.append(el("li", "amount-unknown", r.count_amount_unknown +
+        " receipt(s) with no readable amount — counted, never estimated"));
+    }
+    box.append(ul);
+    box.append(el("p", "fineprint", "Declared and received are shown side by side and are never added together. " +
+      (CATALOG.paid?.doctrine ?? "")));
+    c.append(box);
+  }
 
   // ---- what it asks of YOU: the declaration, never an audit badge ----
   const req = e.requirements;
