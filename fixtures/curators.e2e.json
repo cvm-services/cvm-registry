@@ -19,10 +19,10 @@
       "note": "Registry #1 (unchanged from the public allow-list)."
     },
     {
-      "npub": "npub14cchqw9eerp0k6qmzclfjq7309u99y4etktymjufh5znh2p7sj7sc6upxg",
+      "npub": "npub19a4rasj4dcvuwp27gdpgyr4m5kaqtr5psw050vegcw6y6xtt42mqefjksg",
       "role": "service",
       "slug": "doppelt-kaese-berlin",
-      "note": "S4a venue service key — doppelt-kaese-berlin. E2E allow-list only."
+      "note": "doppelt-kaese-berlin venue key — ROTATED 2026-10-05 after a private-key leak reached a public remote. E2E allow-list only."
     },
     {
       "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",

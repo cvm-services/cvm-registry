@@ -25,9 +25,9 @@
       ]
     },
     "doppelt-kaese-berlin": {
-      "event_id": "8924044ead30ede3659113a8397bb3ca59e90989b152e618423b9bd05b8dfa2f",
-      "pubkey": "ae317038b9c8c2fb681b163e9903d179785292b95d964dcb89bd053ba83e84bd",
-      "npub": "npub14cchqw9eerp0k6qmzclfjq7309u99y4etktymjufh5znh2p7sj7sc6upxg",
+      "event_id": "7bc6e3d20abcbc4f468a8c4017d03d153d1a3effa65fa6c8a377d5e6d8a3c0fc",
+      "pubkey": "2f6a3ec2556e19c7055e4342820ebba5ba058e81839f47b328c3b44d196baab6",
+      "npub": "npub19a4rasj4dcvuwp27gdpgyr4m5kaqtr5psw050vegcw6y6xtt42mqefjksg",
       "tier": {
         "declared": [
           "fulfilment"
