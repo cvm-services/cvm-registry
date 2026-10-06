@@ -80,6 +80,26 @@ input[type=text] {
 .facts .k { display: inline-block; min-width: 5.6rem; color: var(--dim); }
 .facts a { color: var(--accent); }
 .caps { margin: .3rem 0; padding-left: 1.1rem; font-size: .88rem; }
+
+/* Paid-CVM discovery: DECLARED and RECEIVED are two separate, differently
+   coloured blocks with their own headers. They are never summed into one
+   number, and the styles exist so that stays true visually as well. */
+.declared {
+  border-left: 3px solid #5c4715; background: #1a1710;
+  padding: .35rem .7rem .45rem; border-radius: 6px; margin: .6rem 0;
+}
+.received {
+  border-left: 3px solid #2b5a34; background: #101a12;
+  padding: .35rem .7rem .45rem; border-radius: 6px; margin: .6rem 0;
+}
+.declared h4 { color: #d9b96a; }
+.received h4 { color: #7fd18f; }
+.received-split { margin: .3rem 0; padding-left: 1.1rem; font-size: .88rem; }
+.received-split li { padding: .08rem 0; }
+.received-split .receipt-amount { color: #7fd18f; }
+.received-split .request-amount { color: #d9b96a; }
+.received-split .amount-unknown { color: var(--dim); }
+.muted { color: var(--dim); font-size: .86rem; margin: .3rem 0; }
 .reqs { border-top: 1px solid var(--line); margin-top: .7rem; padding-top: .2rem; }
 .reqs p { margin: .25rem 0; font-size: .88rem; }
 .reqs .ok { color: var(--ok); }

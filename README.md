@@ -81,6 +81,29 @@ from the register in `contextvm-services/docs/spec/service-inputs.md`
 - The declaration is the provider's word on a public tag. Show it as a
   declaration; do not badge it as audited.
 
+## Paid CVMs: declared price vs observed sats
+
+A provider advertises a call price with a **cap tag** — `["cap","tool:<name>","<n>","sats"]`,
+parsed by `collector/lib.ts` into `entries[].caps`. Two facts follow, and the dashboard
+keeps them apart on purpose:
+
+- **The filter is `amount > 0`, never "has caps".** A cap with `amount: 0` is a free tool:
+  the real catalogue contains `[{tool:"order", amount:0}]`, so a filter keyed on the presence
+  of `caps` lists free tools as paid. The chip is labelled **declared**, because a cap is an
+  advertisement, not a payment. Helpers: `pricedCaps` / `hasDeclaredPrice` /
+  `declaredPriceFilter` in `collector/lib.ts`.
+- **Declared and received are two labelled columns, never one "paid" boolean.** `declared`
+  is the cap tag; `received` is what zap receipts (kind 9735) show moving toward the
+  announcement. Received is itself split by provenance (`collector/paid.ts`): the receipt's
+  own `amount` tag is the LNURL server's record (`receipt-amount`), while an amount found
+  only in the zap REQUEST inside `description` is the client's claim (`request-amount`), and
+  an unreadable amount is counted (`none`) but never summed. Folding the client's claim into
+  the server's record — which the R3 review label deliberately does — **overstates payment**
+  and is exactly what the paid view must not do.
+
+`collector/paid.ts` reuses `classifyZap` from `collector/zaps.ts` as the only zap parser;
+it adds a provenance-aware aggregation, not a second parser.
+
 ## Mirror, CI and releases on Nostr (ngit)
 
 This repository is mirrored to **ngit** — git hosting and CI on Nostr. The mirror

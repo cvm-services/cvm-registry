@@ -13,6 +13,20 @@
 import { cacheState, humanAge, renderDecision } from "./policy.ts";
 import type { Classified } from "./lib.ts";
 
+interface PaidView {
+  event_id: string;
+  declared: Array<{ tool: string; amount: number; unit: string }>;
+  declared_label: string;
+  received: {
+    count: number;
+    sats_from_receipt_tag: number;
+    sats_from_zap_request: number;
+    count_amount_unknown: number;
+    receipt_ids: string[];
+  } | null;
+  received_label: string;
+}
+
 interface Catalog {
   generated_at: number | null;
   generated_at_iso?: string;
@@ -20,6 +34,13 @@ interface Catalog {
   allowlist?: { curators?: { npub: string }[]; pubkeys?: string[] };
   counts?: Record<string, number>;
   entries?: Classified[];
+  paid?: {
+    declared_label?: string;
+    received_label?: string;
+    doctrine?: string;
+    counts?: Record<string, number>;
+    entries?: PaidView[];
+  };
 }
 
 function arg(name: string, dflt: string | null): string | null {
@@ -57,6 +78,24 @@ console.log(`entries in cache   ${entries.length}`);
 console.log(`after allow-check  ${allowed.length}`);
 console.log(`dropped client-side ${notAllowListed.length}`);
 
+// ---- declared vs received (paid-CVM discovery) ------------------------------
+// The oracle prints the two sides the page will render, on separate lines and
+// never as a total, so "declared and received stay distinct" is checkable from
+// the shell against a real catalogue.
+const paidByTarget = new Map((catalog.paid?.entries ?? []).map((p) => [p.event_id, p]));
+if (catalog.paid) {
+  const c = catalog.paid.counts ?? {};
+  console.log("");
+  console.log(`paid: declared label   ${catalog.paid.declared_label ?? "(none)"}`);
+  console.log(`paid: received label   ${catalog.paid.received_label ?? "(none)"}`);
+  console.log(`paid: doctrine         ${catalog.paid.doctrine ?? "(none)"}`);
+  console.log(`paid: entries with a declared price > 0   ${c.entries_with_declared_price ?? 0}`);
+  console.log(`paid: entries with receipts               ${c.entries_with_receipts ?? 0}`);
+  console.log(`paid: sats from the receipt tag           ${c.sats_from_receipt_tag ?? 0}`);
+  console.log(`paid: sats only claimed in a zap request  ${c.sats_from_zap_request ?? 0}`);
+  console.log(`paid: receipts with an unreadable amount  ${c.receipts_amount_unknown ?? 0}`);
+}
+
 if (!decision.renderEntries) {
   console.log("");
   console.log("RENDERED: (nothing — catalog disabled)");
@@ -74,4 +113,14 @@ for (const e of allowed) {
       (e.requirements.unknown.length ? ` UNKNOWN=[${e.requirements.unknown.join(",")}]` : "");
   console.log(`  - kind ${e.kind} ${e.name ?? e.d ?? "(unnamed)"} | tier ${t}` +
     `${e.tier.mismatch ? " (MISMATCH)" : ""} | ${req} | age ${humanAge(now - e.created_at)}`);
+  const p = paidByTarget.get(e.event_id);
+  if (p) {
+    console.log(`      declared (advertisement): ` +
+      `${p.declared.length ? p.declared.map((c) => `${c.tool} ${c.amount} ${c.unit}`).join(", ") : "(none)"}`);
+    console.log(`      received (observed):      ` + (p.received
+      ? `${p.received.count} receipt(s): ${p.received.sats_from_receipt_tag} sats from the receipt tag, ` +
+        `${p.received.sats_from_zap_request} sats claimed only in a zap request, ` +
+        `${p.received.count_amount_unknown} unreadable`
+      : "(none observed)"));
+  }
 }

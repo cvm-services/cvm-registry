@@ -359,6 +359,31 @@ export function parseCaps(tags: string[][]): Cap[] {
   return out;
 }
 
+/**
+ * The caps that actually DECLARE a price: `amount > 0`.
+ *
+ * `amount: 0` is a free tool, not a paid one. The real catalogue contains
+ * `["cap","tool:order","0","sats"]`, so a filter keyed on the mere presence of
+ * `caps` would list free tools as paid — the failure this helper exists to
+ * prevent. A negative or non-finite amount never declares a price either.
+ */
+export function pricedCaps(caps: Cap[] | undefined): Cap[] {
+  return (caps ?? []).filter((c) => Number.isFinite(c.amount) && c.amount > 0);
+}
+
+/**
+ * Part 1 of paid-CVM discovery: does this announcement DECLARE a price for at
+ * least one tool? Declared, not settled — a cap tag is an advertisement.
+ */
+export function hasDeclaredPrice(entry: { caps?: Cap[] }): boolean {
+  return pricedCaps(entry.caps).length > 0;
+}
+
+/** Keep only the entries that declare at least one priced tool. */
+export function declaredPriceFilter<T extends { caps?: Cap[] }>(entries: T[]): T[] {
+  return entries.filter(hasDeclaredPrice);
+}
+
 export function classify(e: NostrEvent, vocab: Vocab): Classified {
   const t = tagValues(e.tags, "t");
   const classes = uniqSorted(

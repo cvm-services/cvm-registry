@@ -8,7 +8,9 @@ import {
   applyAllowList,
   assertSingleLetterFilters,
   classify,
+  declaredPriceFilter,
   dedupe,
+  hasDeclaredPrice,
   hexToNpub,
   matchesFieldAnd,
   matchesTierShorthand,
@@ -16,6 +18,7 @@ import {
   parseCaps,
   parseLinks,
   parseCurators,
+  pricedCaps,
   tierPrefilter,
   type NostrEvent,
   type Vocab,
@@ -233,6 +236,49 @@ Deno.test("geohash precisions are kept, deduped and sorted", () => {
 Deno.test("parseCaps ignores malformed cap tags instead of inventing a price", () => {
   assertEquals(parseCaps([["cap", "menu", "10", "sats"], ["cap", "tool:x", "abc", "sats"], ["cap", "tool:y", "5", "sats"]]),
     [{ tool: "y", amount: 5, unit: "sats" }], "only well-formed caps survive");
+});
+
+// ------------------------------------------------- paid-CVM declared price ----
+
+Deno.test("pricedCaps: only amount > 0 is a declared price — a 0 means free", () => {
+  assertEquals(
+    pricedCaps([
+      { tool: "menu", amount: 0, unit: "sats" },      // free: NOT a price
+      { tool: "order", amount: 1500, unit: "sats" },  // a price
+      { tool: "tip", amount: -5, unit: "sats" },      // nonsense: NOT a price
+      { tool: "x", amount: Number.NaN, unit: "sats" }, // unparseable: NOT a price
+    ]),
+    [{ tool: "order", amount: 1500, unit: "sats" }],
+    "amount > 0 only",
+  );
+});
+
+Deno.test("the declared-price filter is amount-based, not 'has caps' (the regression guard)", () => {
+  // The literal row from the real catalogue: a free tool. A filter keyed on the
+  // presence of `caps` would call this one paid.
+  const free = classify(ev({ tags: [["t", "cvm:service:restaurant"], ["cap", "tool:order", "0", "sats"]] }), VOCAB);
+  const paid = classify(ev({ tags: [["t", "cvm:service:restaurant"], ["cap", "tool:order", "1500", "sats"]] }), VOCAB);
+  const uncapped = classify(ev({ tags: [["t", "cvm:service:restaurant"]] }), VOCAB);
+
+  assertEquals(free.caps.length > 0, true, "the free entry really does carry a cap tag");
+  assertEquals(hasDeclaredPrice(free), false, "a 0-sat cap is NOT a declared price");
+  assertEquals(hasDeclaredPrice(paid), true, "amount > 0 is a declared price");
+  assertEquals(hasDeclaredPrice(uncapped), false, "no caps, no declared price");
+
+  assertEquals(declaredPriceFilter([free, paid, uncapped]), [paid], "only the priced entry survives");
+  assertEquals(declaredPriceFilter([free, uncapped]), [], "an all-free list filters down to empty");
+});
+
+Deno.test("a malformed cap never becomes a declared price", () => {
+  // parseCaps drops malformed rows (existing rule); the price filter must not
+  // resurrect one, and must not invent an amount for a missing tag value.
+  const e = classify(
+    ev({ tags: [["t", "cvm:service:restaurant"], ["cap", "menu", "10", "sats"], ["cap", "tool:x", "abc", "sats"]] }),
+    VOCAB,
+  );
+  assertEquals(e.caps, [], "nothing survived parsing");
+  assertEquals(hasDeclaredPrice(e), false, "therefore nothing is declared");
+  assertEquals(declaredPriceFilter([e]), [], "and the entry is not surfaced as paid");
 });
 
 // ---------------------------------------------------------------- links -----
