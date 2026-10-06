@@ -496,6 +496,9 @@ export function isMeatspace(required: string[], classes: string[], declared: Dec
 }
 
 export interface Classified {
+  /** Reviews bound to this entry by collector/reviews.ts (R2). Optional: a
+   *  catalogue built from tags alone has none. */
+  reviews?: AttachedReview[];
   event_id: string;
   kind: number;
   pubkey: string;
@@ -720,6 +723,19 @@ export interface Service {
   created_at: number;
   /** filled by the collector's cache-time link check; null = no URL declared */
   link_status: LinkStatus | null;
+  /** This service's reviews (R2), deduped and newest-first. The page renders
+   *  SERVICES, so a list left behind on the entry is invisible in the UI while
+   *  the unit tests stay green — the defect the grouping test now pins. */
+  reviews: AttachedReview[];
+}
+
+/** A review as attached to an entry by collector/reviews.ts. Structural on
+ *  purpose: lib.ts must not import reviews.ts back (one-way dependency), and the
+ *  grouping needs only the identity and the sort key. */
+export interface AttachedReview {
+  event_id: string;
+  created_at: number;
+  [k: string]: unknown;
 }
 
 /** The identity of a service: the signer plus its announcement slug. */
@@ -828,6 +844,15 @@ export function groupServices(entries: Classified[]): Service[] {
       },
       meatspace: sorted.some((e) => e.meatspace),
       created_at: Math.max(...sorted.map((e) => e.created_at)),
+      // A service's reviews are its facets' reviews: attachReviews binds by
+      // `pubkey:d`, so every facet of one service holds the same list. Dedupe by
+      // event id regardless (cheap, and it makes a divergent facet harmless) and
+      // keep newest-first to match the entry-level order the page already shows.
+      reviews: [...new Map(
+        sorted.flatMap((e) => e.reviews ?? []).map((r) => [r.event_id, r]),
+      ).values()].sort((a, b) =>
+        b.created_at - a.created_at || a.event_id.localeCompare(b.event_id)
+      ),
       link_status: null,
     });
   }

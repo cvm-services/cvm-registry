@@ -19,16 +19,26 @@
       "note": "Registry #1 (unchanged from the public allow-list)."
     },
     {
-      "npub": "npub14cchqw9eerp0k6qmzclfjq7309u99y4etktymjufh5znh2p7sj7sc6upxg",
+      "npub": "npub19a4rasj4dcvuwp27gdpgyr4m5kaqtr5psw050vegcw6y6xtt42mqefjksg",
       "role": "service",
       "slug": "doppelt-kaese-berlin",
-      "note": "S4a venue service key — doppelt-kaese-berlin. E2E allow-list only."
+      "note": "doppelt-kaese-berlin venue key — ROTATED 2026-10-05 after a private-key leak reached a public remote. E2E allow-list only."
     },
     {
       "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",
       "role": "service",
       "slug": "pizza-e-pasta-ruedesheimerplatz",
       "note": "S4a venue service key — pizza-e-pasta-ruedesheimerplatz. E2E allow-list only."
+    },
+    {
+      "npub": "npub1fevhqwgrq0khc9a7r40jv44k5lkl3j5u96thj6ldj72khftc55xsgknehn",
+      "role": "reviewer",
+      "note": "R2 E2E reviewer A (authors doppelt-koese review). E2E allow-list only."
+    },
+    {
+      "npub": "npub1slp6y87snl5f8g30zz6qf4y48n5468y79l0dvnph6wk24djmstvs7dstqv",
+      "role": "reviewer",
+      "note": "R2 E2E reviewer B (pizza e pasta). E2E allow-list only."
     }
   ]
 }
