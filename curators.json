@@ -24,6 +24,14 @@
       "role": "provider",
       "derived_from": "secp256k1 key efcb48fd (the nosms provider's own signing key; npub re-derived with nak decode on 2026-10-05, matching the pubkey of the kind-11316 announcement event 6b3e96f4 d=nosms)",
       "note": "S5b. Signs the nosms CVM announcement (kind 11316, d=nosms, class cvm:service:sms) on wss://relay.primal.net. Added so the dashboard may render that row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a)."
+    },
+    {
+      "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+      "role": "provider"
+    },
+    {
+      "npub": "npub1aurs5hw24gmg6pwk5fyqgyv4a8em8z82xg72ps9p6uldgn33ag4sqfhz0g",
+      "role": "provider"
     }
   ]
 }
