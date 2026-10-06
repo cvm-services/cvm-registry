@@ -475,3 +475,300 @@ export function matchesFieldAnd(
   if (!opts.allowUnknown && entry.requirements.unknown.length > 0) return false;
   return true;
 }
+
+// --------------------------------------------------------------------------
+// service grouping — CEP-6 kinds 11316-11320 are FACETS of ONE service
+// --------------------------------------------------------------------------
+//
+// The dashboard used to render one card per ANNOUNCEMENT, so a service that
+// publishes its server announcement (11316) and its tools list (11317) — which
+// CEP-6 defines as facets of one service — was painted TWICE, and the header
+// counted "2 announcements from 2 curators" for a single signer. Identity is
+// (pubkey, d): `kind` classifies a facet, it never identifies a service. The
+// per-kind dedupe in `dedupe()` stays as it is — it is the right rule for a
+// retraction within a kind — this is a second level on top of it.
+
+export interface ServiceFacet {
+  kind: number;
+  event_id: string;
+  created_at: number;
+}
+
+export interface Service {
+  /** `${pubkey}:${d}` — the service's identity, stable across re-announcements. */
+  service_key: string;
+  pubkey: string;
+  npub: string;
+  /** the announcement slug; "" for the many CEP-6 servers that omit `d` */
+  d: string;
+  /** the CEP-6 kinds present, ascending */
+  kinds: number[];
+  facets: ServiceFacet[];
+  name: string | null;
+  about: string | null;
+  website: string | null;
+  links: string[];
+  geohashes: string[];
+  classes: string[];
+  caps: Cap[];
+  tier: TierAssessment;
+  requirements: RequirementAssessment;
+  /** newest facet timestamp */
+  created_at: number;
+  /** filled by the collector's cache-time link check; null = no URL declared */
+  link_status: LinkStatus | null;
+}
+
+/** The identity of a service: the signer plus its announcement slug. */
+export function serviceKey(e: { pubkey: string; d: string }): string {
+  return `${String(e.pubkey).toLowerCase()}:${e.d ?? ""}`;
+}
+
+const TIER_RANK: Record<string, number> = {
+  none: 0,
+  financial: 1,
+  contact: 2,
+  fulfilment: 3,
+  legal: 4,
+  sensitive: 5,
+};
+
+function uniq<T>(xs: T[]): T[] {
+  return [...new Set(xs)];
+}
+
+/**
+ * Collapse classified announcements into services, one per (pubkey, d).
+ *
+ * Merges are deliberately conservative, never generous:
+ *   * display fields (name/about/website) come from the LOWEST kind that
+ *     declares them — 11316 is the server announcement and speaks for identity;
+ *   * `tier.recomputed` is the WORST (highest-rank) facet, so a tools list
+ *     cannot loosen the input the server announcement declared;
+ *   * `requirements.unclassified` is true only when NO facet classifies — a
+ *     service whose 11317 declares requirements is not "unclassified";
+ *   * every facet keeps its event id, so the evidence chain survives the merge.
+ *
+ * Output order is (pubkey, d) — deterministic, independent of input order.
+ */
+export function groupServices(entries: Classified[]): Service[] {
+  const byKey = new Map<string, Classified[]>();
+  for (const e of entries) {
+    const k = serviceKey(e);
+    const arr = byKey.get(k);
+    if (arr) arr.push(e);
+    else byKey.set(k, [e]);
+  }
+
+  const services: Service[] = [];
+  for (const [key, group] of byKey) {
+    const sorted = [...group].sort((a, b) => a.kind - b.kind || a.event_id.localeCompare(b.event_id));
+    const firstNonEmpty = <T>(pick: (e: Classified) => T | null | undefined): T | null => {
+      for (const e of sorted) {
+        const v = pick(e);
+        if (v !== null && v !== undefined && (v as unknown as string) !== "") return v as T;
+      }
+      return null;
+    };
+    const worstTier = sorted.reduce<string | null>((acc, e) => {
+      const r = e.tier.recomputed;
+      if (r === null) return acc;
+      if (acc === null) return r;
+      return (TIER_RANK[r] ?? 0) > (TIER_RANK[acc] ?? 0) ? r : acc;
+    }, null);
+
+    const caps: Cap[] = [];
+    const seenCaps = new Set<string>();
+    for (const e of sorted) {
+      for (const c of e.caps) {
+        const ck = JSON.stringify(c);
+        if (seenCaps.has(ck)) continue;
+        seenCaps.add(ck);
+        caps.push(c);
+      }
+    }
+
+    services.push({
+      service_key: key,
+      pubkey: sorted[0].pubkey,
+      npub: sorted[0].npub,
+      d: sorted[0].d,
+      kinds: sorted.map((e) => e.kind),
+      facets: sorted.map((e) => ({ kind: e.kind, event_id: e.event_id, created_at: e.created_at })),
+      name: firstNonEmpty((e) => e.name),
+      about: firstNonEmpty((e) => e.about),
+      website: firstNonEmpty((e) => e.website),
+      links: uniq(sorted.flatMap((e) => e.links)).sort(),
+      geohashes: uniq(sorted.flatMap((e) => e.geohashes)).sort(),
+      classes: uniq(sorted.flatMap((e) => e.classes)).sort(),
+      caps,
+      tier: {
+        declared: uniq(sorted.flatMap((e) => e.tier.declared)).sort(),
+        recomputed: worstTier,
+        mismatch: sorted.some((e) => e.tier.mismatch),
+      },
+      requirements: {
+        required: uniq(sorted.flatMap((e) => e.requirements.required)).sort(),
+        optional: uniq(sorted.flatMap((e) => e.requirements.optional)).sort(),
+        unknown: uniq(sorted.flatMap((e) => e.requirements.unknown)).sort(),
+        none_sentinel: sorted.some((e) => e.requirements.none_sentinel),
+        unclassified: sorted.every((e) => e.requirements.unclassified),
+      },
+      created_at: Math.max(...sorted.map((e) => e.created_at)),
+      link_status: null,
+    });
+  }
+  return services.sort((a, b) => a.pubkey.localeCompare(b.pubkey) || a.d.localeCompare(b.d));
+}
+
+// --------------------------------------------------------------------------
+// cache-time link check — did the DECLARED url answer when we last collected?
+// --------------------------------------------------------------------------
+//
+// A dead URL reached a "live" dashboard because nothing ever fetched it: the
+// page renders the provider's own declaration, and a declaration nobody tests
+// is indistinguishable from a working one. This records ONE observable fact
+// about that declaration, at COLLECT time, as data on the cache.
+//
+// Scope discipline: a plain outbound HEAD from the collector. It is NOT a
+// per-service CVM call and NOT a relay connection, so the cache-not-proxy rule
+// (ADR-0001 D7) is untouched. The page still makes zero network calls.
+
+export interface LinkStatus {
+  url: string;
+  /** false when the check did not run (disabled or over budget) */
+  checked: boolean;
+  /** true = answered 2xx/3xx, false = did not answer, null = UNKNOWN */
+  ok: boolean | null;
+  http_status: number | null;
+  reason: string;
+  checked_at: number;
+}
+
+export interface LinkCheckPolicy {
+  enabled: boolean;
+  timeoutMs: number;
+  maxUrls: number;
+}
+
+const LINK_USER_AGENT = "cvm-registry-collector/1.0 (+https://cvm.orangesync.tech/)";
+
+/** Absolute http(s) only — the same rule `parseLinks` applies before rendering. */
+export function validHttpUrl(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const t = raw.trim();
+  if (!t) return null;
+  let u: URL;
+  try {
+    u = new URL(t);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  return u.toString();
+}
+
+/**
+ * Ask whether a declared URL answers. Never throws: a transport failure is a
+ * RESULT (unreachable/timeout), not an exception that could abort a collect.
+ * A timeout is `ok: null` — unknown, never a pass.
+ */
+export async function checkUrl(
+  raw: string,
+  opts: { timeoutMs?: number; now?: number; fetchImpl?: typeof fetch } = {},
+): Promise<LinkStatus> {
+  const now = opts.now ?? Math.floor(Date.now() / 1000);
+  const url = validHttpUrl(raw);
+  if (!url) {
+    return { url: raw, checked: false, ok: null, http_status: null, reason: "invalid-url", checked_at: now };
+  }
+  const doFetch = opts.fetchImpl ?? fetch;
+  const timeoutMs = opts.timeoutMs ?? 5000;
+  const attempt = async (method: string): Promise<Response> => {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      return await doFetch(url, {
+        method,
+        redirect: "follow",
+        signal: ctl.signal,
+        headers: { "user-agent": LINK_USER_AGENT, "accept": "*/*" },
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  try {
+    let res: Response;
+    try {
+      res = await attempt("HEAD");
+      if (res.status === 405 || res.status === 501) res = await attempt("GET");
+    } catch {
+      // some origins close the connection on HEAD; one GET retry, then decide
+      res = await attempt("GET");
+    }
+    const ok = res.status >= 200 && res.status < 400;
+    return {
+      url,
+      checked: true,
+      ok,
+      http_status: res.status,
+      reason: ok ? "ok" : `http-${res.status}`,
+      checked_at: now,
+    };
+  } catch (err) {
+    const name = (err as Error)?.name ?? "";
+    const reason = name === "AbortError" || name === "TimeoutError" ? "timeout" : "unreachable";
+    return { url, checked: true, ok: null, http_status: null, reason, checked_at: now };
+  }
+}
+
+/**
+ * Check each service's declared URL (the `website` tag, else its first `r`
+ * link) and attach the verdict as `link_status`. Bounded: at most `maxUrls`
+ * requests per collect, each capped by `timeoutMs`. Services over budget are
+ * labelled `not-checked` — an unrun check is never reported as a pass.
+ */
+export async function checkServiceLinks(
+  services: Service[],
+  policy: LinkCheckPolicy,
+  deps: { fetchImpl?: typeof fetch; now?: number } = {},
+): Promise<void> {
+  const now = deps.now ?? Math.floor(Date.now() / 1000);
+  let budget = Math.max(0, policy.maxUrls);
+  for (const s of services) {
+    const candidates = uniq([s.website, ...s.links].map((u) => validHttpUrl(u)).filter((u): u is string => u !== null));
+    if (candidates.length === 0) {
+      s.link_status = null;
+      continue;
+    }
+    if (!policy.enabled) {
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "disabled", checked_at: now };
+      continue;
+    }
+    if (budget === 0) {
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "not-checked", checked_at: now };
+      continue;
+    }
+    budget -= 1;
+    s.link_status = await checkUrl(candidates[0], { timeoutMs: policy.timeoutMs, now, ...deps });
+  }
+}
+
+/** Honest tally for the catalog header — counts the CHECKS, not the services. */
+export function linkCheckTally(services: Service[]): { checked: number; unreachable: number; not_checked: number; no_url: number } {
+  let checked = 0, unreachable = 0, not_checked = 0, no_url = 0;
+  for (const s of services) {
+    if (!s.link_status) {
+      no_url += 1;
+      continue;
+    }
+    if (!s.link_status.checked) not_checked += 1;
+    else {
+      checked += 1;
+      if (s.link_status.ok !== true) unreachable += 1;
+    }
+  }
+  return { checked, unreachable, not_checked, no_url };
+}
