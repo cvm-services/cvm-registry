@@ -112,7 +112,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     },
     {
       "event_id": "fcd346c5dd2503a3b354435a3fcaed8f1908d71a91ddcb529c459a441e0d6bfe",
@@ -139,7 +145,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     },
     {
       "event_id": "4f8e8822ec104f02512413e7261ef3c967eb357ca9808c671198d9520c8c563f",
@@ -166,7 +178,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     },
     {
       "event_id": "a0ec6a2b69d45d36065ce67477c4664c6ade8ce7ace31d3de1f9089ba7ef9acf",
@@ -193,7 +211,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     },
     {
       "event_id": "cd2ef31fb640e21d3dc05a08bbc7dfaba334b066864dfea11855ee5f5d9745a2",
@@ -220,7 +244,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     },
     {
       "event_id": "123e63365d49ec6c9613050513d9de2e7cf6267eaed86d4eee9738929c90b97f",
@@ -247,7 +277,13 @@
         "unknown": [],
         "none_sentinel": false,
         "unclassified": true
-      }
+      },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false
     }
   ],
   "services": [
@@ -291,6 +327,12 @@
         "none_sentinel": false,
         "unclassified": true
       },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false,
       "created_at": 1790803639,
       "link_status": {
         "url": "https://plebeian.market/",
@@ -299,7 +341,7 @@
         "http_status": null,
         "reason": "disabled",
         "text": "not checked",
-        "checked_at": 1791292657
+        "checked_at": 1791299136
       }
     },
     {
@@ -342,6 +384,12 @@
         "none_sentinel": false,
         "unclassified": true
       },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false,
       "created_at": 1790940321,
       "link_status": {
         "url": "https://earthly.city/",
@@ -350,7 +398,7 @@
         "http_status": null,
         "reason": "disabled",
         "text": "not checked",
-        "checked_at": 1791292657
+        "checked_at": 1791299136
       }
     },
     {
@@ -393,6 +441,12 @@
         "none_sentinel": false,
         "unclassified": true
       },
+      "declared": {
+        "fulfilment": null,
+        "menu": null,
+        "settlement": null
+      },
+      "meatspace": false,
       "created_at": 1791166521,
       "link_status": {
         "url": "https://skate-spots.org/",
@@ -401,7 +455,7 @@
         "http_status": null,
         "reason": "disabled",
         "text": "not checked",
-        "checked_at": 1791292657
+        "checked_at": 1791299136
       }
     }
   ]

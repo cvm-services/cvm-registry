@@ -304,6 +304,197 @@ export interface RequirementAssessment {
   unclassified: boolean;
 }
 
+// --------------------------------------------------------------------------
+// announcement content — the provider's own declaration of fulfilment / menu /
+// settlement facts, carried in the event `content` (a JSON string on the Nostr
+// event). Parsed defensively: a malformed or absent content yields null fields,
+// never throws, so a hostile or broken announcement can never abort a collect.
+// --------------------------------------------------------------------------
+
+/** Per-method fulfilment detail (pickup/delivery/dine_in), loose by design. */
+export interface FulfilmentMethodInfo {
+  available?: boolean;
+  estimated_minutes?: number;
+  [k: string]: unknown;
+}
+
+export interface DeclaredFulfilment {
+  /** the methods the venue offers, e.g. ["pickup","delivery"] */
+  methods: string[];
+  pickup: FulfilmentMethodInfo | null;
+  delivery: FulfilmentMethodInfo | null;
+  dine_in: FulfilmentMethodInfo | null;
+  method_condition: string | null;
+}
+
+/** One method's price breakdown inside menu.prices_by_method. */
+export interface PriceBreakdown {
+  count?: number;
+  min_price?: number;
+  max_price?: number;
+  [k: string]: unknown;
+}
+
+export interface DeclaredMenu {
+  item_count: number | null;
+  priced_count: number | null;
+  currency: string | null;
+  min_price: number | null;
+  max_price: number | null;
+  prices_by_method: Record<string, PriceBreakdown> | null;
+  price_basis: string | null;
+}
+
+export interface DeclaredSettlement {
+  settles: string | null;
+  rail: string | null;
+  currency: string | null;
+  tax: unknown;
+  cvm_cap_sats: number | null;
+  recorded: boolean | null;
+  note: string | null;
+}
+
+/** The provider-declared facts read from event content (all nullable). */
+export interface Declared {
+  fulfilment: DeclaredFulfilment | null;
+  menu: DeclaredMenu | null;
+  settlement: DeclaredSettlement | null;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== "object" || Array.isArray(v)) return null;
+  return v as Record<string, unknown>;
+}
+
+function strOrNull(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+function numOrNull(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function boolOrNull(v: unknown): boolean | null {
+  return typeof v === "boolean" ? v : null;
+}
+
+function strArray(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+function methodInfo(v: unknown): FulfilmentMethodInfo | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return r as FulfilmentMethodInfo;
+}
+
+function priceBreakdown(v: unknown): PriceBreakdown | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return r as PriceBreakdown;
+}
+
+function parseFulfilment(v: unknown): DeclaredFulfilment | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return {
+    methods: strArray(r.methods),
+    pickup: methodInfo(r.pickup),
+    delivery: methodInfo(r.delivery),
+    dine_in: methodInfo(r.dine_in),
+    method_condition: strOrNull(r.method_condition),
+  };
+}
+
+function parseMenu(v: unknown): DeclaredMenu | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  let prices_by_method: Record<string, PriceBreakdown> | null = null;
+  const pbm = asRecord(r.prices_by_method);
+  if (pbm) {
+    prices_by_method = {};
+    for (const [k, val] of Object.entries(pbm)) {
+      const b = priceBreakdown(val);
+      if (b) prices_by_method[k] = b;
+    }
+  }
+  return {
+    item_count: numOrNull(r.item_count),
+    priced_count: numOrNull(r.priced_count),
+    currency: strOrNull(r.currency),
+    min_price: numOrNull(r.min_price),
+    max_price: numOrNull(r.max_price),
+    prices_by_method,
+    price_basis: strOrNull(r.price_basis),
+  };
+}
+
+function parseSettlement(v: unknown): DeclaredSettlement | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return {
+    settles: strOrNull(r.settles),
+    rail: strOrNull(r.rail),
+    currency: strOrNull(r.currency),
+    tax: r.tax ?? null,
+    cvm_cap_sats: numOrNull(r.cvm_cap_sats),
+    recorded: boolOrNull(r.recorded),
+    note: strOrNull(r.note),
+  };
+}
+
+/**
+ * Parse the event `content` (a JSON string) into declared facts. Never throws:
+ * a malformed, absent or non-object content yields an all-null Declared, so a
+ * broken announcement is inert, not fatal.
+ */
+export function parseDeclared(content: string): Declared {
+  let raw: unknown = null;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    raw = null;
+  }
+  const r = asRecord(raw);
+  if (!r) return { fulfilment: null, menu: null, settlement: null };
+  return {
+    fulfilment: parseFulfilment(r.fulfilment),
+    menu: parseMenu(r.menu),
+    settlement: parseSettlement(r.settlement),
+  };
+}
+
+/**
+ * The "meatspace" capability facet: does this entry represent a PHYSICAL
+ * handover (a venue you pick up from, dine in at, or is explicitly tagged
+ * `cvm:service:meatspace`), rather than a purely digital service?
+ *
+ * Two clauses, both required:
+ *  (1) NO required field starts with `ship.` — a delivery-only venue that
+ *      REQUIRES a shipping address cannot be fulfilled in meatspace.
+ *  (2) a physical handover is affirmatively declared — content.fulfilment.methods
+ *      includes "pickup" or "dine_in", OR the `cvm:service:meatspace` class tag
+ *      is present.
+ *
+ * Clause (2) exists precisely to keep digital services out. A digital service
+ * that requires nothing (tier `none`, class `compute`) or only `payment.amount`
+ * (class `sms`) trivially satisfies clause (1) — it has no `ship.*` requirement
+ * at all — so without an affirmative handover declaration it would be
+ * mislabelled "meatspace". Only an explicit pickup/dine_in method, or the
+ * explicit `cvm:service:meatspace` tag, counts as a physical handover.
+ */
+export function isMeatspace(required: string[], classes: string[], declared: Declared): boolean {
+  const noShipRequired = !required.some((f) => f.startsWith("ship."));
+  if (!noShipRequired) return false;
+  const methods = declared.fulfilment?.methods ?? [];
+  if (methods.includes("pickup") || methods.includes("dine_in")) return true;
+  // cvm:service:meatspace is an ADDITIONAL, explicit signal (a parallel change in
+  // contextvm-services); treat it as additive, never as a dependency.
+  return classes.includes("meatspace");
+}
+
 export interface Classified {
   event_id: string;
   kind: number;
@@ -320,6 +511,10 @@ export interface Classified {
   caps: Cap[];
   tier: TierAssessment;
   requirements: RequirementAssessment;
+  /** provider-declared fulfilment/menu/settlement facts from event content */
+  declared: Declared;
+  /** physical handover (pickup/dine_in/meatspace-tagged), never a digital service */
+  meatspace: boolean;
 }
 
 /**
@@ -402,6 +597,8 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
   const expected = recomputed === null ? [] : [recomputed];
   const mismatch = declared.join(",") !== expected.join(",");
 
+  const declaredContent = parseDeclared(e.content);
+
   return {
     event_id: e.id,
     kind: e.kind,
@@ -418,6 +615,8 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
     caps: parseCaps(e.tags),
     tier: { declared, recomputed, mismatch },
     requirements: { required, optional, unknown, none_sentinel, unclassified },
+    declared: declaredContent,
+    meatspace: isMeatspace(required, classes, declaredContent),
   };
 }
 
@@ -513,6 +712,10 @@ export interface Service {
   caps: Cap[];
   tier: TierAssessment;
   requirements: RequirementAssessment;
+  /** provider-declared fulfilment/menu/settlement facts (merged from facets) */
+  declared: Declared;
+  /** physical handover (pickup/dine_in/meatspace-tagged), never a digital service */
+  meatspace: boolean;
   /** newest facet timestamp */
   created_at: number;
   /** filled by the collector's cache-time link check; null = no URL declared */
@@ -614,6 +817,16 @@ export function groupServices(entries: Classified[]): Service[] {
         none_sentinel: sorted.some((e) => e.requirements.none_sentinel),
         unclassified: sorted.every((e) => e.requirements.unclassified),
       },
+      // content facts merge per-field from the lowest kind that declares them
+      // (the 11316 server announcement speaks for identity and content); a
+      // service is meatspace if ANY facet is — the venue's 11316 declares the
+      // handover, its 11317 tools list does not.
+      declared: {
+        fulfilment: firstNonEmpty((e) => e.declared.fulfilment),
+        menu: firstNonEmpty((e) => e.declared.menu),
+        settlement: firstNonEmpty((e) => e.declared.settlement),
+      },
+      meatspace: sorted.some((e) => e.meatspace),
       created_at: Math.max(...sorted.map((e) => e.created_at)),
       link_status: null,
     });
