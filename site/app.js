@@ -21,7 +21,7 @@ const TIER_SHORTHAND = {
 
 let CATALOG = null;
 let RELOAD_TIMER = null;
-const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set() };
+const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set(), meatspace: false };
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, text) => {
@@ -99,6 +99,7 @@ function passesFilters(e) {
     // an unknown declared field fails the field-level AND by default, loudly
     if ((e.requirements.unknown || []).length) return false;
   }
+  if (UI.meatspace && !e.meatspace) return false;
   return true;
 }
 
@@ -134,6 +135,13 @@ function groupEntriesAsServices(entries) {
       return null;
     };
     const s = sorted[0];
+    const firstDeclared = (f) => {
+      for (const e of sorted) {
+        const v = f(e);
+        if (v !== null && v !== undefined) return v;
+      }
+      return null;
+    };
     out.push({
       service_key: key,
       pubkey: s.pubkey,
@@ -150,6 +158,12 @@ function groupEntriesAsServices(entries) {
       caps: s.caps || [],
       tier: s.tier,
       requirements: s.requirements,
+      declared: {
+        fulfilment: firstDeclared((e) => e.declared?.fulfilment ?? null),
+        menu: firstDeclared((e) => e.declared?.menu ?? null),
+        settlement: firstDeclared((e) => e.declared?.settlement ?? null),
+      },
+      meatspace: sorted.some((e) => e.meatspace === true),
       created_at: Math.max(...sorted.map((e) => e.created_at || 0)),
       link_status: null,
     });
@@ -252,9 +266,11 @@ function controls(verdict, decision, entries) {
   const box = el("div", "controls");
   const classes = new Set();
   const fields = new Set();
+  let meatspaceCount = 0;
   for (const e of entries) {
     for (const c of e.classes || []) classes.add(c);
     for (const f of [...(e.requirements.required || []), ...(e.requirements.optional || [])]) fields.add(f);
+    if (e.meatspace) meatspaceCount += 1;
   }
 
   const shorthand = el("div", "control-group");
@@ -278,6 +294,14 @@ function controls(verdict, decision, entries) {
   }
   box.append(classGroup);
 
+  const meatspaceGroup = el("div", "control-group");
+  meatspaceGroup.append(el("span", "label", "Meatspace:"));
+  const meatspaceBtn = el("button", "chip" + (UI.meatspace ? " on" : ""), "meatspace (" + meatspaceCount + ")");
+  meatspaceBtn.title = "only services that declare a physical handover (pickup / dine-in), and require no shipping address";
+  meatspaceBtn.onclick = () => { UI.meatspace = !UI.meatspace; render(); };
+  meatspaceGroup.append(meatspaceBtn);
+  box.append(meatspaceGroup);
+
   const fieldGroup = el("div", "control-group");
   fieldGroup.append(el("span", "label", "Requires (AND):"));
   for (const f of [...fields].sort()) {
@@ -298,7 +322,7 @@ function controls(verdict, decision, entries) {
   box.append(geo);
 
   const reset = el("button", "chip reset", "reset filters");
-  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; render(); };
+  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; UI.meatspace = false; render(); };
   box.append(reset);
 
   const refresh = el("button", "chip", "reload cache");
@@ -317,6 +341,7 @@ function card(e, verdict, decision) {
   h.append(el("span", "name", e.name ?? e.d ?? "(unnamed)"));
   if (e.requirements.unclassified) h.append(badge("unclassified", "warn"));
   if (e.tier.recomputed) h.append(badge("tier: " + e.tier.recomputed, "tier"));
+  if (e.meatspace) h.append(badge("meatspace", "meatspace"));
   c.append(h);
 
   if (e.about) c.append(el("p", "about", e.about));
@@ -374,6 +399,12 @@ function card(e, verdict, decision) {
     c.append(ul);
   }
 
+  // ---- the provider's own declaration of fulfilment / menu / settlement ------
+  // Read from the announcement content (not tags). This is the provider's own
+  // claim — a declaration, not an audited fact — so the caveat stays visible.
+  const declaredBox = declaredFacts(e);
+  if (declaredBox) c.append(declaredBox);
+
   // ---- what it asks of YOU: the declaration, never an audit badge ----
   const req = e.requirements;
   const reqBox = el("div", "reqs");
@@ -410,6 +441,75 @@ function factItem(k, v) {
   li.append(el("span", "k", k));
   li.append(document.createTextNode(" " + v));
   return li;
+}
+
+// Render the provider-declared fulfilment / menu / settlement facts from the
+// announcement content. Returns null when there is nothing to show. These are
+// the provider's own claims (not audited), so the "declaration, not an audited
+// fact" caveat is rendered inline wherever the facts appear.
+function declaredFacts(e) {
+  const d = e.declared;
+  if (!d || (!d.fulfilment && !d.menu && !d.settlement)) return null;
+
+  const box = el("div", "declared");
+
+  // fulfilment: pickup wait (and per-method availability)
+  if (d.fulfilment) {
+    const f = d.fulfilment;
+    const bits = [];
+    if ((f.methods || []).length) bits.push("methods: " + f.methods.join(", "));
+    if (f.pickup && typeof f.pickup.estimated_minutes === "number") {
+      bits.push("pickup ~" + f.pickup.estimated_minutes + " min");
+    }
+    if (f.delivery && typeof f.delivery.estimated_minutes === "number") {
+      bits.push("delivery ~" + f.delivery.estimated_minutes + " min");
+    }
+    if (bits.length) box.append(el("p", "fulfilment", "Fulfilment — " + bits.join(" · ")));
+    if (f.method_condition) box.append(el("p", "condition", f.method_condition));
+  }
+
+  // menu: per-fulfilment-method prices (pickup vs delivery vs dine-in)
+  if (d.menu) {
+    const m = d.menu;
+    const pbm = m.prices_by_method;
+    if (pbm) {
+      const rows = Object.entries(pbm);
+      if (rows.length) {
+        const ul = el("ul", "prices");
+        for (const [method, pb] of rows) {
+          const parts = [];
+          if (typeof pb.min_price === "number") parts.push("from " + pb.min_price);
+          if (typeof pb.max_price === "number") parts.push("to " + pb.max_price);
+          const cur = m.currency ? " " + m.currency : "";
+          ul.append(el("li", null, method + ": " + (parts.length ? parts.join(" ") + cur : "n/a")));
+        }
+        box.append(el("h4", null, "Declared price by fulfilment method"));
+        box.append(ul);
+      }
+    } else if (typeof m.min_price === "number" || typeof m.max_price === "number") {
+      const r = [];
+      if (typeof m.min_price === "number") r.push("from " + m.min_price);
+      if (typeof m.max_price === "number") r.push("to " + m.max_price);
+      box.append(el("p", null, "Menu price: " + r.join(" ") + (m.currency ? " " + m.currency : "")));
+    }
+    if (m.price_basis) box.append(el("p", "fineprint", m.price_basis));
+  }
+
+  // settlement: the rail, cap, and note
+  if (d.settlement) {
+    const s = d.settlement;
+    const bits = [];
+    if (s.settles) bits.push(s.settles);
+    if (s.rail) bits.push("rail: " + s.rail);
+    if (typeof s.cvm_cap_sats === "number") bits.push("cvm cap: " + s.cvm_cap_sats + " sats");
+    if (bits.length) box.append(el("p", "settlement", "Settlement — " + bits.join(" · ")));
+    if (s.note) box.append(el("p", "fineprint", s.note));
+  }
+
+  const caveat = el("p", "fineprint");
+  caveat.textContent = "The fulfilment, price and settlement details are the provider's own declaration in the announcement content — a declaration, not an audited fact.";
+  box.append(caveat);
+  return box;
 }
 
 function badge(text, cls) {
