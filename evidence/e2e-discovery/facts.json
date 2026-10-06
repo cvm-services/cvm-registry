@@ -1,0 +1,36 @@
+{
+  "base": "https://cvm.orangesync.tech/",
+  "venue": "doppelt-kaese-berlin",
+  "steps": [
+    {
+      "name": "dashboard-loaded",
+      "title": "ContextVM services — cvm.orangesync.tech",
+      "head": "ContextVM services cvm.orangesync.tech — allow-list driven cache. Collector snapshot 2026-10-06T15:16:03.000Z (6m old, fresh). This page reads a static cache; it never contacts a relay. live cache Input appetite: any no ",
+      "names": {
+        "doppelt": true,
+        "pizza": true,
+        "lambda": true,
+        "nosms": true
+      }
+    },
+    {
+      "name": "meatspace-filter",
+      "before": 36,
+      "stillThere": true,
+      "digitalGone": true
+    },
+    {
+      "name": "deep-link-found",
+      "href": "https://doppelt-kaese-berlin.de"
+    },
+    {
+      "name": "landed-on-venue",
+      "url": "https://www.doppelt-kaese-berlin.de/",
+      "host": "www.doppelt-kaese-berlin.de",
+      "title": "doppelt Käse | Best Burger in Berlin Wilmersdorf",
+      "text": ""
+    }
+  ],
+  "verdict": "PASS — discovery to the venue's own page; no checkout interaction",
+  "video": "/home/c03rad0r/worktrees/cr-e2e-dashboard/.scratch/e2e/page@84b8b7f44f43a83bce0f6d65dae8cf43.webm"
+}
