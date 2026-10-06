@@ -102,6 +102,61 @@ function passesFilters(e) {
   return true;
 }
 
+// --------------------------------------------------------------- services ----
+// CEP-6 kinds are FACETS of ONE service: 11316 server announcement, 11317
+// tools, 11318 resources, 11319 templates, 11320 prompts. Identity is
+// (pubkey, d). The collector already collapses them into `services`; this
+// fallback does the same for an older cache so the page can never again paint
+// one card per announcement (which showed a service twice and counted it twice).
+const KIND_LABEL = {
+  11316: "server announcement",
+  11317: "tools",
+  11318: "resources",
+  11319: "templates",
+  11320: "prompts",
+};
+
+function groupEntriesAsServices(entries) {
+  const byKey = new Map();
+  for (const e of entries) {
+    const k = (e.pubkey || "") + ":" + (e.d || "");
+    if (!byKey.has(k)) byKey.set(k, []);
+    byKey.get(k).push(e);
+  }
+  const out = [];
+  for (const [key, group] of byKey) {
+    const sorted = [...group].sort((a, b) => (a.kind || 0) - (b.kind || 0));
+    const firstOf = (f) => {
+      for (const e of sorted) {
+        const v = f(e);
+        if (v !== null && v !== undefined && v !== "") return v;
+      }
+      return null;
+    };
+    const s = sorted[0];
+    out.push({
+      service_key: key,
+      pubkey: s.pubkey,
+      npub: s.npub,
+      d: s.d,
+      kinds: sorted.map((e) => e.kind),
+      facets: sorted.map((e) => ({ kind: e.kind, event_id: e.event_id, created_at: e.created_at })),
+      name: firstOf((e) => e.name),
+      about: firstOf((e) => e.about),
+      website: firstOf((e) => e.website),
+      links: [...new Set(sorted.flatMap((e) => e.links || []))].sort(),
+      geohashes: [...new Set(sorted.flatMap((e) => e.geohashes || []))].sort(),
+      classes: [...new Set(sorted.flatMap((e) => e.classes || []))].sort(),
+      caps: s.caps || [],
+      tier: s.tier,
+      requirements: s.requirements,
+      created_at: Math.max(...sorted.map((e) => e.created_at || 0)),
+      link_status: null,
+    });
+  }
+  return out.sort((a, b) => a.pubkey.localeCompare(b.pubkey) || (a.d || "").localeCompare(b.d || ""));
+}
+
 // ---------------------------------------------------------------- render ----
 
 function render() {
@@ -146,9 +201,15 @@ function render() {
   const allowedEntries = (CATALOG.entries || []).filter((e) => allow.has(e.npub));
   const dropped = (CATALOG.entries || []).length - allowedEntries.length;
 
-  host.append(controls(verdict, decision, allowedEntries));
+  // group into SERVICES before anything is rendered or counted
+  const allowedServices = (Array.isArray(CATALOG.services) && CATALOG.services.length)
+    ? CATALOG.services.filter((s) => allow.has(s.npub))
+    : groupEntriesAsServices(allowedEntries);
+  const signers = new Set(allowedServices.map((s) => s.npub));
 
-  const visible = allowedEntries.filter(passesFilters);
+  host.append(controls(verdict, decision, allowedServices));
+
+  const visible = allowedServices.filter(passesFilters);
   const groups = new Map();
   for (const e of visible) {
     const key = e.requirements.unclassified ? "(unclassified — no input declaration)" : ((e.classes || []).join(", ") || "(no class tag)");
@@ -158,13 +219,14 @@ function render() {
 
   const summary = el("p", "summary");
   summary.textContent =
-    allowedEntries.length + " allow-listed announcement(s) from " + allow.size + " curator(s), " +
+    allowedServices.length + " service(s) from " + signers.size + " allow-listed signer(s) (" +
+    allowedEntries.length + " announcement(s) — CEP-6 facets collapse per service), " +
     visible.length + " shown after filters, " + (CATALOG.counts?.dropped_not_allowlisted ?? 0) +
     " dropped by the allow-list at collect time" + (dropped ? ", " + dropped + " dropped by the client re-check" : "") + ".";
   host.append(summary);
 
   if (!visible.length) {
-    host.append(el("p", "banner", allowedEntries.length ? "No announcement matches the current filters." : "The allow-list is empty or none of its curators has announced a service (fail closed: nothing is rendered)."));
+    host.append(el("p", "banner", allowedEntries.length ? "No service matches the current filters." : "The allow-list is empty or none of its curators has announced a service (fail closed: nothing is rendered)."));
     return;
   }
 
@@ -260,15 +322,32 @@ function card(e, verdict, decision) {
   if (e.about) c.append(el("p", "about", e.about));
 
   const facts = el("ul", "facts");
-  facts.append(factItem("kind", String(e.kind)));
+  const kinds = e.kinds || (e.kind ? [e.kind] : []);
+  const labels = kinds.map((k) => KIND_LABEL[k] || String(k)).join(", ");
+  facts.append(factItem("CEP-6", kinds.length + " announcement(s): " + (labels || "—")));
   facts.append(factItem("class", (e.classes || []).join(", ") || "—"));
   facts.append(factItem("service id", e.d || "—"));
   if (e.website) {
     const li = el("li");
     li.append(el("span", "k", "website"));
-    const a = el("a", null, e.website);
-    a.href = e.website; a.rel = "noopener noreferrer"; a.target = "_blank";
-    li.append(a);
+    const el2 = el("a", null, e.website);
+    el2.href = e.website; el2.rel = "noopener noreferrer"; el2.target = "_blank";
+    li.append(el2);
+    // The collector HEADed this URL when it ran. A dead declared URL is a fact
+    // about the declaration, not a verdict on the service — so it is annotated,
+    // never hidden, and a check that did not run is never drawn as a pass.
+    // The verdict is the collector's (`link_status.text`), rendered verbatim:
+    // "unreachable", "no reply", "unreachable 404", "not checked". Nothing is
+    // derived here, so the page cannot disagree with the catalog — and a URL
+    // that did not answer is never drawn as a healthy one. The one guard this
+    // file keeps for itself is the href: only absolute http(s) is clickable.
+    const st = e.link_status;
+    if (st && st.text) {
+      const b = badge(st.text, st.text === "not checked" ? "tier" : "warn");
+      b.title = "collector check at " + new Date((st.checked_at || 0) * 1000).toISOString() +
+        " — " + st.reason + (st.http_status ? " (HTTP " + st.http_status + ")" : "");
+      li.append(b);
+    }
     facts.append(li);
   }
   // ---- the provider's own links: for a venue, the ordering deep-link --------

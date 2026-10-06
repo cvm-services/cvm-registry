@@ -9,7 +9,10 @@ import {
   assertSingleLetterFilters,
   classify,
   dedupe,
+  groupServices,
+  httpUrlOrNull,
   hexToNpub,
+  serviceKey,
   matchesFieldAnd,
   matchesTierShorthand,
   npubToHex,
@@ -17,6 +20,8 @@ import {
   parseLinks,
   parseCurators,
   tierPrefilter,
+  verdictText,
+  type Classified,
   type NostrEvent,
   type Vocab,
 } from "../collector/lib.ts";
@@ -260,4 +265,124 @@ Deno.test("parseLinks drops non-http schemes and junk instead of rendering them"
     ["http://ok.example/x", "https://ok.example/y"],
     "only absolute http(s) survive, deduped + sorted",
   );
+});
+
+// ------------------------------------------------- service grouping (CEP-6) ----
+//
+// The bug these tests pin down: the collector emitted one ENTRY per announcement
+// and the dashboard painted one CARD per entry, so a single service that
+// publishes its 11316 (server info) and 11317 (tools list) — which CEP-6 defines
+// as FACETS of one service, not as two services — appeared TWICE. Identity is
+// (pubkey, d): kind is a facet, never an identity. 11316-11320 all belong to the
+// same service.
+
+const PK_A = "a".repeat(64);
+const PK_B = "b".repeat(64);
+
+function svc(pubkey: string, kind: number, d = "", extra: string[][] = []): Classified {
+  return classify(
+    ev({ id: (String(kind) + pubkey.slice(0, 8)).padEnd(64, "0"), pubkey, kind, tags: [["d", d], ...extra] }),
+    VOCAB,
+  );
+}
+
+Deno.test("a 11316+11317 pair from one signer collapses to ONE service", () => {
+  const out = groupServices([
+    svc(PK_A, 11316, "nosms", [["name", "nosms"], ["about", "Send SMS"], ["t", "cvm:service:sms"]]),
+    svc(PK_A, 11317, "nosms", [["cap", "tool:sms.send", "2900", "sats"], ["t", "cvm:req:payment.amount"]]),
+  ]);
+  assertEquals(out.length, 1, "one service, not two announcements");
+  assertEquals(out[0].kinds, [11316, 11317], "both facets recorded");
+  assertEquals(out[0].name, "nosms", "identity comes from the 11316 facet");
+  assertEquals(out[0].service_key, serviceKey({ pubkey: PK_A, d: "nosms" }), "key is (pubkey,d)");
+  assertEquals(out[0].facets.map((f) => f.kind), [11316, 11317], "every facet keeps its event id");
+});
+
+Deno.test("all five CEP-6 kinds are facets of one service", () => {
+  const out = groupServices([11316, 11317, 11318, 11319, 11320].map((k) => svc(PK_A, k, "x")));
+  assertEquals(out.length, 1, "one service");
+  assertEquals(out[0].kinds, [11316, 11317, 11318, 11319, 11320], "all kinds merged");
+});
+
+Deno.test("identity is (pubkey,d): a shared d from two signers stays two services", () => {
+  const out = groupServices([svc(PK_A, 11316, "same"), svc(PK_B, 11316, "same")]);
+  assertEquals(out.length, 2, "different signers are different services even on the same slug");
+});
+
+Deno.test("...and two slugs from one signer are two services", () => {
+  const out = groupServices([svc(PK_A, 11316, "one"), svc(PK_A, 11316, "two")]);
+  assertEquals(out.length, 2, "d is part of the identity");
+});
+
+Deno.test("the empty-d case (most CEP-6 servers omit d) is pubkey-only identity", () => {
+  const out = groupServices([svc(PK_A, 11316), svc(PK_A, 11317)]);
+  assertEquals(out.length, 1, "no d tag still groups by signer");
+  assertEquals(out[0].d, "", "empty slug preserved, not invented");
+});
+
+Deno.test("facets merge honestly: caps union deduped, classes union, newest created_at", () => {
+  const out = groupServices([
+    svc(PK_A, 11316, "s", [["cap", "tool:a", "10", "sats"], ["t", "cvm:service:sms"]]),
+    svc(PK_A, 11317, "s", [["cap", "tool:a", "10", "sats"], ["cap", "tool:b", "20", "sats"], ["t", "sms"]]),
+  ]);
+  assertEquals(out[0].caps, [{ tool: "a", amount: 10, unit: "sats" }, { tool: "b", amount: 20, unit: "sats" }], "caps union, dupes dropped");
+  assertEquals(out[0].classes, ["sms"], "classes union");
+  assertEquals(out[0].created_at, 1_700_000_000, "newest facet timestamp");
+});
+
+Deno.test("a service is unclassified ONLY when no facet classifies it", () => {
+  const both = groupServices([
+    svc(PK_A, 11316, "s", []),
+    svc(PK_A, 11317, "s", [["t", "cvm:req:payment.amount"]]),
+  ]);
+  assertEquals(both[0].requirements.unclassified, false, "the 11317 facet classifies the service");
+  assertEquals(both[0].requirements.required, ["payment.amount"], "requirement survives the merge");
+  const neither = groupServices([svc(PK_A, 11316, "s", []), svc(PK_A, 11317, "s", [])]);
+  assertEquals(neither[0].requirements.unclassified, true, "no facet declared anything");
+});
+
+Deno.test("the merged tier takes the WORST (highest-rank) facet, never the kindest", () => {
+  const out = groupServices([
+    svc(PK_A, 11316, "s", [["t", "cvm:req:payment.amount"], ["t", "cvm:tier:financial"]]),
+    svc(PK_A, 11317, "s", [["t", "cvm:req:identity.dob"], ["t", "cvm:tier:sensitive"]]),
+  ]);
+  assertEquals(out[0].tier.recomputed, "sensitive", "the strictest facet wins");
+});
+
+Deno.test("grouping is order-independent and byte-stable", () => {
+  const a = svc(PK_A, 11316, "s", [["name", "x"]]);
+  const b = svc(PK_A, 11317, "s", []);
+  const c = svc(PK_B, 11316, "s", []);
+  const one = JSON.stringify(groupServices([a, b, c]));
+  const two = JSON.stringify(groupServices([c, b, a]));
+  assertEquals(one, two, "same input set, same output bytes");
+});
+
+Deno.test("groupServices of nothing is nothing (no phantom service)", () => {
+  assertEquals(groupServices([]), [], "empty in, empty out");
+});
+
+
+Deno.test("a provider-supplied website with a hostile scheme is dropped, not rendered", () => {
+  assertEquals(httpUrlOrNull("javascript:alert(1)"), null, "javascript: is refused");
+  assertEquals(httpUrlOrNull("data:text/html,<script>1</script>"), null, "data: is refused");
+  assertEquals(httpUrlOrNull("file:///etc/passwd"), null, "file: is refused");
+  assertEquals(httpUrlOrNull("not a url"), null, "junk is refused");
+  assertEquals(httpUrlOrNull(""), null, "empty is refused");
+  assertEquals(httpUrlOrNull(null), null, "absent is refused");
+  // kept UNCHANGED: the catalog keeps the provider's own spelling
+  assertEquals(httpUrlOrNull("https://venue.example/menu"), "https://venue.example/menu", "https kept verbatim");
+  assertEquals(httpUrlOrNull("http://venue.example"), "http://venue.example", "no normalisation");
+  // and classify applies it
+  const e = classify(ev({ tags: [["website", "javascript:alert(1)"], ["d", "x"]] }), VOCAB);
+  assertEquals(e.website, null, "classify does not carry a hostile website");
+});
+
+Deno.test("verdictText: UNKNOWN is never a pass and never silent", () => {
+  assertEquals(verdictText(null), null, "nothing to say with no check");
+  assertEquals(verdictText({ checked: false, ok: null, reason: "disabled" }), "not checked", "an unrun check says so");
+  assertEquals(verdictText({ checked: true, ok: true, reason: "ok" }), null, "a confirmed answer needs no badge");
+  assertEquals(verdictText({ checked: true, ok: null, reason: "unreachable" }), "unreachable", "a transport failure is SHOWN");
+  assertEquals(verdictText({ checked: true, ok: null, reason: "timeout" }), "no reply", "a timeout is SHOWN");
+  assertEquals(verdictText({ checked: true, ok: false, reason: "http-404" }), "unreachable 404", "an HTTP refusal names the status");
 });

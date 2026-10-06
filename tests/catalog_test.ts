@@ -28,6 +28,14 @@ interface Catalog {
   allowlist: { curators: { npub: string }[] };
   counts: Record<string, number>;
   entries: Classified[];
+  services: {
+    service_key: string;
+    pubkey: string;
+    d: string;
+    kinds: number[];
+    facets: { kind: number; event_id: string; created_at: number }[];
+    link_status: { url: string; checked: boolean; ok: boolean | null; reason: string } | null;
+  }[];
 }
 
 const catalog: Catalog = JSON.parse(await Deno.readTextFile("fixtures/demo-catalog.json"));
@@ -103,4 +111,39 @@ Deno.test("stale disables, and expiry disables harder (the headline rule)", () =
 
   const invalid = renderDecision(cacheState(null, NOW, p));
   assertEquals([invalid.renderEntries, invalid.disabled], [false, true], "invalid fails closed");
+});
+
+Deno.test("the catalog emits SERVICES, not announcements (one card per service)", () => {
+  assert(Array.isArray(catalog.services), "services are emitted alongside entries");
+  assertEquals(
+    catalog.counts.services_kept,
+    catalog.services.length,
+    "the service count is a real count, not a relabelled announcement count",
+  );
+  assert(
+    catalog.counts.services_kept < catalog.counts.kept,
+    "every service here publishes two facets (11316+11317), so services < announcements",
+  );
+  assertEquals(catalog.services.length, 3, "the demo capture is three services");
+  assertEquals(catalog.counts.kept, 6, "six announcements");
+});
+
+Deno.test("service keys are unique, and every facet traces back to an allow-listed announcement", () => {
+  const keys = new Set(catalog.services.map((s) => s.service_key));
+  assertEquals(keys.size, catalog.services.length, "service_key is a key");
+  const byId = new Map(catalog.entries.map((e) => [e.event_id, e]));
+  for (const s of catalog.services) {
+    assert(s.kinds.length === s.facets.length, `${s.service_key}: one kind per facet`);
+    for (const f of s.facets) {
+      const e = byId.get(f.event_id);
+      assert(e, `${s.service_key}: facet ${f.event_id} is not in entries`);
+      assertEquals(e!.pubkey, s.pubkey, "facet belongs to the service signer");
+      assertEquals(e!.d, s.d, "facet shares the service slug");
+    }
+  }
+});
+
+Deno.test("every announcement is accounted for: no facet is dropped by the grouping", () => {
+  const seen = new Set(catalog.services.flatMap((s) => s.facets.map((f) => f.event_id)));
+  assertEquals(seen.size, catalog.entries.length, "announcements in == announcements grouped");
 });
