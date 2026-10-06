@@ -21,7 +21,7 @@ const TIER_SHORTHAND = {
 
 let CATALOG = null;
 let RELOAD_TIMER = null;
-const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set() };
+const UI = { classFilter: new Set(), shorthand: null, geo: "", fields: new Set(), meatspace: false };
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, text) => {
@@ -99,7 +99,84 @@ function passesFilters(e) {
     // an unknown declared field fails the field-level AND by default, loudly
     if ((e.requirements.unknown || []).length) return false;
   }
+  if (UI.meatspace && !e.meatspace) return false;
   return true;
+}
+
+// --------------------------------------------------------------- services ----
+// CEP-6 kinds are FACETS of ONE service: 11316 server announcement, 11317
+// tools, 11318 resources, 11319 templates, 11320 prompts. Identity is
+// (pubkey, d). The collector already collapses them into `services`; this
+// fallback does the same for an older cache so the page can never again paint
+// one card per announcement (which showed a service twice and counted it twice).
+const KIND_LABEL = {
+  11316: "server announcement",
+  11317: "tools",
+  11318: "resources",
+  11319: "templates",
+  11320: "prompts",
+};
+
+function groupEntriesAsServices(entries) {
+  const byKey = new Map();
+  for (const e of entries) {
+    const k = (e.pubkey || "") + ":" + (e.d || "");
+    if (!byKey.has(k)) byKey.set(k, []);
+    byKey.get(k).push(e);
+  }
+  const out = [];
+  for (const [key, group] of byKey) {
+    const sorted = [...group].sort((a, b) => (a.kind || 0) - (b.kind || 0));
+    const firstOf = (f) => {
+      for (const e of sorted) {
+        const v = f(e);
+        if (v !== null && v !== undefined && v !== "") return v;
+      }
+      return null;
+    };
+    const s = sorted[0];
+    const firstDeclared = (f) => {
+      for (const e of sorted) {
+        const v = f(e);
+        if (v !== null && v !== undefined) return v;
+      }
+      return null;
+    };
+    out.push({
+      service_key: key,
+      pubkey: s.pubkey,
+      npub: s.npub,
+      d: s.d,
+      kinds: sorted.map((e) => e.kind),
+      facets: sorted.map((e) => ({ kind: e.kind, event_id: e.event_id, created_at: e.created_at })),
+      name: firstOf((e) => e.name),
+      about: firstOf((e) => e.about),
+      website: firstOf((e) => e.website),
+      links: [...new Set(sorted.flatMap((e) => e.links || []))].sort(),
+      geohashes: [...new Set(sorted.flatMap((e) => e.geohashes || []))].sort(),
+      classes: [...new Set(sorted.flatMap((e) => e.classes || []))].sort(),
+      caps: s.caps || [],
+      tier: s.tier,
+      requirements: s.requirements,
+      declared: {
+        fulfilment: firstDeclared((e) => e.declared?.fulfilment ?? null),
+        menu: firstDeclared((e) => e.declared?.menu ?? null),
+        settlement: firstDeclared((e) => e.declared?.settlement ?? null),
+      },
+      meatspace: sorted.some((e) => e.meatspace === true),
+      created_at: Math.max(...sorted.map((e) => e.created_at || 0)),
+      // Same rule as the collector's groupServices: the page renders services,
+      // so the facets' reviews must be carried across or the card shows none.
+      reviews: [...new Map(
+        sorted.flatMap((e) => e.reviews || []).map((r) => [r.event_id, r]),
+      ).values()].sort((a, b) =>
+        (b.created_at || 0) - (a.created_at || 0) ||
+        String(a.event_id).localeCompare(String(b.event_id))
+      ),
+      link_status: null,
+    });
+  }
+  return out.sort((a, b) => a.pubkey.localeCompare(b.pubkey) || (a.d || "").localeCompare(b.d || ""));
 }
 
 // ---------------------------------------------------------------- render ----
@@ -146,9 +223,15 @@ function render() {
   const allowedEntries = (CATALOG.entries || []).filter((e) => allow.has(e.npub));
   const dropped = (CATALOG.entries || []).length - allowedEntries.length;
 
-  host.append(controls(verdict, decision, allowedEntries));
+  // group into SERVICES before anything is rendered or counted
+  const allowedServices = (Array.isArray(CATALOG.services) && CATALOG.services.length)
+    ? CATALOG.services.filter((s) => allow.has(s.npub))
+    : groupEntriesAsServices(allowedEntries);
+  const signers = new Set(allowedServices.map((s) => s.npub));
 
-  const visible = allowedEntries.filter(passesFilters);
+  host.append(controls(verdict, decision, allowedServices));
+
+  const visible = allowedServices.filter(passesFilters);
   const groups = new Map();
   for (const e of visible) {
     const key = e.requirements.unclassified ? "(unclassified — no input declaration)" : ((e.classes || []).join(", ") || "(no class tag)");
@@ -158,13 +241,14 @@ function render() {
 
   const summary = el("p", "summary");
   summary.textContent =
-    allowedEntries.length + " allow-listed announcement(s) from " + allow.size + " curator(s), " +
+    allowedServices.length + " service(s) from " + signers.size + " allow-listed signer(s) (" +
+    allowedEntries.length + " announcement(s) — CEP-6 facets collapse per service), " +
     visible.length + " shown after filters, " + (CATALOG.counts?.dropped_not_allowlisted ?? 0) +
     " dropped by the allow-list at collect time" + (dropped ? ", " + dropped + " dropped by the client re-check" : "") + ".";
   host.append(summary);
 
   if (!visible.length) {
-    host.append(el("p", "banner", allowedEntries.length ? "No announcement matches the current filters." : "The allow-list is empty or none of its curators has announced a service (fail closed: nothing is rendered)."));
+    host.append(el("p", "banner", allowedEntries.length ? "No service matches the current filters." : "The allow-list is empty or none of its curators has announced a service (fail closed: nothing is rendered)."));
     return;
   }
 
@@ -190,9 +274,11 @@ function controls(verdict, decision, entries) {
   const box = el("div", "controls");
   const classes = new Set();
   const fields = new Set();
+  let meatspaceCount = 0;
   for (const e of entries) {
     for (const c of e.classes || []) classes.add(c);
     for (const f of [...(e.requirements.required || []), ...(e.requirements.optional || [])]) fields.add(f);
+    if (e.meatspace) meatspaceCount += 1;
   }
 
   const shorthand = el("div", "control-group");
@@ -216,6 +302,14 @@ function controls(verdict, decision, entries) {
   }
   box.append(classGroup);
 
+  const meatspaceGroup = el("div", "control-group");
+  meatspaceGroup.append(el("span", "label", "Meatspace:"));
+  const meatspaceBtn = el("button", "chip" + (UI.meatspace ? " on" : ""), "meatspace (" + meatspaceCount + ")");
+  meatspaceBtn.title = "only services that declare a physical handover (pickup / dine-in), and require no shipping address";
+  meatspaceBtn.onclick = () => { UI.meatspace = !UI.meatspace; render(); };
+  meatspaceGroup.append(meatspaceBtn);
+  box.append(meatspaceGroup);
+
   const fieldGroup = el("div", "control-group");
   fieldGroup.append(el("span", "label", "Requires (AND):"));
   for (const f of [...fields].sort()) {
@@ -236,7 +330,7 @@ function controls(verdict, decision, entries) {
   box.append(geo);
 
   const reset = el("button", "chip reset", "reset filters");
-  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; render(); };
+  reset.onclick = () => { UI.classFilter.clear(); UI.fields.clear(); UI.shorthand = null; UI.geo = ""; UI.meatspace = false; render(); };
   box.append(reset);
 
   const refresh = el("button", "chip", "reload cache");
@@ -317,20 +411,38 @@ function card(e, verdict, decision) {
   h.append(el("span", "name", e.name ?? e.d ?? "(unnamed)"));
   if (e.requirements.unclassified) h.append(badge("unclassified", "warn"));
   if (e.tier.recomputed) h.append(badge("tier: " + e.tier.recomputed, "tier"));
+  if (e.meatspace) h.append(badge("meatspace", "meatspace"));
   c.append(h);
 
   if (e.about) c.append(el("p", "about", e.about));
 
   const facts = el("ul", "facts");
-  facts.append(factItem("kind", String(e.kind)));
+  const kinds = e.kinds || (e.kind ? [e.kind] : []);
+  const labels = kinds.map((k) => KIND_LABEL[k] || String(k)).join(", ");
+  facts.append(factItem("CEP-6", kinds.length + " announcement(s): " + (labels || "—")));
   facts.append(factItem("class", (e.classes || []).join(", ") || "—"));
   facts.append(factItem("service id", e.d || "—"));
   if (e.website) {
     const li = el("li");
     li.append(el("span", "k", "website"));
-    const a = el("a", null, e.website);
-    a.href = e.website; a.rel = "noopener noreferrer"; a.target = "_blank";
-    li.append(a);
+    const el2 = el("a", null, e.website);
+    el2.href = e.website; el2.rel = "noopener noreferrer"; el2.target = "_blank";
+    li.append(el2);
+    // The collector HEADed this URL when it ran. A dead declared URL is a fact
+    // about the declaration, not a verdict on the service — so it is annotated,
+    // never hidden, and a check that did not run is never drawn as a pass.
+    // The verdict is the collector's (`link_status.text`), rendered verbatim:
+    // "unreachable", "no reply", "unreachable 404", "not checked". Nothing is
+    // derived here, so the page cannot disagree with the catalog — and a URL
+    // that did not answer is never drawn as a healthy one. The one guard this
+    // file keeps for itself is the href: only absolute http(s) is clickable.
+    const st = e.link_status;
+    if (st && st.text) {
+      const b = badge(st.text, st.text === "not checked" ? "tier" : "warn");
+      b.title = "collector check at " + new Date((st.checked_at || 0) * 1000).toISOString() +
+        " — " + st.reason + (st.http_status ? " (HTTP " + st.http_status + ")" : "");
+      li.append(b);
+    }
     facts.append(li);
   }
   // ---- the provider's own links: for a venue, the ordering deep-link --------
@@ -357,7 +469,14 @@ function card(e, verdict, decision) {
     c.append(ul);
   }
 
+  // ---- the provider's own declaration of fulfilment / menu / settlement ------
+  // Read from the announcement content (not tags). This is the provider's own
+  // claim — a declaration, not an audited fact — so the caveat stays visible.
+  const declaredBox = declaredFacts(e);
+  if (declaredBox) c.append(declaredBox);
+
   c.append(reviewsBlock(e));
+
 
   // ---- what it asks of YOU: the declaration, never an audit badge ----
   const req = e.requirements;
@@ -395,6 +514,75 @@ function factItem(k, v) {
   li.append(el("span", "k", k));
   li.append(document.createTextNode(" " + v));
   return li;
+}
+
+// Render the provider-declared fulfilment / menu / settlement facts from the
+// announcement content. Returns null when there is nothing to show. These are
+// the provider's own claims (not audited), so the "declaration, not an audited
+// fact" caveat is rendered inline wherever the facts appear.
+function declaredFacts(e) {
+  const d = e.declared;
+  if (!d || (!d.fulfilment && !d.menu && !d.settlement)) return null;
+
+  const box = el("div", "declared");
+
+  // fulfilment: pickup wait (and per-method availability)
+  if (d.fulfilment) {
+    const f = d.fulfilment;
+    const bits = [];
+    if ((f.methods || []).length) bits.push("methods: " + f.methods.join(", "));
+    if (f.pickup && typeof f.pickup.estimated_minutes === "number") {
+      bits.push("pickup ~" + f.pickup.estimated_minutes + " min");
+    }
+    if (f.delivery && typeof f.delivery.estimated_minutes === "number") {
+      bits.push("delivery ~" + f.delivery.estimated_minutes + " min");
+    }
+    if (bits.length) box.append(el("p", "fulfilment", "Fulfilment — " + bits.join(" · ")));
+    if (f.method_condition) box.append(el("p", "condition", f.method_condition));
+  }
+
+  // menu: per-fulfilment-method prices (pickup vs delivery vs dine-in)
+  if (d.menu) {
+    const m = d.menu;
+    const pbm = m.prices_by_method;
+    if (pbm) {
+      const rows = Object.entries(pbm);
+      if (rows.length) {
+        const ul = el("ul", "prices");
+        for (const [method, pb] of rows) {
+          const parts = [];
+          if (typeof pb.min_price === "number") parts.push("from " + pb.min_price);
+          if (typeof pb.max_price === "number") parts.push("to " + pb.max_price);
+          const cur = m.currency ? " " + m.currency : "";
+          ul.append(el("li", null, method + ": " + (parts.length ? parts.join(" ") + cur : "n/a")));
+        }
+        box.append(el("h4", null, "Declared price by fulfilment method"));
+        box.append(ul);
+      }
+    } else if (typeof m.min_price === "number" || typeof m.max_price === "number") {
+      const r = [];
+      if (typeof m.min_price === "number") r.push("from " + m.min_price);
+      if (typeof m.max_price === "number") r.push("to " + m.max_price);
+      box.append(el("p", null, "Menu price: " + r.join(" ") + (m.currency ? " " + m.currency : "")));
+    }
+    if (m.price_basis) box.append(el("p", "fineprint", m.price_basis));
+  }
+
+  // settlement: the rail, cap, and note
+  if (d.settlement) {
+    const s = d.settlement;
+    const bits = [];
+    if (s.settles) bits.push(s.settles);
+    if (s.rail) bits.push("rail: " + s.rail);
+    if (typeof s.cvm_cap_sats === "number") bits.push("cvm cap: " + s.cvm_cap_sats + " sats");
+    if (bits.length) box.append(el("p", "settlement", "Settlement — " + bits.join(" · ")));
+    if (s.note) box.append(el("p", "fineprint", s.note));
+  }
+
+  const caveat = el("p", "fineprint");
+  caveat.textContent = "The fulfilment, price and settlement details are the provider's own declaration in the announcement content — a declaration, not an audited fact.";
+  box.append(caveat);
+  return box;
 }
 
 function badge(text, cls) {

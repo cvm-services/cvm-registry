@@ -74,6 +74,7 @@ input[type=text] {
 }
 .badge.tier { color: var(--accent); border-color: #29527a; }
 .badge.warn { color: var(--warn); border-color: #5c4715; }
+.badge.meatspace { color: #7ee787; border-color: #2b5a34; background: #0f2a17; }
 .about { color: var(--dim); margin: .35rem 0 .6rem; }
 .facts { list-style: none; margin: .4rem 0; padding: 0; font-size: .86rem; }
 .facts li { padding: .12rem 0; overflow-wrap: anywhere; }
@@ -86,6 +87,12 @@ input[type=text] {
 .reqs .warn { color: var(--warn); }
 .reqs .loud { color: var(--loud); font-weight: 600; }
 .fineprint { color: var(--dim); font-size: .78rem; margin-top: .45rem; }
+.declared { border-top: 1px solid var(--line); margin-top: .7rem; padding-top: .2rem; }
+.declared p { margin: .25rem 0; font-size: .88rem; }
+.declared .fulfilment { color: #7ee787; }
+.declared .settlement { color: var(--fg); }
+.declared .condition { color: var(--dim); font-size: .82rem; }
+.declared .prices { margin: .3rem 0; padding-left: 1.1rem; font-size: .88rem; }
 
 footer { margin-top: 2.4rem; color: var(--dim); font-size: .82rem; }
 footer code { color: var(--fg); background: var(--panel); padding: 0 .25rem; border-radius: 4px; }

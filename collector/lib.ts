@@ -304,7 +304,201 @@ export interface RequirementAssessment {
   unclassified: boolean;
 }
 
+// --------------------------------------------------------------------------
+// announcement content — the provider's own declaration of fulfilment / menu /
+// settlement facts, carried in the event `content` (a JSON string on the Nostr
+// event). Parsed defensively: a malformed or absent content yields null fields,
+// never throws, so a hostile or broken announcement can never abort a collect.
+// --------------------------------------------------------------------------
+
+/** Per-method fulfilment detail (pickup/delivery/dine_in), loose by design. */
+export interface FulfilmentMethodInfo {
+  available?: boolean;
+  estimated_minutes?: number;
+  [k: string]: unknown;
+}
+
+export interface DeclaredFulfilment {
+  /** the methods the venue offers, e.g. ["pickup","delivery"] */
+  methods: string[];
+  pickup: FulfilmentMethodInfo | null;
+  delivery: FulfilmentMethodInfo | null;
+  dine_in: FulfilmentMethodInfo | null;
+  method_condition: string | null;
+}
+
+/** One method's price breakdown inside menu.prices_by_method. */
+export interface PriceBreakdown {
+  count?: number;
+  min_price?: number;
+  max_price?: number;
+  [k: string]: unknown;
+}
+
+export interface DeclaredMenu {
+  item_count: number | null;
+  priced_count: number | null;
+  currency: string | null;
+  min_price: number | null;
+  max_price: number | null;
+  prices_by_method: Record<string, PriceBreakdown> | null;
+  price_basis: string | null;
+}
+
+export interface DeclaredSettlement {
+  settles: string | null;
+  rail: string | null;
+  currency: string | null;
+  tax: unknown;
+  cvm_cap_sats: number | null;
+  recorded: boolean | null;
+  note: string | null;
+}
+
+/** The provider-declared facts read from event content (all nullable). */
+export interface Declared {
+  fulfilment: DeclaredFulfilment | null;
+  menu: DeclaredMenu | null;
+  settlement: DeclaredSettlement | null;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v !== "object" || Array.isArray(v)) return null;
+  return v as Record<string, unknown>;
+}
+
+function strOrNull(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+function numOrNull(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function boolOrNull(v: unknown): boolean | null {
+  return typeof v === "boolean" ? v : null;
+}
+
+function strArray(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+function methodInfo(v: unknown): FulfilmentMethodInfo | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return r as FulfilmentMethodInfo;
+}
+
+function priceBreakdown(v: unknown): PriceBreakdown | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return r as PriceBreakdown;
+}
+
+function parseFulfilment(v: unknown): DeclaredFulfilment | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return {
+    methods: strArray(r.methods),
+    pickup: methodInfo(r.pickup),
+    delivery: methodInfo(r.delivery),
+    dine_in: methodInfo(r.dine_in),
+    method_condition: strOrNull(r.method_condition),
+  };
+}
+
+function parseMenu(v: unknown): DeclaredMenu | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  let prices_by_method: Record<string, PriceBreakdown> | null = null;
+  const pbm = asRecord(r.prices_by_method);
+  if (pbm) {
+    prices_by_method = {};
+    for (const [k, val] of Object.entries(pbm)) {
+      const b = priceBreakdown(val);
+      if (b) prices_by_method[k] = b;
+    }
+  }
+  return {
+    item_count: numOrNull(r.item_count),
+    priced_count: numOrNull(r.priced_count),
+    currency: strOrNull(r.currency),
+    min_price: numOrNull(r.min_price),
+    max_price: numOrNull(r.max_price),
+    prices_by_method,
+    price_basis: strOrNull(r.price_basis),
+  };
+}
+
+function parseSettlement(v: unknown): DeclaredSettlement | null {
+  const r = asRecord(v);
+  if (!r) return null;
+  return {
+    settles: strOrNull(r.settles),
+    rail: strOrNull(r.rail),
+    currency: strOrNull(r.currency),
+    tax: r.tax ?? null,
+    cvm_cap_sats: numOrNull(r.cvm_cap_sats),
+    recorded: boolOrNull(r.recorded),
+    note: strOrNull(r.note),
+  };
+}
+
+/**
+ * Parse the event `content` (a JSON string) into declared facts. Never throws:
+ * a malformed, absent or non-object content yields an all-null Declared, so a
+ * broken announcement is inert, not fatal.
+ */
+export function parseDeclared(content: string): Declared {
+  let raw: unknown = null;
+  try {
+    raw = JSON.parse(content);
+  } catch {
+    raw = null;
+  }
+  const r = asRecord(raw);
+  if (!r) return { fulfilment: null, menu: null, settlement: null };
+  return {
+    fulfilment: parseFulfilment(r.fulfilment),
+    menu: parseMenu(r.menu),
+    settlement: parseSettlement(r.settlement),
+  };
+}
+
+/**
+ * The "meatspace" capability facet: does this entry represent a PHYSICAL
+ * handover (a venue you pick up from, dine in at, or is explicitly tagged
+ * `cvm:service:meatspace`), rather than a purely digital service?
+ *
+ * Two clauses, both required:
+ *  (1) NO required field starts with `ship.` — a delivery-only venue that
+ *      REQUIRES a shipping address cannot be fulfilled in meatspace.
+ *  (2) a physical handover is affirmatively declared — content.fulfilment.methods
+ *      includes "pickup" or "dine_in", OR the `cvm:service:meatspace` class tag
+ *      is present.
+ *
+ * Clause (2) exists precisely to keep digital services out. A digital service
+ * that requires nothing (tier `none`, class `compute`) or only `payment.amount`
+ * (class `sms`) trivially satisfies clause (1) — it has no `ship.*` requirement
+ * at all — so without an affirmative handover declaration it would be
+ * mislabelled "meatspace". Only an explicit pickup/dine_in method, or the
+ * explicit `cvm:service:meatspace` tag, counts as a physical handover.
+ */
+export function isMeatspace(required: string[], classes: string[], declared: Declared): boolean {
+  const noShipRequired = !required.some((f) => f.startsWith("ship."));
+  if (!noShipRequired) return false;
+  const methods = declared.fulfilment?.methods ?? [];
+  if (methods.includes("pickup") || methods.includes("dine_in")) return true;
+  // cvm:service:meatspace is an ADDITIONAL, explicit signal (a parallel change in
+  // contextvm-services); treat it as additive, never as a dependency.
+  return classes.includes("meatspace");
+}
+
 export interface Classified {
+  /** Reviews bound to this entry by collector/reviews.ts (R2). Optional: a
+   *  catalogue built from tags alone has none. */
+  reviews?: AttachedReview[];
   event_id: string;
   kind: number;
   pubkey: string;
@@ -320,6 +514,10 @@ export interface Classified {
   caps: Cap[];
   tier: TierAssessment;
   requirements: RequirementAssessment;
+  /** provider-declared fulfilment/menu/settlement facts from event content */
+  declared: Declared;
+  /** physical handover (pickup/dine_in/meatspace-tagged), never a digital service */
+  meatspace: boolean;
 }
 
 /**
@@ -402,6 +600,8 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
   const expected = recomputed === null ? [] : [recomputed];
   const mismatch = declared.join(",") !== expected.join(",");
 
+  const declaredContent = parseDeclared(e.content);
+
   return {
     event_id: e.id,
     kind: e.kind,
@@ -412,12 +612,14 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
     classes,
     name: tagValues(e.tags, "name")[0] ?? null,
     about: tagValues(e.tags, "about")[0] ?? null,
-    website: tagValues(e.tags, "website")[0] ?? null,
+    website: httpUrlOrNull(tagValues(e.tags, "website")[0] ?? null),
     links: parseLinks(e.tags),
     geohashes: uniqSorted(tagValues(e.tags, "g")),
     caps: parseCaps(e.tags),
     tier: { declared, recomputed, mismatch },
     requirements: { required, optional, unknown, none_sentinel, unclassified },
+    declared: declaredContent,
+    meatspace: isMeatspace(required, classes, declaredContent),
   };
 }
 
@@ -474,4 +676,384 @@ export function matchesFieldAnd(
   for (const f of requiredFields) if (!declared.has(f)) return false;
   if (!opts.allowUnknown && entry.requirements.unknown.length > 0) return false;
   return true;
+}
+
+// --------------------------------------------------------------------------
+// service grouping — CEP-6 kinds 11316-11320 are FACETS of ONE service
+// --------------------------------------------------------------------------
+//
+// The dashboard used to render one card per ANNOUNCEMENT, so a service that
+// publishes its server announcement (11316) and its tools list (11317) — which
+// CEP-6 defines as facets of one service — was painted TWICE, and the header
+// counted "2 announcements from 2 curators" for a single signer. Identity is
+// (pubkey, d): `kind` classifies a facet, it never identifies a service. The
+// per-kind dedupe in `dedupe()` stays as it is — it is the right rule for a
+// retraction within a kind — this is a second level on top of it.
+
+export interface ServiceFacet {
+  kind: number;
+  event_id: string;
+  created_at: number;
+}
+
+export interface Service {
+  /** `${pubkey}:${d}` — the service's identity, stable across re-announcements. */
+  service_key: string;
+  pubkey: string;
+  npub: string;
+  /** the announcement slug; "" for the many CEP-6 servers that omit `d` */
+  d: string;
+  /** the CEP-6 kinds present, ascending */
+  kinds: number[];
+  facets: ServiceFacet[];
+  name: string | null;
+  about: string | null;
+  website: string | null;
+  links: string[];
+  geohashes: string[];
+  classes: string[];
+  caps: Cap[];
+  tier: TierAssessment;
+  requirements: RequirementAssessment;
+  /** provider-declared fulfilment/menu/settlement facts (merged from facets) */
+  declared: Declared;
+  /** physical handover (pickup/dine_in/meatspace-tagged), never a digital service */
+  meatspace: boolean;
+  /** newest facet timestamp */
+  created_at: number;
+  /** filled by the collector's cache-time link check; null = no URL declared */
+  link_status: LinkStatus | null;
+  /** This service's reviews (R2), deduped and newest-first. The page renders
+   *  SERVICES, so a list left behind on the entry is invisible in the UI while
+   *  the unit tests stay green — the defect the grouping test now pins. */
+  reviews: AttachedReview[];
+}
+
+/** A review as attached to an entry by collector/reviews.ts. Structural on
+ *  purpose: lib.ts must not import reviews.ts back (one-way dependency), and the
+ *  grouping needs only the identity and the sort key. */
+export interface AttachedReview {
+  event_id: string;
+  created_at: number;
+  [k: string]: unknown;
+}
+
+/** The identity of a service: the signer plus its announcement slug. */
+export function serviceKey(e: { pubkey: string; d: string }): string {
+  return `${String(e.pubkey).toLowerCase()}:${e.d ?? ""}`;
+}
+
+const TIER_RANK: Record<string, number> = {
+  none: 0,
+  financial: 1,
+  contact: 2,
+  fulfilment: 3,
+  legal: 4,
+  sensitive: 5,
+};
+
+function uniq<T>(xs: T[]): T[] {
+  return [...new Set(xs)];
+}
+
+/**
+ * Collapse classified announcements into services, one per (pubkey, d).
+ *
+ * Merges are deliberately conservative, never generous:
+ *   * display fields (name/about/website) come from the LOWEST kind that
+ *     declares them — 11316 is the server announcement and speaks for identity;
+ *   * `tier.recomputed` is the WORST (highest-rank) facet, so a tools list
+ *     cannot loosen the input the server announcement declared;
+ *   * `requirements.unclassified` is true only when NO facet classifies — a
+ *     service whose 11317 declares requirements is not "unclassified";
+ *   * every facet keeps its event id, so the evidence chain survives the merge.
+ *
+ * Output order is (pubkey, d) — deterministic, independent of input order.
+ */
+export function groupServices(entries: Classified[]): Service[] {
+  const byKey = new Map<string, Classified[]>();
+  for (const e of entries) {
+    const k = serviceKey(e);
+    const arr = byKey.get(k);
+    if (arr) arr.push(e);
+    else byKey.set(k, [e]);
+  }
+
+  const services: Service[] = [];
+  for (const [key, group] of byKey) {
+    const sorted = [...group].sort((a, b) => a.kind - b.kind || a.event_id.localeCompare(b.event_id));
+    const firstNonEmpty = <T>(pick: (e: Classified) => T | null | undefined): T | null => {
+      for (const e of sorted) {
+        const v = pick(e);
+        if (v !== null && v !== undefined && (v as unknown as string) !== "") return v as T;
+      }
+      return null;
+    };
+    const worstTier = sorted.reduce<string | null>((acc, e) => {
+      const r = e.tier.recomputed;
+      if (r === null) return acc;
+      if (acc === null) return r;
+      return (TIER_RANK[r] ?? 0) > (TIER_RANK[acc] ?? 0) ? r : acc;
+    }, null);
+
+    const caps: Cap[] = [];
+    const seenCaps = new Set<string>();
+    for (const e of sorted) {
+      for (const c of e.caps) {
+        const ck = JSON.stringify(c);
+        if (seenCaps.has(ck)) continue;
+        seenCaps.add(ck);
+        caps.push(c);
+      }
+    }
+
+    services.push({
+      service_key: key,
+      pubkey: sorted[0].pubkey,
+      npub: sorted[0].npub,
+      d: sorted[0].d,
+      kinds: sorted.map((e) => e.kind),
+      facets: sorted.map((e) => ({ kind: e.kind, event_id: e.event_id, created_at: e.created_at })),
+      name: firstNonEmpty((e) => e.name),
+      about: firstNonEmpty((e) => e.about),
+      website: firstNonEmpty((e) => e.website),
+      links: uniq(sorted.flatMap((e) => e.links)).sort(),
+      geohashes: uniq(sorted.flatMap((e) => e.geohashes)).sort(),
+      classes: uniq(sorted.flatMap((e) => e.classes)).sort(),
+      caps,
+      tier: {
+        declared: uniq(sorted.flatMap((e) => e.tier.declared)).sort(),
+        recomputed: worstTier,
+        mismatch: sorted.some((e) => e.tier.mismatch),
+      },
+      requirements: {
+        required: uniq(sorted.flatMap((e) => e.requirements.required)).sort(),
+        optional: uniq(sorted.flatMap((e) => e.requirements.optional)).sort(),
+        unknown: uniq(sorted.flatMap((e) => e.requirements.unknown)).sort(),
+        none_sentinel: sorted.some((e) => e.requirements.none_sentinel),
+        unclassified: sorted.every((e) => e.requirements.unclassified),
+      },
+      // content facts merge per-field from the lowest kind that declares them
+      // (the 11316 server announcement speaks for identity and content); a
+      // service is meatspace if ANY facet is — the venue's 11316 declares the
+      // handover, its 11317 tools list does not.
+      declared: {
+        fulfilment: firstNonEmpty((e) => e.declared.fulfilment),
+        menu: firstNonEmpty((e) => e.declared.menu),
+        settlement: firstNonEmpty((e) => e.declared.settlement),
+      },
+      meatspace: sorted.some((e) => e.meatspace),
+      created_at: Math.max(...sorted.map((e) => e.created_at)),
+      // A service's reviews are its facets' reviews: attachReviews binds by
+      // `pubkey:d`, so every facet of one service holds the same list. Dedupe by
+      // event id regardless (cheap, and it makes a divergent facet harmless) and
+      // keep newest-first to match the entry-level order the page already shows.
+      reviews: [...new Map(
+        sorted.flatMap((e) => e.reviews ?? []).map((r) => [r.event_id, r]),
+      ).values()].sort((a, b) =>
+        b.created_at - a.created_at || a.event_id.localeCompare(b.event_id)
+      ),
+      link_status: null,
+    });
+  }
+  return services.sort((a, b) => a.pubkey.localeCompare(b.pubkey) || a.d.localeCompare(b.d));
+}
+
+// --------------------------------------------------------------------------
+// cache-time link check — did the DECLARED url answer when we last collected?
+// --------------------------------------------------------------------------
+//
+// A dead URL reached a "live" dashboard because nothing ever fetched it: the
+// page renders the provider's own declaration, and a declaration nobody tests
+// is indistinguishable from a working one. This records ONE observable fact
+// about that declaration, at COLLECT time, as data on the cache.
+//
+// Scope discipline: a plain outbound HEAD from the collector. It is NOT a
+// per-service CVM call and NOT a relay connection, so the cache-not-proxy rule
+// (ADR-0001 D7) is untouched. The page still makes zero network calls.
+
+export interface LinkStatus {
+  url: string;
+  /** false when the check did not run (disabled or over budget) */
+  checked: boolean;
+  /** true = answered 2xx/3xx, false = did not answer, null = UNKNOWN */
+  ok: boolean | null;
+  http_status: number | null;
+  reason: string;
+  /** What the PAGE should say about this URL; null when there is nothing to
+   *  report (a confirmed answer). Computed here, not in the page, so the page
+   *  cannot disagree with the catalog about what a verdict means. */
+  text?: string | null;
+  checked_at: number;
+}
+
+export interface LinkCheckPolicy {
+  enabled: boolean;
+  timeoutMs: number;
+  maxUrls: number;
+}
+
+const LINK_USER_AGENT = "cvm-registry-collector/1.0 (+https://cvm.orangesync.tech/)";
+
+/** Absolute http(s) only — the same rule `parseLinks` applies before rendering. */
+export function validHttpUrl(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const t = raw.trim();
+  if (!t) return null;
+  let u: URL;
+  try {
+    u = new URL(t);
+  } catch {
+    return null;
+  }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  return u.toString();
+}
+
+/**
+ * Ask whether a declared URL answers. Never throws: a transport failure is a
+ * RESULT (unreachable/timeout), not an exception that could abort a collect.
+ * A timeout is `ok: null` — unknown, never a pass.
+ */
+export async function checkUrl(
+  raw: string,
+  opts: { timeoutMs?: number; now?: number; fetchImpl?: typeof fetch } = {},
+): Promise<LinkStatus> {
+  const now = opts.now ?? Math.floor(Date.now() / 1000);
+  const url = validHttpUrl(raw);
+  if (!url) {
+    return { url: raw, checked: false, ok: null, http_status: null, reason: "invalid-url", checked_at: now };
+  }
+  const doFetch = opts.fetchImpl ?? fetch;
+  const timeoutMs = opts.timeoutMs ?? 5000;
+  const attempt = async (method: string): Promise<Response> => {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      return await doFetch(url, {
+        method,
+        redirect: "follow",
+        signal: ctl.signal,
+        headers: { "user-agent": LINK_USER_AGENT, "accept": "*/*" },
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  try {
+    let res: Response;
+    try {
+      res = await attempt("HEAD");
+      if (res.status === 405 || res.status === 501) res = await attempt("GET");
+    } catch {
+      // some origins close the connection on HEAD; one GET retry, then decide
+      res = await attempt("GET");
+    }
+    const ok = res.status >= 200 && res.status < 400;
+    return {
+      url,
+      checked: true,
+      ok,
+      http_status: res.status,
+      reason: ok ? "ok" : `http-${res.status}`,
+      checked_at: now,
+    };
+  } catch (err) {
+    const name = (err as Error)?.name ?? "";
+    const reason = name === "AbortError" || name === "TimeoutError" ? "timeout" : "unreachable";
+    return { url, checked: true, ok: null, http_status: null, reason, checked_at: now };
+  }
+}
+
+/**
+ * Check each service's declared URL (the `website` tag, else its first `r`
+ * link) and attach the verdict as `link_status`. Bounded: at most `maxUrls`
+ * requests per collect, each capped by `timeoutMs`. Services over budget are
+ * labelled `not-checked` — an unrun check is never reported as a pass.
+ */
+export async function checkServiceLinks(
+  services: Service[],
+  policy: LinkCheckPolicy,
+  deps: { fetchImpl?: typeof fetch; now?: number } = {},
+): Promise<void> {
+  const now = deps.now ?? Math.floor(Date.now() / 1000);
+  let budget = Math.max(0, policy.maxUrls);
+  for (const s of services) {
+    const candidates = uniq([s.website, ...s.links].map((u) => validHttpUrl(u)).filter((u): u is string => u !== null));
+    if (candidates.length === 0) {
+      s.link_status = null;
+      continue;
+    }
+    if (!policy.enabled) {
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "disabled", text: verdictText({ checked: false, ok: null, reason: "disabled" }), checked_at: now };
+      continue;
+    }
+    if (budget === 0) {
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "not-checked", text: verdictText({ checked: false, ok: null, reason: "not-checked" }), checked_at: now };
+      continue;
+    }
+    budget -= 1;
+    s.link_status = await checkUrl(candidates[0], { timeoutMs: policy.timeoutMs, now, ...deps });
+    s.link_status.text = verdictText(s.link_status);
+  }
+}
+
+/** Honest tally for the catalog header — counts the CHECKS, not the services. */
+export function linkCheckTally(services: Service[]): { checked: number; unreachable: number; not_checked: number; no_url: number } {
+  let checked = 0, unreachable = 0, not_checked = 0, no_url = 0;
+  for (const s of services) {
+    if (!s.link_status) {
+      no_url += 1;
+      continue;
+    }
+    if (!s.link_status.checked) not_checked += 1;
+    else {
+      checked += 1;
+      if (s.link_status.ok !== true) unreachable += 1;
+    }
+  }
+  return { checked, unreachable, not_checked, no_url };
+}
+
+// --------------------------------------------------------------------------
+// what the page is allowed to say — decided HERE, never in the page
+// --------------------------------------------------------------------------
+
+/** A provider-supplied URL that is absolute http(s), or nothing.
+ *
+ * The `website` tag is attacker-controlled text and the page puts it in an
+ * `href`. `javascript:`/`data:`/`file:` must never survive that trip, so the
+ * check happens once here and the page renders only what passed it. Same rule
+ * `parseLinks` applies to `r` tags, and it returns the string UNCHANGED (no
+ * normalisation) so the catalog keeps the provider's own spelling. */
+export function httpUrlOrNull(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const s = raw.trim();
+  if (!s) return null;
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:" ? s : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The page-facing verdict for a link check: what to render, or null for nothing.
+ *
+ * Returns null ONLY for a confirmed answer (`ok === true`) or no check at all.
+ * Everything else gets words, because silence is what made the first cut of this
+ * check useless: a transport failure is `ok: null` (UNKNOWN), and the page — which
+ * tested for `ok === false` — rendered it as a plain, healthy-looking link. The
+ * live TLS failure that motivated the check was therefore invisible on the page.
+ * UNKNOWN is never a pass, and it is never quiet either.
+ */
+export function verdictText(st: { checked?: boolean; ok: boolean | null; reason?: string } | null | undefined): string | null {
+  if (!st) return null;
+  if (st.checked === false) return "not checked";
+  if (st.ok === true) return null;
+  if (st.reason === "timeout") return "no reply";
+  if (st.reason && st.reason.startsWith("http-")) return "unreachable " + st.reason.slice(5);
+  return "unreachable";
 }

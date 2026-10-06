@@ -26,3 +26,17 @@ does, "unclassified" is the honest answer and the tier filter matches none of th
 The tier-recompute, unknown-field and mismatch paths are exercised by
 `tests/lib_test.ts` against the spec's own example tag sets, because no live
 announcement carries those tags yet.
+
+## services, not announcements (2026-10-06)
+
+`demo-catalog.json` now carries a second, coarser view. CEP-6 defines kinds
+11316-11320 as FACETS of one service, so the collector collapses the kept
+announcements on `(pubkey, d)` and emits `services` next to `entries`:
+
+    counts: kept=6 (announcements)  services_kept=3
+
+The page renders one card per service, so the six captured announcements are
+three cards, each labelled with the facets it came from. `link_check` in the
+same file records the collector's cache-time HEAD verdict per declared URL
+(`checked=0 not_checked=3` here, because this fixture is regenerated with
+`--no-link-check`).

@@ -17,6 +17,8 @@ import {
   parseRating,
   REVIEW_KIND,
 } from "../collector/reviews.ts";
+import { groupServices } from "../collector/lib.ts";
+import type { Classified } from "../collector/lib.ts";
 
 const PROVIDER = "ae317038b9c8c2fb681b163e9903d179785292b95d964dcb89bd053ba83e84bd";
 const REVIEWER = "4e5970390303ed7c17be1d5f2656b6a7edf8ca9c2e97796bed97956ba578a50d";
@@ -195,4 +197,61 @@ Deno.test("reviews: attached reviews are newest-first", () => {
   const res = attachReviews([{ pubkey: PROVIDER, d: "doppelt-kaese-berlin" }], [old, recent]);
   const list = (res.entries[0] as { reviews: Array<{ created_at: number }> }).reviews;
   eq(list.map((r) => r.created_at), [300, 100], "newest first");
+});
+
+/** A minimal Classified facet; only the fields groupServices actually reads. */
+function facet(
+  kind: number,
+  id: string,
+  reviews: Array<{ event_id: string; created_at: number }> = [
+    { event_id: "c".repeat(64), created_at: 7 },
+  ],
+) {
+  return {
+    pubkey: PROVIDER,
+    npub: "npub1x",
+    d: "doppelt-kaese-berlin",
+    kind,
+    event_id: id,
+    created_at: 7,
+    classes: ["restaurant"],
+    caps: [],
+    links: [],
+    geohashes: [],
+    name: null,
+    about: null,
+    website: null,
+    tier: { declared: [], recomputed: null, mismatch: false },
+    requirements: {
+      required: [],
+      optional: [],
+      unknown: [],
+      none_sentinel: false,
+      unclassified: true,
+    },
+    declared: { fulfilment: null, menu: null, settlement: null },
+    meatspace: false,
+    reviews,
+  };
+}
+
+Deno.test("reviews: survive service grouping — the page renders services, not entries", () => {
+  // (R2 x R6) attachReviews binds by `pubkey:d` and puts the list on EVERY
+  // facet of that service. groupServices then REBUILDS the object field by
+  // field, so a list it does not copy is invisible on the page while the unit
+  // tests above stay green: green suite, "Reviews (0)" in the UI.
+  const services = groupServices([
+    facet(11316, "a".repeat(64)),
+    facet(11317, "b".repeat(64)),
+  ] as unknown as Classified[]);
+  eq(services.length, 1, "the two facets collapse into one service");
+  const got = (services[0] as unknown as { reviews?: Array<{ event_id: string }> }).reviews ?? [];
+  eq(got.length, 1, "the service must carry the reviews the card renders");
+  eq(got[0].event_id, "c".repeat(64), "and it must be the right review");
+
+  const bare = groupServices([
+    facet(11316, "d".repeat(64), []),
+  ] as unknown as Classified[]);
+  const none = (bare[0] as unknown as { reviews?: unknown[] }).reviews ?? [];
+  eq(none.length, 0, "a service with no reviews must not invent any");
 });
