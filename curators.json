@@ -1,7 +1,7 @@
 {
   "_comment": "Hardcoded allow-list of npubs whose CVM announcements the dashboard may render. Fork this repo and edit THIS FILE for your own deployment - curation is a claim, so it lives in your git history, not in a database. Unknown npub => not rendered. Empty list => nothing rendered (fail closed).",
   "version": 1,
-  "updated": "2026-10-05",
+  "updated": "2026-10-06",
   "dashboard_host": "cvm.orangesync.tech",
   "policy": {
     "unknown_npub": "not rendered",
@@ -24,6 +24,12 @@
       "role": "provider",
       "derived_from": "secp256k1 key efcb48fd (the nosms provider's own signing key; npub re-derived with nak decode on 2026-10-05, matching the pubkey of the kind-11316 announcement event 6b3e96f4 d=nosms)",
       "note": "S5b. Signs the nosms CVM announcement (kind 11316, d=nosms, class cvm:service:sms) on wss://relay.primal.net. Added so the dashboard may render that row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a)."
+    },
+    {
+      "npub": "npub1u0xxspsyfraey53wslkhhkgew03gjm4wna6y8zwsk6ysjad5mqzspy9y5r",
+      "role": "provider",
+      "derived_from": "secp256k1 key e3cc68060448fb92522e87ed7bd91973e2896eae9f744389d0b6890975b4d805 (cvm-lambda's signing key; npub re-derived with `nak encode npub` on 2026-10-06, matching the pubkey of the kind-11316 announcement d=cvm-lambda-01)",
+      "note": "cvm-lambda. Signs the serverless code-execution CVM announcement (kind 11316, d=cvm-lambda-01, class cvm:service:compute, cvm:req:none) on wss://relay.primal.net, wss://nostr.mom, wss://nos.lol, wss://relay2.contextvm.org. Added so the dashboard may render the row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a)."
     },
     {
       "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",

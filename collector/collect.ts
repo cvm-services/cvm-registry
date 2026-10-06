@@ -18,9 +18,13 @@
 import {
   applyAllowList,
   assertSingleLetterFilters,
+  checkServiceLinks,
   classify,
   dedupe,
+  groupServices,
   KINDS,
+  linkCheckTally,
+  type LinkCheckPolicy,
   type NostrEvent,
   parseCurators,
   type Vocab,
@@ -33,6 +37,8 @@ interface Args {
   vocab: string;
   policy: string;
   input: string | null;
+  /** false disables the cache-time HEAD check on declared URLs (offline runs, tests) */
+  linkCheck: boolean;
   timeoutMs: number;
   limit: number;
   now: number | null;
@@ -46,6 +52,7 @@ function parseArgs(argv: string[]): Args {
     vocab: "vocab/service-inputs.json",
     policy: "policy.json",
     input: null,
+    linkCheck: true,
     timeoutMs: 20_000,
     limit: 2000,
     now: null,
@@ -60,6 +67,8 @@ function parseArgs(argv: string[]): Args {
       case "--vocab": a.vocab = v; i++; break;
       case "--policy": a.policy = v; i++; break;
       case "--input": a.input = v; i++; break;
+      case "--no-link-check": a.linkCheck = false; break;
+      case "--link-check": a.linkCheck = true; break;
       case "--timeout-ms": a.timeoutMs = Number(v); i++; break;
       case "--limit": a.limit = Number(v); i++; break;
       case "--now": a.now = Number(v); i++; break;
@@ -163,6 +172,23 @@ async function main() {
   const tally: Record<string, number> = {};
   for (const e of entries) for (const c of e.classes) tally[c] = (tally[c] ?? 0) + 1;
 
+  // CEP-6 kinds 11316-11320 are FACETS of one service, so the announcement list
+  // is collapsed on (pubkey, d) before it reaches the page: one card per service,
+  // and "announcements" and "services" are counted apart so neither number lies.
+  const services = groupServices(entries);
+
+  // Cache-time link check: did each service's DECLARED url answer? One outbound
+  // HEAD per service (bounded), recorded as data on the cache. Not a per-service
+  // CVM call, not a relay connection — the page itself still makes no requests.
+  const lcRaw = (policy as { link_check?: Partial<LinkCheckPolicy> }).link_check ?? {};
+  const linkCheck: LinkCheckPolicy = {
+    enabled: args.linkCheck && (lcRaw.enabled ?? true),
+    timeoutMs: Math.max(250, Number(lcRaw.timeoutMs ?? 5000)),
+    maxUrls: Math.max(0, Number(lcRaw.maxUrls ?? 50)),
+  };
+  await checkServiceLinks(services, linkCheck);
+  const linkTally = linkCheckTally(services);
+
   const catalog = {
     generated_at: generatedAt,
     generated_at_iso: new Date(generatedAt * 1000).toISOString(),
@@ -186,11 +212,17 @@ async function main() {
       raw_events: raw,
       after_dedupe: deduped.length,
       kept: kept.length,
+      services_kept: services.length,
       dropped_not_allowlisted: dropped.length,
     },
     class_tally: tally,
-    // Every entry here is from an allow-listed curator. Nothing was fetched per service.
+    link_check: { ...linkCheck, ...linkTally },
+    // Every entry here is from an allow-listed curator. Nothing was fetched per
+    // service: the only outbound requests are the collector's own HEAD checks on
+    // URLs a provider DECLARED, recorded here as data (ADR-0001 D7).
     entries,
+    // The same data grouped into services — what the page renders, one card each.
+    services,
   };
 
   await Deno.mkdir(args.out.replace(/\/[^/]+$/, ""), { recursive: true }).catch(() => {});
@@ -199,7 +231,10 @@ async function main() {
   const errs = relayStatus.filter((s) => !s.ok).map((s) => s.relay);
   console.log(
     `catalog: raw=${raw} deduped=${deduped.length} kept=${kept.length} ` +
-      `dropped=${dropped.length} relays_failed=${errs.length ? errs.join(" ") : "none"} -> ${args.out}`,
+      `services=${services.length} dropped=${dropped.length} ` +
+      `links: checked=${linkTally.checked} unreachable=${linkTally.unreachable} ` +
+      `not_checked=${linkTally.not_checked} no_url=${linkTally.no_url} ` +
+      `relays_failed=${errs.length ? errs.join(" ") : "none"} -> ${args.out}`,
   );
   if (allow.errors.length) console.error("allow-list errors: " + allow.errors.join("; "));
 }

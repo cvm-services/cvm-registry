@@ -8,6 +8,12 @@
     "max_age_seconds": 21600,
     "clock_skew_seconds": 120
   },
+  "link_check": {
+    "enabled": true,
+    "timeout_ms": 5000,
+    "max_urls": 50,
+    "_comment": "At collect time the collector sends ONE bound HEAD (GET on 405/501) to each service's DECLARED url — the `website` tag, else its first `r` link — and records the verdict as data on the cache. This is not a per-service CVM call and not a relay connection: the page still makes zero network requests (ADR-0001 D7). ok=true means 2xx/3xx; ok=false means it did not answer; ok=null means UNKNOWN (timeout, or the check did not run) and is never rendered as reachable. Disable with --no-link-check for offline/deterministic runs."
+  },
   "semantics": {
     "fresh": "age <= fresh_ttl_seconds: announcements may be presented as current",
     "stale": "fresh_ttl_seconds < age <= max_age_seconds: entries are shown ONLY as an explicitly labelled cached snapshot; every live claim (freshness, refresh, 'current') is disabled",

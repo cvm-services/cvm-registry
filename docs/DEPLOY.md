@@ -159,3 +159,12 @@ ssh debian@23.182.128.219 'sudo systemctl disable --now cvm-collector.timer'
   field-level AND is always computed locally (`matchesFieldAnd`), never reported
   from a relay count (D14).
 - **No live CVM calls, by design.** The page never opens a relay connection.
+
+## The link check in production (2026-10-06)
+
+The host collect keeps the URL check ENABLED — it is the thing that catches a
+dead declared URL before it reaches a "live" dashboard. It costs one bounded
+HEAD per kept service: at most `policy.json:link_check.max_urls` requests per
+run, each capped by `timeout_ms`. For an offline or byte-reproducible rebuild
+(CI, fixtures) pass `--no-link-check`; the catalog then records
+`enabled:false` and every service's verdict as `not-checked`, never `ok`.
