@@ -298,7 +298,8 @@
         "ok": null,
         "http_status": null,
         "reason": "disabled",
-        "checked_at": 1791283346
+        "text": "not checked",
+        "checked_at": 1791292657
       }
     },
     {
@@ -348,7 +349,8 @@
         "ok": null,
         "http_status": null,
         "reason": "disabled",
-        "checked_at": 1791283346
+        "text": "not checked",
+        "checked_at": 1791292657
       }
     },
     {
@@ -398,7 +400,8 @@
         "ok": null,
         "http_status": null,
         "reason": "disabled",
-        "checked_at": 1791283346
+        "text": "not checked",
+        "checked_at": 1791292657
       }
     }
   ]

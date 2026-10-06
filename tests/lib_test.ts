@@ -10,6 +10,7 @@ import {
   classify,
   dedupe,
   groupServices,
+  httpUrlOrNull,
   hexToNpub,
   serviceKey,
   matchesFieldAnd,
@@ -19,6 +20,7 @@ import {
   parseLinks,
   parseCurators,
   tierPrefilter,
+  verdictText,
   type Classified,
   type NostrEvent,
   type Vocab,
@@ -360,3 +362,27 @@ Deno.test("groupServices of nothing is nothing (no phantom service)", () => {
   assertEquals(groupServices([]), [], "empty in, empty out");
 });
 
+
+Deno.test("a provider-supplied website with a hostile scheme is dropped, not rendered", () => {
+  assertEquals(httpUrlOrNull("javascript:alert(1)"), null, "javascript: is refused");
+  assertEquals(httpUrlOrNull("data:text/html,<script>1</script>"), null, "data: is refused");
+  assertEquals(httpUrlOrNull("file:///etc/passwd"), null, "file: is refused");
+  assertEquals(httpUrlOrNull("not a url"), null, "junk is refused");
+  assertEquals(httpUrlOrNull(""), null, "empty is refused");
+  assertEquals(httpUrlOrNull(null), null, "absent is refused");
+  // kept UNCHANGED: the catalog keeps the provider's own spelling
+  assertEquals(httpUrlOrNull("https://venue.example/menu"), "https://venue.example/menu", "https kept verbatim");
+  assertEquals(httpUrlOrNull("http://venue.example"), "http://venue.example", "no normalisation");
+  // and classify applies it
+  const e = classify(ev({ tags: [["website", "javascript:alert(1)"], ["d", "x"]] }), VOCAB);
+  assertEquals(e.website, null, "classify does not carry a hostile website");
+});
+
+Deno.test("verdictText: UNKNOWN is never a pass and never silent", () => {
+  assertEquals(verdictText(null), null, "nothing to say with no check");
+  assertEquals(verdictText({ checked: false, ok: null, reason: "disabled" }), "not checked", "an unrun check says so");
+  assertEquals(verdictText({ checked: true, ok: true, reason: "ok" }), null, "a confirmed answer needs no badge");
+  assertEquals(verdictText({ checked: true, ok: null, reason: "unreachable" }), "unreachable", "a transport failure is SHOWN");
+  assertEquals(verdictText({ checked: true, ok: null, reason: "timeout" }), "no reply", "a timeout is SHOWN");
+  assertEquals(verdictText({ checked: true, ok: false, reason: "http-404" }), "unreachable 404", "an HTTP refusal names the status");
+});

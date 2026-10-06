@@ -412,7 +412,7 @@ export function classify(e: NostrEvent, vocab: Vocab): Classified {
     classes,
     name: tagValues(e.tags, "name")[0] ?? null,
     about: tagValues(e.tags, "about")[0] ?? null,
-    website: tagValues(e.tags, "website")[0] ?? null,
+    website: httpUrlOrNull(tagValues(e.tags, "website")[0] ?? null),
     links: parseLinks(e.tags),
     geohashes: uniqSorted(tagValues(e.tags, "g")),
     caps: parseCaps(e.tags),
@@ -642,6 +642,10 @@ export interface LinkStatus {
   ok: boolean | null;
   http_status: number | null;
   reason: string;
+  /** What the PAGE should say about this URL; null when there is nothing to
+   *  report (a confirmed answer). Computed here, not in the page, so the page
+   *  cannot disagree with the catalog about what a verdict means. */
+  text?: string | null;
   checked_at: number;
 }
 
@@ -744,15 +748,16 @@ export async function checkServiceLinks(
       continue;
     }
     if (!policy.enabled) {
-      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "disabled", checked_at: now };
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "disabled", text: verdictText({ checked: false, ok: null, reason: "disabled" }), checked_at: now };
       continue;
     }
     if (budget === 0) {
-      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "not-checked", checked_at: now };
+      s.link_status = { url: candidates[0], checked: false, ok: null, http_status: null, reason: "not-checked", text: verdictText({ checked: false, ok: null, reason: "not-checked" }), checked_at: now };
       continue;
     }
     budget -= 1;
     s.link_status = await checkUrl(candidates[0], { timeoutMs: policy.timeoutMs, now, ...deps });
+    s.link_status.text = verdictText(s.link_status);
   }
 }
 
@@ -771,4 +776,46 @@ export function linkCheckTally(services: Service[]): { checked: number; unreacha
     }
   }
   return { checked, unreachable, not_checked, no_url };
+}
+
+// --------------------------------------------------------------------------
+// what the page is allowed to say — decided HERE, never in the page
+// --------------------------------------------------------------------------
+
+/** A provider-supplied URL that is absolute http(s), or nothing.
+ *
+ * The `website` tag is attacker-controlled text and the page puts it in an
+ * `href`. `javascript:`/`data:`/`file:` must never survive that trip, so the
+ * check happens once here and the page renders only what passed it. Same rule
+ * `parseLinks` applies to `r` tags, and it returns the string UNCHANGED (no
+ * normalisation) so the catalog keeps the provider's own spelling. */
+export function httpUrlOrNull(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const s = raw.trim();
+  if (!s) return null;
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:" ? s : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The page-facing verdict for a link check: what to render, or null for nothing.
+ *
+ * Returns null ONLY for a confirmed answer (`ok === true`) or no check at all.
+ * Everything else gets words, because silence is what made the first cut of this
+ * check useless: a transport failure is `ok: null` (UNKNOWN), and the page — which
+ * tested for `ok === false` — rendered it as a plain, healthy-looking link. The
+ * live TLS failure that motivated the check was therefore invisible on the page.
+ * UNKNOWN is never a pass, and it is never quiet either.
+ */
+export function verdictText(st: { checked?: boolean; ok: boolean | null; reason?: string } | null | undefined): string | null {
+  if (!st) return null;
+  if (st.checked === false) return "not checked";
+  if (st.ok === true) return null;
+  if (st.reason === "timeout") return "no reply";
+  if (st.reason && st.reason.startsWith("http-")) return "unreachable " + st.reason.slice(5);
+  return "unreachable";
 }

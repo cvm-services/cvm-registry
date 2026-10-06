@@ -330,21 +330,22 @@ function card(e, verdict, decision) {
   if (e.website) {
     const li = el("li");
     li.append(el("span", "k", "website"));
-    const a = el("a", null, e.website);
-    a.href = e.website; a.rel = "noopener noreferrer"; a.target = "_blank";
-    li.append(a);
+    const el2 = el("a", null, e.website);
+    el2.href = e.website; el2.rel = "noopener noreferrer"; el2.target = "_blank";
+    li.append(el2);
     // The collector HEADed this URL when it ran. A dead declared URL is a fact
     // about the declaration, not a verdict on the service — so it is annotated,
     // never hidden, and a check that did not run is never drawn as a pass.
+    // The verdict is the collector's (`link_status.text`), rendered verbatim:
+    // "unreachable", "no reply", "unreachable 404", "not checked". Nothing is
+    // derived here, so the page cannot disagree with the catalog — and a URL
+    // that did not answer is never drawn as a healthy one. The one guard this
+    // file keeps for itself is the href: only absolute http(s) is clickable.
     const st = e.link_status;
-    if (st && st.ok === false) {
-      const b = badge(st.reason === "timeout" ? "no reply" : "unreachable", "warn");
+    if (st && st.text) {
+      const b = badge(st.text, st.text === "not checked" ? "tier" : "warn");
       b.title = "collector check at " + new Date((st.checked_at || 0) * 1000).toISOString() +
         " — " + st.reason + (st.http_status ? " (HTTP " + st.http_status + ")" : "");
-      li.append(b);
-    } else if (st && st.checked === false) {
-      const b = badge("not checked", "tier");
-      b.title = "the collector did not check this URL (" + st.reason + ")";
       li.append(b);
     }
     facts.append(li);

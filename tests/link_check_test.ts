@@ -13,7 +13,7 @@
  *
  * Run: deno test --allow-read --allow-net=127.0.0.1
  */
-import { checkServiceLinks, checkUrl } from "../collector/lib.ts";
+import { checkUrl, checkServiceLinks, type Service } from "../collector/lib.ts";
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error("ASSERT: " + msg);
@@ -114,4 +114,20 @@ Deno.test("checkServiceLinks mutates nothing when a service declares no URL at a
 Deno.test("shutdown", async () => {
   await server.shutdown();
   assert(true, "server stopped");
+});
+
+Deno.test("the collector stamps the PAGE-FACING verdict, so the page derives nothing", async () => {
+  // own server: this test must not depend on the shared one's lifetime
+  const srv = Deno.serve({ hostname: "127.0.0.1", port: 0, onListen: () => {} }, () => new Response("nope", { status: 404 }));
+  const origin = `http://127.0.0.1:${(srv.addr as Deno.NetAddr).port}`;
+  try {
+    const services = [{ service_key: "x", website: `${origin}/missing`, links: [] }] as unknown as Service[];
+    await checkServiceLinks(services, { enabled: true, timeoutMs: 3000, maxUrls: 5 });
+    const st = services[0].link_status!;
+    assertEquals(st.ok, false, "404 did not answer");
+    assertEquals(st.text, "unreachable 404", "and the page is told exactly what to render");
+    assertEquals(st.reason, "http-404", "the reason survives verbatim");
+  } finally {
+    await srv.shutdown();
+  }
 });
