@@ -2,4 +2,5 @@ site/catalog.json
 *.tmp
 node_modules/
 .worktrees/
+.scratch/
 docs/e2e/video/

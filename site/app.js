@@ -503,6 +503,18 @@ function card(e, verdict, decision) {
   reqBox.append(note);
   c.append(reqBox);
 
+  // ---- PHASE-0 SPIKE: the catalog-constrained service view ------------------
+  // Every card gets the control; the panel itself refuses to paint anything it
+  // cannot source from served data (site/render/renderer.js, fail closed).
+  const open = el("button", "chip open-service", "Open service");
+  open.dataset.service = e.d || "";
+  open.onclick = () => {
+    const existing = c.querySelector(".service-panel");
+    if (existing) { existing.remove(); return; }
+    c.append(servicePanel(e));
+  };
+  c.append(open);
+
   if (!decision.live_claims) {
     c.append(el("p", "fineprint", "Cached snapshot: this entry is not being shown as live."));
   }
@@ -587,6 +599,167 @@ function declaredFacts(e) {
 
 function badge(text, cls) {
   return el("span", "badge " + cls, text);
+}
+
+// ==================================== catalog-constrained service view (spike) =
+/**
+ * PHASE-0 SPIKE — ADR-0005 (contextvm-services PR #22).
+ *
+ * A service is rendered through the component catalog THIS page defines
+ * (`site/render/catalog.js`) from a spec built by `site/render/spec.js` out of
+ * served data. The page does not bend two things:
+ *
+ *   - every price on screen is a served number. The renderer re-checks each
+ *     `money` prop against the served menu/basket before painting it, so a spec
+ *     cannot state a price (site/render/renderer.js, `moneyCheck`).
+ *   - an action only exists behind a real CVM tool. `menu.refresh` -> `menu`,
+ *     `order.build` -> `order`, `order.handoff` -> the venue's own published
+ *     page. There is no payment step here because this page cannot settle one.
+ *
+ * The render modules are ES modules loaded with a dynamic import(), so this file
+ * stays a classic script and nothing else about the page changes. The served
+ * menu arrives as a static capture (`menu.json`) — a cache, not a proxy: the page
+ * still never contacts a relay or a CVM server.
+ */
+
+const RENDER_MODULES = ["./render/catalog.js", "./render/spec.js", "./render/renderer.js"];
+const MENU_CAPTURE_URL = "menu.json";
+
+let RENDER = null;
+let MENU_CAPTURE = null;
+
+// Every action this page dispatched, in order. The headless test reads this to
+// prove a click produced a real tool payload — the repo's e2e convention is to
+// assert from the page's own rendered state, never from the catalog JSON.
+const DISPATCHED = [];
+window.__cvmSpike = {
+  ready: false,
+  dispatched: DISPATCHED,
+  last: (name) => [...DISPATCHED].reverse().find((d) => !name || d.action === name) || null,
+};
+
+async function loadRenderModules() {
+  if (RENDER) return RENDER;
+  const [catalog, spec, renderer] = await Promise.all(RENDER_MODULES.map((p) => import(p)));
+  RENDER = { catalog, spec, renderer };
+  return RENDER;
+}
+
+async function servedMenuCapture() {
+  if (MENU_CAPTURE) return MENU_CAPTURE;
+  try {
+    const res = await fetch(MENU_CAPTURE_URL, { cache: "no-store" });
+    MENU_CAPTURE = res.ok ? await res.json() : { venues: [], tools: [] };
+  } catch {
+    MENU_CAPTURE = { venues: [], tools: [] };
+  }
+  return MENU_CAPTURE;
+}
+
+/**
+ * The trustworthy context. Everything here comes from the announcement or the
+ * served capture — never from a spec.
+ */
+function serviceContext(entry, capture, menu, view) {
+  const declaredTools = (entry.caps || []).map((c) => c.tool).filter(Boolean);
+  // The served tools/list wins when the capture carries one; the announcement's
+  // declaration is the fallback. The renderer requires BOTH the declaration and
+  // the served tool, so a declared-but-not-served `order` renders nothing.
+  const servedTools = Array.isArray(capture.tools) && capture.tools.length
+    ? capture.tools.map((t) => (typeof t === "string" ? t : t && t.name)).filter(Boolean)
+    : declaredTools;
+  // Spread the current view so the re-render callback survives every rebuild.
+  // Resolve the method HERE, so the context and the spec agree on one method.
+  const methods = RENDER.spec.servedMethods(entry, menu);
+  const method = methods.includes(view.method) ? view.method : (methods[0] ?? null);
+  const select = (next) => view.render({ ...view, ...next });
+  return {
+    venueSlug: entry.d || "",
+    menu,
+    methods,
+    method,
+    selection: view.selection || [],
+    basket: RENDER.spec.servedBasket(menu, method, view.selection || []),
+    tools: servedTools,
+    declaresOrder: declaredTools.includes("order"),
+    orderUrl: (entry.links || []).find((u) => /^https?:\/\//i.test(u)) || null,
+    onSelectMethod: (m) => select({ method: m, selection: view.selection || [] }),
+    onAddToBasket: (sel) => select({ method, selection: sel }),
+    // The deep-link target is the announcement's own published URL, validated by
+    // the renderer — never a URL out of the spec.
+    onHandoff: (url) => { if (url) window.open(url, "_blank", "noopener,noreferrer"); },
+    orderPayload: (sel) => RENDER.spec.orderPayload(entry, menu, method, sel),
+  };
+}
+
+/** Build the spec for one service and render it into `hostEl` (re-entrant). */
+async function renderServiceInto(entry, hostEl, view) {
+  const { renderer: rMod, spec: specMod } = await loadRenderModules();
+  const capture = await servedMenuCapture();
+  const menu = (capture.venues || []).find((v) => v.venue_slug === entry.d)
+    || { venue_slug: entry.d, name: entry.name, currency: "", items: [] };
+
+  const ctx = serviceContext(entry, capture, menu, view);
+  const spec = specMod.buildServiceSpec(entry, menu, { method: ctx.method, selection: ctx.selection });
+  const renderer = rMod.createRenderer({
+    handlers: {
+      // The spike has no CVM client: an action is recorded, not sent. In a live
+      // dashboard these three handlers are where the `menu`/`order` tool calls
+      // (and only those) go, and `order.handoff` deep-links to the venue.
+      "menu.refresh": (payload) => DISPATCHED.push({ action: "menu.refresh", payload }),
+      "order.build": (payload) => DISPATCHED.push({ action: "order.build", payload }),
+      // The navigation itself is the renderer's `onHandoff` hook (one place,
+      // one open); the handler records what happened for the test seam.
+      "order.handoff": (payload, c) => DISPATCHED.push({ action: "order.handoff", payload: { url: c.orderUrl } }),
+    },
+  });
+  const verdict = renderer.render(spec, hostEl, ctx);
+  window.__cvmSpike.renderer = renderer;
+  window.__cvmSpike.verdict = verdict;
+  // Exposed for the headless test only: it asserts the spec really carries no
+  // URL and is within the size cap (repo convention: assert from the page's own
+  // state, never from the catalog JSON).
+  window.__cvmSpike.spec = spec;
+  window.__cvmSpike.ready = true;
+  if (!verdict.ok) {
+    hostEl.append(el("p", "banner disabled", "Spec refused: " + (verdict.refusedWholesale || "an element failed validation") + "."));
+  }
+  // Refusals are shown, not hidden: a refused element is a fact about the spec.
+  if (verdict.refusals.length) {
+    const box = el("ul", "refusals");
+    for (const r of verdict.refusals) box.append(el("li", "refusal-note", r.component + ": " + r.why));
+    hostEl.append(box);
+  }
+}
+
+function servicePanel(entry) {
+  const panel = el("div", "service-panel");
+  panel.dataset.service = entry.d || "";
+  const head = el("div", "panel-head");
+  head.append(el("span", "label", "Service view — catalog-rendered spec (ADR-0005 phase 0)"));
+  const close = el("button", "chip", "close");
+  close.onclick = () => panel.remove();
+  head.append(close);
+  panel.append(head);
+  const hostEl = el("div", "spec-host");
+  hostEl.dataset.specHost = entry.d || "";
+  panel.append(hostEl);
+  panel.append(el("p", "fineprint",
+    "Actions are recorded, not sent: this page has no CVM client. A live client calls the " +
+    "`menu`/`order` tools here; checkout stays on the venue's own page."));
+  // One live view object for the panel's lifetime: method/selection change, the
+  // re-render callback stays the same function, so every rebuild can rebuild
+  // again. The spec is always rebuilt from the served menu for this view.
+  const view = { method: null, selection: [] };
+  view.render = (next) => {
+    if (next && typeof next === "object") {
+      if (next.method !== undefined) view.method = next.method;
+      if (Array.isArray(next.selection)) view.selection = next.selection;
+    }
+    return renderServiceInto(entry, hostEl, view);
+  };
+  view.render({});
+  return panel;
 }
 
 // ------------------------------------------------------------------ load ----

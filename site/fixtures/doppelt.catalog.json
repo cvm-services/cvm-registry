@@ -1,0 +1,2084 @@
+{
+ "_provenance": {
+  "note": "REAL capture. No invented values. Tests read this file and never touch the network.",
+  "catalog": {
+   "url": "https://cvm.orangesync.tech/catalog.json",
+   "fetched_at_utc": "2026-10-07",
+   "trim": "kept generated_at/generated_at_iso/collector/allowlist/policy/counts and only the doppelt-kaese-berlin entries+service; unrelated entries and reviews removed, nothing else altered"
+  },
+  "menu": {
+   "source_file": "cvm-services/contextvm-services evidence/relay-e2e/request-response.json",
+   "step": "transcript[5] — tools/call `menu` RESPONSE, filtered to venue_slug=doppelt-kaese-berlin",
+   "note": "the served menu payload as returned by the live venue CVM server (contextvm-venue-server); item ids/skus/prices unchanged"
+  },
+  "tools": {
+   "source_file": "cvm-services/contextvm-services evidence/relay-e2e/request-response.json",
+   "step": "transcript[3] — tools/list RESPONSE"
+  },
+  "order": {
+   "source_file": "cvm-services/contextvm-services evidence/relay-e2e/request-response.json",
+   "step": "transcript[6]/[7] — tools/call `order` REQUEST arguments + RESPONSE basket for a demo selection",
+   "note": "the basket the venue's own CVM returned; used as the served basket oracle"
+  }
+ },
+ "catalog": {
+  "generated_at": 1791336337,
+  "generated_at_iso": "2026-10-07T01:25:37.000Z",
+  "collector": {
+   "version": 2,
+   "kinds": [
+    11316,
+    11317,
+    11318,
+    11319,
+    11320,
+    30316
+   ],
+   "review_kind": 30316,
+   "relays": [
+    "wss://relay.damus.io",
+    "wss://relay2.orangesync.tech"
+   ],
+   "relay_status": [
+    {
+     "relay": "wss://relay.damus.io",
+     "ok": true,
+     "events": 500,
+     "error": null
+    },
+    {
+     "relay": "wss://relay2.orangesync.tech",
+     "ok": true,
+     "events": 206,
+     "error": null
+    }
+   ],
+   "offline_input": null
+  },
+  "allowlist": {
+   "source": "curators.json",
+   "dashboard_host": "cvm.orangesync.tech",
+   "curators": [
+    {
+     "npub": "npub1ftjlarsn0k4g5wmxnjcae48u2nl20vfu2lf3rjdqrht89h9z0fhsah7hqu",
+     "role": "curator",
+     "note": "Registry #1. Publishes the kind-30000 lists referenced by the 'a' tag in provider announcements.",
+     "derived_from": "secp256k1 key 4ae5fe8e (operator's active signing key; npub re-derived with nak encode npub on 2026-10-04)"
+    },
+    {
+     "npub": "npub1al953lfy7nv5qjwhcw8u2p0uuq0dwmjes3g4rgjxqlke75nxsd9q6lw3w9",
+     "role": "provider",
+     "note": "S5b. Signs the nosms CVM announcement (kind 11316, d=nosms, class cvm:service:sms) on wss://relay.primal.net. Added so the dashboard may render that row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a).",
+     "derived_from": "secp256k1 key efcb48fd (the nosms provider's own signing key; npub re-derived with nak decode on 2026-10-05, matching the pubkey of the kind-11316 announcement event 6b3e96f4 d=nosms)"
+    },
+    {
+     "npub": "npub1u0xxspsyfraey53wslkhhkgew03gjm4wna6y8zwsk6ysjad5mqzspy9y5r",
+     "role": "provider",
+     "note": "cvm-lambda. Signs the serverless code-execution CVM announcement (kind 11316, d=cvm-lambda-01, class cvm:service:compute, cvm:req:none) on wss://relay.primal.net, wss://nostr.mom, wss://nos.lol, wss://relay2.contextvm.org. Added so the dashboard may render the row; an unknown npub is dropped at collect time (not rendered, ADR-0001 D12a).",
+     "derived_from": "secp256k1 key e3cc68060448fb92522e87ed7bd91973e2896eae9f744389d0b6890975b4d805 (cvm-lambda's signing key; npub re-derived with `nak encode npub` on 2026-10-06, matching the pubkey of the kind-11316 announcement d=cvm-lambda-01)"
+    },
+    {
+     "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+     "role": "provider"
+    },
+    {
+     "npub": "npub1aurs5hw24gmg6pwk5fyqgyv4a8em8z82xg72ps9p6uldgn33ag4sqfhz0g",
+     "role": "provider"
+    }
+   ],
+   "pubkey_count": 5,
+   "errors": [],
+   "policy": {
+    "unknown_npub": "not rendered",
+    "empty_list": "renders nothing (fail closed)",
+    "change_process": "edit this file, commit, redeploy"
+   }
+  },
+  "policy": {
+   "_comment": "Freshness policy for the public cvm-registry dashboard. Single source of truth: the collector copies this object verbatim into site/catalog.json under 'policy', and the client reads it from there. Change the numbers here, rebuild, redeploy. ADR-0001 D6 is the rule this file implements.",
+   "version": 1,
+   "updated": "2026-10-05",
+   "dashboard_host": "cvm.orangesync.tech",
+   "freshness": {
+    "fresh_ttl_seconds": 900,
+    "max_age_seconds": 21600,
+    "clock_skew_seconds": 120
+   },
+   "link_check": {
+    "enabled": true,
+    "timeout_ms": 5000,
+    "max_urls": 50,
+    "_comment": "At collect time the collector sends ONE bound HEAD (GET on 405/501) to each service's DECLARED url — the `website` tag, else its first `r` link — and records the verdict as data on the cache. This is not a per-service CVM call and not a relay connection: the page still makes zero network requests (ADR-0001 D7). ok=true means 2xx/3xx; ok=false means it did not answer; ok=null means UNKNOWN (timeout, or the check did not run) and is never rendered as reachable. Disable with --no-link-check for offline/deterministic runs."
+   },
+   "semantics": {
+    "fresh": "age <= fresh_ttl_seconds: announcements may be presented as current",
+    "stale": "fresh_ttl_seconds < age <= max_age_seconds: entries are shown ONLY as an explicitly labelled cached snapshot; every live claim (freshness, refresh, 'current') is disabled",
+    "expired": "age > max_age_seconds: the catalog is DISABLED and no entry is rendered",
+    "invalid": "generated_at missing, unparseable, or future-dated beyond clock_skew_seconds: DISABLED (fail closed)",
+    "rule": "stale must disable, never silently show old state as live (ADR-0001 D6)"
+   }
+  },
+  "counts": {
+   "raw_events": 706,
+   "after_dedupe": 23,
+   "kept": 8,
+   "services_kept": 4,
+   "dropped_not_allowlisted": 15
+  },
+  "entries": [
+   {
+    "event_id": "9d8f6156b8bedc40314b6028f626b3966db59df16d6c69f35573a36b33c2270d",
+    "kind": 11316,
+    "pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
+    "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+    "d": "doppelt-kaese-berlin",
+    "created_at": 1791298869,
+    "classes": [
+     "meatspace",
+     "restaurant"
+    ],
+    "name": "Doppelt Käse Laubacher Straße",
+    "about": "Doppelt Käse Laubacher Straße — restaurant in Berlin, announced over ContextVM (CEP-6). Order via the venue's own rail; the deep-link asks for a delivery address and phone.",
+    "website": "https://doppelt-kaese-berlin.de",
+    "links": [
+     "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+    ],
+    "geohashes": [
+     "u336",
+     "u336x0",
+     "u336x058"
+    ],
+    "caps": [
+     {
+      "tool": "order",
+      "amount": 0,
+      "unit": "sats"
+     }
+    ],
+    "tier": {
+     "declared": [
+      "fulfilment"
+     ],
+     "recomputed": "fulfilment",
+     "mismatch": false
+    },
+    "requirements": {
+     "required": [
+      "contact.phone",
+      "order.fulfilment"
+     ],
+     "optional": [
+      "contact.name",
+      "order.notes",
+      "ship.address"
+     ],
+     "unknown": [],
+     "none_sentinel": false,
+     "unclassified": false
+    },
+    "declared": {
+     "fulfilment": {
+      "methods": [
+       "pickup",
+       "delivery"
+      ],
+      "pickup": {
+       "available": true,
+       "estimated_minutes": 10
+      },
+      "delivery": {
+       "available": true,
+       "areas_named": [
+        "Mitte",
+        "Kreuzberg",
+        "Friedrichshain",
+        "Prenzlauer Berg",
+        "Tiergarten",
+        "Moabit",
+        "Wedding",
+        "Charlottenburg",
+        "Schöneberg",
+        "Neukölln",
+        "Tempelhof",
+        "Wilmersdorf",
+        "Lichtenberg",
+        "Treptow",
+        "Pankow."
+       ],
+       "areas_note": null
+      },
+      "dine_in": null,
+      "method_condition": "ship.address is required for a DELIVERY order only; a PICKUP order needs no address (the venue's own page asks for the address when delivery is chosen)."
+     },
+     "menu": {
+      "item_count": 76,
+      "priced_count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 13,
+      "prices_by_method": {
+       "delivery": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       },
+       "dine_in": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       },
+       "pickup": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 12.5
+       },
+       "room_service": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       }
+      },
+      "price_basis": "min_price/max_price are the item's own price column; prices_by_method carries what each fulfilment method actually pays"
+     },
+     "settlement": {
+      "settles": "venue's own rail (ADR-0001 D5): this CVM takes no payment",
+      "rail": "venue's own rail (FoodAmigos storefront: Adyen/Stripe/PayPal/cash)",
+      "currency": "EUR",
+      "tax": "inclusive 19%",
+      "cvm_cap_sats": 0,
+      "recorded": true,
+      "note": "rail as recorded from the venue's own storefront"
+     }
+    },
+    "meatspace": true,
+    "reviews": []
+   },
+   {
+    "event_id": "c8aa7753abdcfb55f18aba133989b55599cfbd5a664584f842c3ef03e878e61c",
+    "kind": 11317,
+    "pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
+    "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+    "d": "doppelt-kaese-berlin",
+    "created_at": 1791298944,
+    "classes": [
+     "meatspace",
+     "restaurant"
+    ],
+    "name": "Doppelt Käse Laubacher Straße",
+    "about": "Doppelt Käse Laubacher Straße — restaurant in Berlin, announced over ContextVM (CEP-6). Order via the venue's own rail; the deep-link asks for a delivery address and phone.",
+    "website": "https://doppelt-kaese-berlin.de",
+    "links": [
+     "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+    ],
+    "geohashes": [
+     "u336",
+     "u336x0",
+     "u336x058"
+    ],
+    "caps": [
+     {
+      "tool": "order",
+      "amount": 0,
+      "unit": "sats"
+     }
+    ],
+    "tier": {
+     "declared": [
+      "fulfilment"
+     ],
+     "recomputed": "fulfilment",
+     "mismatch": false
+    },
+    "requirements": {
+     "required": [
+      "contact.phone",
+      "order.fulfilment"
+     ],
+     "optional": [
+      "contact.name",
+      "order.notes",
+      "ship.address"
+     ],
+     "unknown": [],
+     "none_sentinel": false,
+     "unclassified": false
+    },
+    "declared": {
+     "fulfilment": null,
+     "menu": null,
+     "settlement": null
+    },
+    "meatspace": true,
+    "reviews": []
+   }
+  ],
+  "services": [
+   {
+    "service_key": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984:doppelt-kaese-berlin",
+    "pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
+    "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+    "d": "doppelt-kaese-berlin",
+    "kinds": [
+     11316,
+     11317
+    ],
+    "facets": [
+     {
+      "kind": 11316,
+      "event_id": "9d8f6156b8bedc40314b6028f626b3966db59df16d6c69f35573a36b33c2270d",
+      "created_at": 1791298869
+     },
+     {
+      "kind": 11317,
+      "event_id": "c8aa7753abdcfb55f18aba133989b55599cfbd5a664584f842c3ef03e878e61c",
+      "created_at": 1791298944
+     }
+    ],
+    "name": "Doppelt Käse Laubacher Straße",
+    "about": "Doppelt Käse Laubacher Straße — restaurant in Berlin, announced over ContextVM (CEP-6). Order via the venue's own rail; the deep-link asks for a delivery address and phone.",
+    "website": "https://doppelt-kaese-berlin.de",
+    "links": [
+     "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+    ],
+    "geohashes": [
+     "u336",
+     "u336x0",
+     "u336x058"
+    ],
+    "classes": [
+     "meatspace",
+     "restaurant"
+    ],
+    "caps": [
+     {
+      "tool": "order",
+      "amount": 0,
+      "unit": "sats"
+     }
+    ],
+    "tier": {
+     "declared": [
+      "fulfilment"
+     ],
+     "recomputed": "fulfilment",
+     "mismatch": false
+    },
+    "requirements": {
+     "required": [
+      "contact.phone",
+      "order.fulfilment"
+     ],
+     "optional": [
+      "contact.name",
+      "order.notes",
+      "ship.address"
+     ],
+     "unknown": [],
+     "none_sentinel": false,
+     "unclassified": false
+    },
+    "declared": {
+     "fulfilment": {
+      "methods": [
+       "pickup",
+       "delivery"
+      ],
+      "pickup": {
+       "available": true,
+       "estimated_minutes": 10
+      },
+      "delivery": {
+       "available": true,
+       "areas_named": [
+        "Mitte",
+        "Kreuzberg",
+        "Friedrichshain",
+        "Prenzlauer Berg",
+        "Tiergarten",
+        "Moabit",
+        "Wedding",
+        "Charlottenburg",
+        "Schöneberg",
+        "Neukölln",
+        "Tempelhof",
+        "Wilmersdorf",
+        "Lichtenberg",
+        "Treptow",
+        "Pankow."
+       ],
+       "areas_note": null
+      },
+      "dine_in": null,
+      "method_condition": "ship.address is required for a DELIVERY order only; a PICKUP order needs no address (the venue's own page asks for the address when delivery is chosen)."
+     },
+     "menu": {
+      "item_count": 76,
+      "priced_count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 13,
+      "prices_by_method": {
+       "delivery": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       },
+       "dine_in": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       },
+       "pickup": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 12.5
+       },
+       "room_service": {
+        "count": 76,
+        "currency": "EUR",
+        "min_price": 0.5,
+        "max_price": 13
+       }
+      },
+      "price_basis": "min_price/max_price are the item's own price column; prices_by_method carries what each fulfilment method actually pays"
+     },
+     "settlement": {
+      "settles": "venue's own rail (ADR-0001 D5): this CVM takes no payment",
+      "rail": "venue's own rail (FoodAmigos storefront: Adyen/Stripe/PayPal/cash)",
+      "currency": "EUR",
+      "tax": "inclusive 19%",
+      "cvm_cap_sats": 0,
+      "recorded": true,
+      "note": "rail as recorded from the venue's own storefront"
+     }
+    },
+    "meatspace": true,
+    "created_at": 1791298944,
+    "reviews": [],
+    "link_status": {
+     "url": "https://doppelt-kaese-berlin.de/",
+     "checked": true,
+     "ok": true,
+     "http_status": 200,
+     "reason": "ok",
+     "checked_at": 1791336338,
+     "text": null
+    }
+   }
+  ]
+ },
+ "entry": {
+  "event_id": "9d8f6156b8bedc40314b6028f626b3966db59df16d6c69f35573a36b33c2270d",
+  "kind": 11316,
+  "pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
+  "npub": "npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp",
+  "d": "doppelt-kaese-berlin",
+  "created_at": 1791298869,
+  "classes": [
+   "meatspace",
+   "restaurant"
+  ],
+  "name": "Doppelt Käse Laubacher Straße",
+  "about": "Doppelt Käse Laubacher Straße — restaurant in Berlin, announced over ContextVM (CEP-6). Order via the venue's own rail; the deep-link asks for a delivery address and phone.",
+  "website": "https://doppelt-kaese-berlin.de",
+  "links": [
+   "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+  ],
+  "geohashes": [
+   "u336",
+   "u336x0",
+   "u336x058"
+  ],
+  "caps": [
+   {
+    "tool": "order",
+    "amount": 0,
+    "unit": "sats"
+   }
+  ],
+  "tier": {
+   "declared": [
+    "fulfilment"
+   ],
+   "recomputed": "fulfilment",
+   "mismatch": false
+  },
+  "requirements": {
+   "required": [
+    "contact.phone",
+    "order.fulfilment"
+   ],
+   "optional": [
+    "contact.name",
+    "order.notes",
+    "ship.address"
+   ],
+   "unknown": [],
+   "none_sentinel": false,
+   "unclassified": false
+  },
+  "declared": {
+   "fulfilment": {
+    "methods": [
+     "pickup",
+     "delivery"
+    ],
+    "pickup": {
+     "available": true,
+     "estimated_minutes": 10
+    },
+    "delivery": {
+     "available": true,
+     "areas_named": [
+      "Mitte",
+      "Kreuzberg",
+      "Friedrichshain",
+      "Prenzlauer Berg",
+      "Tiergarten",
+      "Moabit",
+      "Wedding",
+      "Charlottenburg",
+      "Schöneberg",
+      "Neukölln",
+      "Tempelhof",
+      "Wilmersdorf",
+      "Lichtenberg",
+      "Treptow",
+      "Pankow."
+     ],
+     "areas_note": null
+    },
+    "dine_in": null,
+    "method_condition": "ship.address is required for a DELIVERY order only; a PICKUP order needs no address (the venue's own page asks for the address when delivery is chosen)."
+   },
+   "menu": {
+    "item_count": 76,
+    "priced_count": 76,
+    "currency": "EUR",
+    "min_price": 0.5,
+    "max_price": 13,
+    "prices_by_method": {
+     "delivery": {
+      "count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 13
+     },
+     "dine_in": {
+      "count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 13
+     },
+     "pickup": {
+      "count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 12.5
+     },
+     "room_service": {
+      "count": 76,
+      "currency": "EUR",
+      "min_price": 0.5,
+      "max_price": 13
+     }
+    },
+    "price_basis": "min_price/max_price are the item's own price column; prices_by_method carries what each fulfilment method actually pays"
+   },
+   "settlement": {
+    "settles": "venue's own rail (ADR-0001 D5): this CVM takes no payment",
+    "rail": "venue's own rail (FoodAmigos storefront: Adyen/Stripe/PayPal/cash)",
+    "currency": "EUR",
+    "tax": "inclusive 19%",
+    "cvm_cap_sats": 0,
+    "recorded": true,
+    "note": "rail as recorded from the venue's own storefront"
+   }
+  },
+  "meatspace": true,
+  "reviews": []
+ },
+ "menu": {
+  "venue_slug": "doppelt-kaese-berlin",
+  "name": "Doppelt Käse Laubacher Straße",
+  "currency": "EUR",
+  "item_count": 76,
+  "items": [
+   {
+    "id": "",
+    "sku": "331227",
+    "name": "Cheeseburger",
+    "prices_by_order_method": {
+     "delivery": 9.5,
+     "dine_in": 9.5,
+     "pickup": 8.9,
+     "room_service": 9.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68405",
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331233",
+    "name": "Curly Fries",
+    "prices_by_order_method": {
+     "delivery": 4.9,
+     "dine_in": 4.9,
+     "pickup": 4.5,
+     "room_service": 4.9
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331230",
+    "name": "Der Doppelt Käse-Burger",
+    "prices_by_order_method": {
+     "delivery": 11.5,
+     "dine_in": 11.5,
+     "pickup": 10.9,
+     "room_service": 11.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331235",
+    "name": "Parmesan Pommes frites",
+    "prices_by_order_method": {
+     "delivery": 7.5,
+     "dine_in": 7.5,
+     "pickup": 6.8,
+     "room_service": 7.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331243",
+    "name": "Beyond Meat-Burger",
+    "prices_by_order_method": {
+     "delivery": 10.2,
+     "dine_in": 10.2,
+     "pickup": 9.9,
+     "room_service": 10.2
+    },
+    "available": true,
+    "allergens": [
+     "SOJA",
+     "GLUTEN"
+    ],
+    "option_group_ids": [
+     "68408",
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331246",
+    "name": "Beyond Chili-Cheeseburger",
+    "prices_by_order_method": {
+     "delivery": 10.6,
+     "dine_in": 10.6,
+     "pickup": 10.2,
+     "room_service": 10.6
+    },
+    "available": true,
+    "allergens": [
+     "SOJA",
+     "GLUTEN"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331234",
+    "name": "Süßkartoffel-Pommes",
+    "prices_by_order_method": {
+     "delivery": 5.2,
+     "dine_in": 5.2,
+     "pickup": 4.9,
+     "room_service": 5.2
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331267",
+    "name": "Sweet Dreams",
+    "prices_by_order_method": {
+     "delivery": 8,
+     "dine_in": 8,
+     "pickup": 7.2,
+     "room_service": 8
+    },
+    "available": true,
+    "allergens": [
+     "EIER",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331237",
+    "name": "Chili Cheese Pommes frites",
+    "prices_by_order_method": {
+     "delivery": 7.5,
+     "dine_in": 7.5,
+     "pickup": 6.8,
+     "room_service": 7.5
+    },
+    "available": true,
+    "allergens": [
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334624",
+    "name": "Chicken Fingers 6 Stück",
+    "prices_by_order_method": {
+     "delivery": 6.9,
+     "dine_in": 6.9,
+     "pickup": 6.5,
+     "room_service": 6.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "Hühnchen"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331291",
+    "name": "Potato Tots",
+    "prices_by_order_method": {
+     "delivery": 5.6,
+     "dine_in": 5.6,
+     "pickup": 5.5,
+     "room_service": 5.6
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331226",
+    "name": "Hamburger",
+    "prices_by_order_method": {
+     "delivery": 8.5,
+     "dine_in": 8.5,
+     "pickup": 7.9,
+     "room_service": 8.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68405",
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331228",
+    "name": "BBQ Burger",
+    "prices_by_order_method": {
+     "delivery": 9.9,
+     "dine_in": 9.9,
+     "pickup": 9.5,
+     "room_service": 9.9
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331229",
+    "name": "Chili-Cheeseburger",
+    "prices_by_order_method": {
+     "delivery": 10.9,
+     "dine_in": 10.9,
+     "pickup": 9.5,
+     "room_service": 10.9
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331259",
+    "name": "Habanero Burger",
+    "prices_by_order_method": {
+     "delivery": 10.5,
+     "dine_in": 10.5,
+     "pickup": 9.9,
+     "room_service": 10.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331260",
+    "name": "Gorgonzola-Preiselbeere-Burger",
+    "prices_by_order_method": {
+     "delivery": 10.5,
+     "dine_in": 10.5,
+     "pickup": 9.9,
+     "room_service": 10.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331261",
+    "name": "Classic Burger",
+    "prices_by_order_method": {
+     "delivery": 8.9,
+     "dine_in": 8.9,
+     "pickup": 8.5,
+     "room_service": 8.9
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331262",
+    "name": "Pilz-Burger",
+    "prices_by_order_method": {
+     "delivery": 10.5,
+     "dine_in": 10.5,
+     "pickup": 9.9,
+     "room_service": 10.5
+    },
+    "available": false,
+    "allergens": [
+     "MILCH",
+     "SOJA"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331231",
+    "name": "Chicken Burger",
+    "prices_by_order_method": {
+     "delivery": 9.5,
+     "dine_in": 9.5,
+     "pickup": 8.5,
+     "room_service": 9.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331232",
+    "name": "Pommes frites",
+    "prices_by_order_method": {
+     "delivery": 4.2,
+     "dine_in": 4.2,
+     "pickup": 3.9,
+     "room_service": 4.2
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331236",
+    "name": "Guacamole Pommes frites",
+    "prices_by_order_method": {
+     "delivery": 7.5,
+     "dine_in": 7.5,
+     "pickup": 6.8,
+     "room_service": 7.5
+    },
+    "available": false,
+    "allergens": [
+     "AVOCADO"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331292",
+    "name": "Loaded Potato Tots",
+    "prices_by_order_method": {
+     "delivery": 8.5,
+     "dine_in": 8.5,
+     "pickup": 7.7,
+     "room_service": 8.5
+    },
+    "available": false,
+    "allergens": [
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331238",
+    "name": "Chicken Wings 6 Stück",
+    "prices_by_order_method": {
+     "delivery": 6.5,
+     "dine_in": 6.5,
+     "pickup": 6,
+     "room_service": 6.5
+    },
+    "available": true,
+    "allergens": [
+     "WEIZEN",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334622",
+    "name": "Chicken Wings 9 Stück",
+    "prices_by_order_method": {
+     "delivery": 9,
+     "dine_in": 9,
+     "pickup": 8.5,
+     "room_service": 9
+    },
+    "available": true,
+    "allergens": [
+     "GEFLÜGEL"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334623",
+    "name": "Chicken Wings 12 Stück",
+    "prices_by_order_method": {
+     "delivery": 11,
+     "dine_in": 11,
+     "pickup": 10.5,
+     "room_service": 11
+    },
+    "available": true,
+    "allergens": [
+     "Hühnchen"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331239",
+    "name": "Chicken Fingers 9 Stück",
+    "prices_by_order_method": {
+     "delivery": 9.9,
+     "dine_in": 9.9,
+     "pickup": 9,
+     "room_service": 9.9
+    },
+    "available": false,
+    "allergens": [
+     "WEIZEN",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334625",
+    "name": "Chicken Fingers 12 Stück",
+    "prices_by_order_method": {
+     "delivery": 11.9,
+     "dine_in": 11.9,
+     "pickup": 11,
+     "room_service": 11.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "Hühnchen"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331240",
+    "name": "Onion Rings 6 Stück",
+    "prices_by_order_method": {
+     "delivery": 7,
+     "dine_in": 7,
+     "pickup": 6.3,
+     "room_service": 7
+    },
+    "available": true,
+    "allergens": [
+     "WEIZEN",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334626",
+    "name": "Onion Rings 12 Stück",
+    "prices_by_order_method": {
+     "delivery": 9.5,
+     "dine_in": 9.5,
+     "pickup": 9,
+     "room_service": 9.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "334627",
+    "name": "Onion Rings 18 Stück",
+    "prices_by_order_method": {
+     "delivery": 13,
+     "dine_in": 13,
+     "pickup": 12.5,
+     "room_service": 13
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "369053",
+    "name": "Bunter Krautsalat",
+    "prices_by_order_method": {
+     "delivery": 3.5,
+     "dine_in": 3.5,
+     "pickup": 3.2,
+     "room_service": 3.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331241",
+    "name": "Caesar-Salat",
+    "prices_by_order_method": {
+     "delivery": 9,
+     "dine_in": 9,
+     "pickup": 8.1,
+     "room_service": 9
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331244",
+    "name": "Ratatouille Burger",
+    "prices_by_order_method": {
+     "delivery": 11.5,
+     "dine_in": 11.5,
+     "pickup": 11.5,
+     "room_service": 11.5
+    },
+    "available": false,
+    "allergens": [
+     "SOJA",
+     "GLUTEN"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331245",
+    "name": "Beyond BBQ-Burger",
+    "prices_by_order_method": {
+     "delivery": 10.2,
+     "dine_in": 10.2,
+     "pickup": 9.9,
+     "room_service": 10.2
+    },
+    "available": true,
+    "allergens": [
+     "SOJA",
+     "GLUTEN"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331263",
+    "name": "Beyond Habanero Burger",
+    "prices_by_order_method": {
+     "delivery": 11.6,
+     "dine_in": 11.6,
+     "pickup": 11.5,
+     "room_service": 11.6
+    },
+    "available": true,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331264",
+    "name": "Beyond Preiselbeere-Burger",
+    "prices_by_order_method": {
+     "delivery": 11.2,
+     "dine_in": 11.2,
+     "pickup": 11.2,
+     "room_service": 11.2
+    },
+    "available": true,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331265",
+    "name": "Beyond Klassik Burger",
+    "prices_by_order_method": {
+     "delivery": 10.6,
+     "dine_in": 10.6,
+     "pickup": 9.9,
+     "room_service": 10.6
+    },
+    "available": true,
+    "allergens": [
+     "SOJA",
+     "SENF"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331266",
+    "name": "Beyond Pilz-Burger",
+    "prices_by_order_method": {
+     "delivery": 11.6,
+     "dine_in": 11.6,
+     "pickup": 11.5,
+     "room_service": 11.6
+    },
+    "available": false,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": [
+     "68406"
+    ]
+   },
+   {
+    "id": "",
+    "sku": "331248",
+    "name": "Burgersoße",
+    "prices_by_order_method": {
+     "delivery": 1,
+     "dine_in": 1,
+     "pickup": 0.9,
+     "room_service": 1
+    },
+    "available": true,
+    "allergens": [
+     "EIER",
+     "SENF"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331249",
+    "name": "Getrüffelte Haussoße",
+    "prices_by_order_method": {
+     "delivery": 1.5,
+     "dine_in": 1.5,
+     "pickup": 1.4,
+     "room_service": 1.5
+    },
+    "available": true,
+    "allergens": [
+     "EIER",
+     "SENF"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331250",
+    "name": "Ketchup",
+    "prices_by_order_method": {
+     "delivery": 0.5,
+     "dine_in": 0.5,
+     "pickup": 0.5,
+     "room_service": 0.5
+    },
+    "available": true,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331251",
+    "name": "Mayonnaise",
+    "prices_by_order_method": {
+     "delivery": 0.5,
+     "dine_in": 0.5,
+     "pickup": 0.5,
+     "room_service": 0.5
+    },
+    "available": true,
+    "allergens": [
+     "EIER",
+     "SENF"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331252",
+    "name": "Vegane Mayonnaise",
+    "prices_by_order_method": {
+     "delivery": 1.5,
+     "dine_in": 1.5,
+     "pickup": 1.4,
+     "room_service": 1.5
+    },
+    "available": true,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331253",
+    "name": "Barbecuesoße",
+    "prices_by_order_method": {
+     "delivery": 1,
+     "dine_in": 1,
+     "pickup": 0.9,
+     "room_service": 1
+    },
+    "available": true,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331254",
+    "name": "Käsesoße",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.7,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331255",
+    "name": "Sour Cream",
+    "prices_by_order_method": {
+     "delivery": 1,
+     "dine_in": 1,
+     "pickup": 0.9,
+     "room_service": 1
+    },
+    "available": true,
+    "allergens": [
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331256",
+    "name": "Süß-Sauer-Soße",
+    "prices_by_order_method": {
+     "delivery": 1,
+     "dine_in": 1,
+     "pickup": 0.9,
+     "room_service": 1
+    },
+    "available": true,
+    "allergens": [
+     "SOJA"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331257",
+    "name": "Trüffelmayonnaise",
+    "prices_by_order_method": {
+     "delivery": 1.5,
+     "dine_in": 1.5,
+     "pickup": 1.4,
+     "room_service": 1.5
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331258",
+    "name": "Guacamole",
+    "prices_by_order_method": {
+     "delivery": 3.5,
+     "dine_in": 3.5,
+     "pickup": 3.2,
+     "room_service": 3.5
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331268",
+    "name": "Aioli-Soße",
+    "prices_by_order_method": {
+     "delivery": 1.5,
+     "dine_in": 1.5,
+     "pickup": 1.4,
+     "room_service": 1.5
+    },
+    "available": false,
+    "allergens": [
+     "EIER"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331270",
+    "name": "Club Mate 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331271",
+    "name": "Coca-Cola® 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331272",
+    "name": "Coca-Cola® 1,0 l",
+    "prices_by_order_method": {
+     "delivery": 3.95,
+     "dine_in": 3.95,
+     "pickup": 3.6,
+     "room_service": 3.95
+    },
+    "available": false,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331273",
+    "name": "Coca-Cola® Zero 1,0 l",
+    "prices_by_order_method": {
+     "delivery": 3.95,
+     "dine_in": 3.95,
+     "pickup": 3.6,
+     "room_service": 3.95
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331274",
+    "name": "Coca-Cola® Zero 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331275",
+    "name": "Fanta 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331276",
+    "name": "Fanta 1,0 l",
+    "prices_by_order_method": {
+     "delivery": 3.95,
+     "dine_in": 3.95,
+     "pickup": 3.6,
+     "room_service": 3.95
+    },
+    "available": true,
+    "allergens": [
+     ""
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331278",
+    "name": "Mezzo Mix 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     "KOFFEIN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331279",
+    "name": "Mezzo Mix 1,0 l",
+    "prices_by_order_method": {
+     "delivery": 3.95,
+     "dine_in": 3.95,
+     "pickup": 3.6,
+     "room_service": 3.95
+    },
+    "available": true,
+    "allergens": [
+     "KOFFEIN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331281",
+    "name": "Vio Schorle Apfel 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": false,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331282",
+    "name": "Sprite 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.9,
+     "room_service": 3
+    },
+    "available": false,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331283",
+    "name": "Sprite 1,0 l",
+    "prices_by_order_method": {
+     "delivery": 3.95,
+     "dine_in": 3.95,
+     "pickup": 3.6,
+     "room_service": 3.95
+    },
+    "available": true,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331284",
+    "name": "Vio Still 0,5 l",
+    "prices_by_order_method": {
+     "delivery": 2.5,
+     "dine_in": 2.5,
+     "pickup": 2.3,
+     "room_service": 2.5
+    },
+    "available": true,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331285",
+    "name": "Vio Spritzig 0,5 l",
+    "prices_by_order_method": {
+     "delivery": 2.5,
+     "dine_in": 2.5,
+     "pickup": 2.3,
+     "room_service": 2.5
+    },
+    "available": true,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331289",
+    "name": "Warsteiner Alkoholfrei 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3.58,
+     "dine_in": 3.58,
+     "pickup": 3.3,
+     "room_service": 3.58
+    },
+    "available": true,
+    "allergens": [
+     "GLUTEN"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "331290",
+    "name": "Rixdorfer Fassbrause 0,33 l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.7,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": null,
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "369054",
+    "name": "Ice Tea Peach 0.33l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.7,
+     "room_service": 3
+    },
+    "available": true,
+    "allergens": [
+     "SULFITE"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "369055",
+    "name": "Ice Tea Lemon Sparkling 0.33l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.7,
+     "room_service": 3
+    },
+    "available": false,
+    "allergens": [
+     "SULFITE"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "369056",
+    "name": "Ice Tea Pineapple Mango 0,33l",
+    "prices_by_order_method": {
+     "delivery": 3,
+     "dine_in": 3,
+     "pickup": 2.7,
+     "room_service": 3
+    },
+    "available": false,
+    "allergens": [
+     "SULFITE"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550614",
+    "name": "1. Classic Bun",
+    "prices_by_order_method": {
+     "delivery": 6.9,
+     "dine_in": 6.9,
+     "pickup": 6.3,
+     "room_service": 6.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550615",
+    "name": "2. Avocado Bun",
+    "prices_by_order_method": {
+     "delivery": 9.5,
+     "dine_in": 9.5,
+     "pickup": 8.6,
+     "room_service": 9.5
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550616",
+    "name": "3. Parmesan Trüffel Bun",
+    "prices_by_order_method": {
+     "delivery": 8.9,
+     "dine_in": 8.9,
+     "pickup": 8.1,
+     "room_service": 8.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550617",
+    "name": "4. Pilz Bun",
+    "prices_by_order_method": {
+     "delivery": 8.9,
+     "dine_in": 8.9,
+     "pickup": 8.1,
+     "room_service": 8.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550618",
+    "name": "5. Preiselbeere Bun",
+    "prices_by_order_method": {
+     "delivery": 7.9,
+     "dine_in": 7.9,
+     "pickup": 7.2,
+     "room_service": 7.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550619",
+    "name": "6. Chicken Bun",
+    "prices_by_order_method": {
+     "delivery": 9.5,
+     "dine_in": 9.5,
+     "pickup": 8.6,
+     "room_service": 9.5
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH",
+     "EI"
+    ],
+    "option_group_ids": []
+   },
+   {
+    "id": "",
+    "sku": "550620",
+    "name": "7. Pastrami Bun",
+    "prices_by_order_method": {
+     "delivery": 9.9,
+     "dine_in": 9.9,
+     "pickup": 9,
+     "room_service": 9.9
+    },
+    "available": false,
+    "allergens": [
+     "GLUTEN",
+     "MILCH"
+    ],
+    "option_group_ids": []
+   }
+  ]
+ },
+ "tools": [
+  {
+   "name": "menu",
+   "description": "Return the full menu for all announced venues. Each item carries sku, name, prices_by_order_method, available, and allergens.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "venue_slug": {
+      "type": "string",
+      "description": "Optional: filter to a single venue slug. Omit to receive all venues."
+     }
+    },
+    "additionalProperties": false
+   }
+  },
+  {
+   "name": "order",
+   "description": "Build a basket for the venue's own ordering rail. Checkout and payment happen on the venue's own page; this tool does not place or settle the order.",
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "items": {
+      "type": "array",
+      "description": "Basket lines. Identify each item by `sku` or by the venue's `id` — exactly one. A sku matching more than one item (pizza: 36, 110, 44) is refused; pass `id` there.",
+      "items": {
+       "type": "object",
+       "properties": {
+        "sku": {
+         "type": "string",
+         "description": "Venue sku. Refused when it identifies more than one item — use `id` instead."
+        },
+        "id": {
+         "type": "string",
+         "description": "The venue's own item id, unique where a sku is not."
+        },
+        "qty": {
+         "type": "integer",
+         "minimum": 1
+        },
+        "options": {
+         "type": "object"
+        }
+       },
+       "required": [
+        "qty"
+       ],
+       "additionalProperties": false
+      }
+     },
+     "fulfilment": {
+      "type": "string",
+      "enum": [
+       "pickup",
+       "delivery",
+       "dine_in"
+      ],
+      "description": "How the order will be fulfilled."
+     },
+     "when": {
+      "type": "string",
+      "description": "Requested fulfilment time (ISO 8601 or 'asap')."
+     },
+     "notes": {
+      "type": "string",
+      "description": "Free text for the kitchen/handler."
+     },
+     "ship": {
+      "type": "object",
+      "description": "Required only when fulfilment == 'delivery'.",
+      "properties": {
+       "address": {
+        "type": "object",
+        "properties": {
+         "street": {
+          "type": "string"
+         },
+         "city": {
+          "type": "string"
+         },
+         "postal_code": {
+          "type": "string"
+         },
+         "country": {
+          "type": "string"
+         }
+        }
+       },
+       "recipient_name": {
+        "type": "string"
+       },
+       "notes": {
+        "type": "string"
+       }
+      }
+     },
+     "venue_slug": {
+      "type": "string",
+      "description": "The venue to order from."
+     },
+     "contact": {
+      "type": "object",
+      "properties": {
+       "name": {
+        "type": "string"
+       },
+       "phone": {
+        "type": "string"
+       },
+       "email": {
+        "type": "string"
+       }
+      }
+     }
+    },
+    "required": [
+     "venue_slug",
+     "items",
+     "fulfilment",
+     "when"
+    ],
+    "additionalProperties": false
+   }
+  }
+ ],
+ "order_request": {
+  "venue_slug": "doppelt-kaese-berlin",
+  "items": [
+   {
+    "sku": "331227",
+    "qty": 2
+   },
+   {
+    "sku": "331233",
+    "qty": 1
+   }
+  ],
+  "fulfilment": "pickup",
+  "when": "asap",
+  "notes": "e2e relay round-trip"
+ },
+ "order_response": {
+  "status": "basket",
+  "note": "This is a prepared basket, not a placed order. Checkout and payment happen on the venue's own page.",
+  "venue": {
+   "slug": "doppelt-kaese-berlin",
+   "name": "Doppelt Käse Laubacher Straße",
+   "currency": "EUR",
+   "rail": "venue's own rail (FoodAmigos storefront: Adyen/Stripe/PayPal/cash)",
+   "deep_link": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+  },
+  "fulfilment": "pickup",
+  "when": "asap",
+  "notes": "e2e relay round-trip",
+  "lines": [
+   {
+    "id": "",
+    "sku": "331227",
+    "name": "Cheeseburger",
+    "qty": 2,
+    "unit_price": 8.9,
+    "method_used": "pickup",
+    "line_total": 17.8,
+    "price_note": null,
+    "available": true
+   },
+   {
+    "id": "",
+    "sku": "331233",
+    "name": "Curly Fries",
+    "qty": 1,
+    "unit_price": 4.5,
+    "method_used": "pickup",
+    "line_total": 4.5,
+    "price_note": null,
+    "available": true
+   }
+  ],
+  "total": 22.3
+ }
+}
