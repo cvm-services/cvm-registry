@@ -13,8 +13,20 @@ DENO="${DENO:-$(command -v deno || echo /home/c03rad0r/.local/bin/deno)}"
 RELAYS="${RELAYS:-wss://relay.damus.io,wss://relay2.orangesync.tech}"
 
 BUNDLE=$(mktemp -d /tmp/cvm-bundle-XXXX)
-mkdir -p "$BUNDLE/site" "$BUNDLE/collector" "$BUNDLE/vocab" "$BUNDLE/deploy"
+mkdir -p "$BUNDLE/site/render" "$BUNDLE/collector" "$BUNDLE/vocab" "$BUNDLE/deploy"
 cp "$REPO"/site/index.html "$REPO"/site/app.js "$REPO"/site/style.css "$BUNDLE/site/"
+# The catalog-constrained renderer (ADR-0005). app.js pulls these in with a
+# dynamic import(), so forgetting them does not break the build — the page just
+# 404s them and every service view silently refuses. Ship them explicitly.
+cp "$REPO"/site/render/* "$BUNDLE/site/render/"
+# The captured menus (tools/capture_menu.py). Same failure mode: without it the
+# service view has nothing to render, and an empty panel is not a menu.
+if [ -f "$REPO/site/menu.json" ]; then
+  cp "$REPO/site/menu.json" "$BUNDLE/site/menu.json"
+else
+  echo "WARN: site/menu.json is missing — the service view will open empty." >&2
+  echo "      regenerate it with: tools/capture_menu.py" >&2
+fi
 cp "$REPO"/collector/*.ts "$BUNDLE/collector/"
 cp "$REPO"/vocab/service-inputs.json "$BUNDLE/vocab/"
 cp "$REPO"/policy.json "$REPO"/curators.json "$BUNDLE/"
