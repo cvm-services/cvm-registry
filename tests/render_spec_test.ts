@@ -22,7 +22,7 @@
  * Run: deno test --allow-read
  */
 import { buildServiceSpec, orderPayload, publishedOrderUrl, servedBasket, servedMethods } from "../site/render/spec.js";
-import { ACTIONS, COMPONENTS, SPEC_MAX_BYTES, SPEC_VERSION, declaresTool } from "../site/render/catalog.js";
+import { ACTIONS, COMPONENTS, SPEC_MAX_BYTES, SPEC_VERSION, declaresTool, menuItemIndex } from "../site/render/catalog.js";
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error("ASSERT: " + msg);
@@ -43,17 +43,21 @@ const CATALOG_SOURCE = new URL("../site/render/catalog.js", import.meta.url);
 const RENDERER_SOURCE = new URL("../site/render/renderer.js", import.meta.url);
 
 /** The oracle the renderer implements, expressed over a spec: every money prop
- * must equal the value the served data carries for it. Returns the violations. */
+ * must equal the value the served data carries for it. Returns the violations.
+ *
+ * Items are resolved the way the renderer and the venue's own `order` tool do:
+ * `id` first, then a sku only when it identifies exactly one item (pizza
+ * collides on 36/110/44 — an ambiguous sku must not silently resolve). */
 function priceViolations(spec: any): string[] {
-  const bySku = new Map<string, any>(menu.items.map((i: any) => [String(i.sku), i]));
+  const index = menuItemIndex(menu.items);
   const problems: string[] = [];
   for (const [id, el] of Object.entries<any>(spec.elements)) {
     if (el.component === "PriceRow") {
       // find the parent MenuItem by scanning for it as a child
       const parent = Object.entries<any>(spec.elements).find(([, p]) => (p.children || []).includes(id));
       if (!parent) { problems.push(`${id}: PriceRow has no parent`); continue; }
-      const item = bySku.get(String(parent[1].props.sku));
-      if (!item) { problems.push(`${id}: parent names no served item`); continue; }
+      const item = index.resolve(parent[1].props.id, parent[1].props.sku);
+      if (!item) { problems.push(`${id}: parent names no single served item`); continue; }
       const served = item.prices_by_order_method[el.props.method];
       if (served !== el.props.amount) problems.push(`${id}: ${el.props.amount} != served ${served}`);
     }
@@ -91,7 +95,10 @@ Deno.test("the catalog keeps the spec surface to what the brief defines", () => 
   assertEquals(ACTIONS["order.handoff"].tool, null, "order.handoff is a client action with no tool");
   assertEquals(ACTIONS["order.handoff"].kind, "client", "order.handoff is client-side");
   assertEquals(SPEC_VERSION, 1, "spec version 1");
-  assertEquals(SPEC_MAX_BYTES, 16384, "16 KiB cap");
+  // 32 KiB: measured against the real capture (doppelt 15 856 B / 76 items,
+  // pizza 22 622 B / 112 items). A 16 KiB cap silently refused the 112-item
+  // venue wholesale — see tests/menu_capture_test.ts, which is the guard.
+  assertEquals(SPEC_MAX_BYTES, 32768, "32 KiB cap");
 });
 
 Deno.test("buildServiceSpec is a pure function of served data", () => {

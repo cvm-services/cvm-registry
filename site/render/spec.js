@@ -23,7 +23,7 @@
  * does (see tests/render_spec_test.ts, which asserts it).
  */
 
-import { SPEC_VERSION, declaresTool } from "./catalog.js";
+import { SPEC_VERSION, declaresTool, menuItemIndex } from "./catalog.js";
 
 /** Display amount: the served number, verbatim, plus its served currency. */
 export function formatAmount(amount, currency) {
@@ -71,10 +71,14 @@ export function servedBasket(menuData, method, selection, servedOrder) {
       total: servedOrder.total,
     };
   }
-  const bySku = new Map(((menuData || {}).items || []).map((i) => [i.sku, i]));
+  const items = ((menuData || {}).items || []);
+  const index = menuItemIndex(items);
   const lines = [];
   for (const sel of selection || []) {
-    const it = bySku.get(sel.sku);
+    // Resolve the way the venue's own `order` tool does: by `id`, or by a sku
+    // that is unique. An ambiguous sku identifies nothing, so it is skipped
+    // rather than silently priced as a different product.
+    const it = index.resolve(sel.id, sel.sku);
     if (!it) continue;
     const amount = priceFor(it, method);
     if (amount === null) continue;
@@ -201,7 +205,12 @@ export function buildServiceSpec(entry, menuData, opts = {}) {
  */
 export function orderPayload(entry, menuData, method, selection) {
   const basket = servedBasket(menuData, method, selection);
-  const items = basket.lines.map((l) => (l.sku ? { sku: l.sku, qty: l.qty } : { id: l.id, qty: l.qty }));
+  const index = menuItemIndex((menuData || {}).items || []);
+  const items = basket.lines.map((l) =>
+    // Send the sku only when it identifies exactly one item — otherwise the
+    // venue's own `id`, which the tool's schema takes in its place.
+    index.skuCount(l.sku) === 1 ? { sku: l.sku, qty: l.qty } : { id: l.id, qty: l.qty }
+  );
   return {
     venue_slug: String((menuData || {}).venue_slug || (entry || {}).d || ""),
     items,
