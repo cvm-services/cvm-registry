@@ -26,8 +26,10 @@ import {
   KINDS,
   linkCheckTally,
   type LinkCheckPolicy,
+  malformedTally,
   type NostrEvent,
   parseCurators,
+  partitionIngestable,
   type Vocab,
 } from "./lib.ts";
 import {
@@ -41,6 +43,7 @@ import {
 import {
   attachZaps,
   classifyZap,
+  dedupeZaps,
   tallyZapsByTarget,
   ZAP_RECEIPT_KIND,
   type Zap,
@@ -188,14 +191,22 @@ async function main() {
 
   const raw = events.length;
 
+  // INGEST BOUNDARY: one shape check for every event from every source, before
+  // anything classifies it. A malformed 30316/30317 used to throw here (bad
+  // pubkey -> hexToNpub, content:null -> .trim(), no tags -> not iterable) and
+  // the run wrote NO catalog at all, so one junk event blanked the dashboard.
+  // Dropping and counting keeps the bad event visible without losing the run.
+  const { ok: ingestable, malformed } = partitionIngestable(events);
+  const malformedByReason = malformedTally(malformed);
+
   // Services, reviews and zap receipts arrive in one REQ but are three different
   // things: a review is not a catalogue entry, and a receipt is not a review.
-  const serviceEvents = events.filter((e) =>
+  const serviceEvents = ingestable.filter((e) =>
     e.kind !== REVIEW_KIND && e.kind !== ZAP_RECEIPT_KIND && e.kind !== ATTESTATION_KIND
   );
-  const reviewEvents = events.filter((e) => e.kind === REVIEW_KIND);
-  const zapEvents = events.filter((e) => e.kind === ZAP_RECEIPT_KIND);
-  const attestationEvents = events.filter((e) => e.kind === ATTESTATION_KIND);
+  const reviewEvents = ingestable.filter((e) => e.kind === REVIEW_KIND);
+  const zapEvents = ingestable.filter((e) => e.kind === ZAP_RECEIPT_KIND);
+  const attestationEvents = ingestable.filter((e) => e.kind === ATTESTATION_KIND);
 
   const deduped = dedupe(serviceEvents);
   const { kept, dropped } = applyAllowList(deduped, allow.hex);
@@ -215,26 +226,32 @@ async function main() {
   const reviewsDropped = reviewsDeduped.length - reviewsAllowed.length;
 
   // Zaps are attached AFTER allow-listing and never influence the order: a zap
-  // is a spend signal, not a score (ADR-0002 §R3).
+  // is a spend signal, not a score (ADR-0002 §R3). Receipts are deduped by event
+  // id first: two relays serve the same kind-9735, and counting it twice both
+  // doubled the zap count and doubled the sats the dashboard printed.
   const zapsParsed = zapEvents
     .map((e) => classifyZap(e))
     .filter((z): z is Zap => z !== null);
-  const zapsByTarget = tallyZapsByTarget(zapsParsed);
+  const zapsDeduped = dedupeZaps(zapsParsed);
+  const zapsByTarget = tallyZapsByTarget(zapsDeduped);
   const withZaps = attachZaps(reviewsAllowed, zapsByTarget);
 
   // R4a: a vouched review gets a badge ONLY when the attestation's author is the
   // pubkey that announced that venue. Anyone can publish a kind-30317 event, so
   // without this check the badge would be decorative. Rejections are counted.
+  // The identity is `${provider_pubkey}:${d}` — the review's OWN binding — and
+  // that is exactly what attachReviews binds on, so two providers sharing a `d`
+  // slug can no longer badge each other's venues.
   const attestationsParsed = attestationEvents
     .map((e) => classifyAttestation(e))
     .filter((a): a is Attestation => a !== null);
   const attestationIndex = indexAttestations(attestationsParsed);
-  const providerBySlug = new Map<string, string>(
-    (entries as unknown as Array<{ d: string; pubkey: string }>).map((e) => [e.d, e.pubkey]),
+  const entryKeys = new Set<string>(
+    (entries as unknown as Array<{ d: string; pubkey: string }>).map((e) => `${e.pubkey}:${e.d}`),
   );
   const withAttestations = applyAttestations(
     withZaps.reviews,
-    providerBySlug,
+    entryKeys,
     attestationIndex,
   );
 
@@ -253,7 +270,7 @@ async function main() {
     ratingHistogram[k] = (ratingHistogram[k] ?? 0) + 1;
   }
 
-  const zapAmountUnknown = zapsParsed.filter((z) => z.sats === null).length;
+  const zapAmountUnknown = zapsDeduped.filter((z) => z.sats === null).length;
 
   // CEP-6 kinds 11316-11320 are FACETS of one service, so the announcement list
   // is collapsed on (pubkey, d) before it reaches the page: one card per service,
@@ -295,6 +312,9 @@ async function main() {
     policy,
     counts: {
       raw_events: raw,
+      // Events dropped by the ingest-boundary shape check (never silently).
+      dropped_malformed: malformed.length,
+      malformed_by_reason: malformedByReason,
       after_dedupe: deduped.length,
       kept: kept.length,
       services_kept: services.length,
@@ -323,7 +343,13 @@ async function main() {
         label: "the venue vouched for this reviewer; not proof the reviewer was present",
       },
       zaps: {
-        receipts: zapsParsed.length,
+        // Two numbers, because the difference is the bug: `raw_receipts` is what
+        // the relays served (the same receipt arrives twice from two relays),
+        // `receipts` is the DISTINCT receipts counted. Mirrors counts.raw_events
+        // / counts.after_dedupe. `count` on each attached tally is distinct too.
+        raw_receipts: zapsParsed.length,
+        receipts: zapsDeduped.length,
+        duplicates_dropped: zapsParsed.length - zapsDeduped.length,
         reviews_with_zaps: withZaps.reviews_with_zaps,
         sats_total_known: withZaps.sats_total,
         receipts_amount_unknown: zapAmountUnknown,
@@ -346,7 +372,7 @@ async function main() {
 
   const errs = relayStatus.filter((s) => !s.ok).map((s) => s.relay);
   console.log(
-    `catalog: raw=${raw} deduped=${deduped.length} kept=${kept.length} ` +
+    `catalog: raw=${raw} malformed=${malformed.length} deduped=${deduped.length} kept=${kept.length} ` +
       `services=${services.length} dropped=${dropped.length} ` +
       `links: checked=${linkTally.checked} unreachable=${linkTally.unreachable} ` +
       `not_checked=${linkTally.not_checked} no_url=${linkTally.no_url} ` +
@@ -354,9 +380,18 @@ async function main() {
       `| attest ${attestationsParsed.length}/${attestationIndex.size}=${withAttestations.confirmed}` +
       ` | reviews raw=${reviewEvents.length} shown=${reviewsAllowed.length} ` +
       `attached=${bindings.attached} orphaned=${bindings.orphaned.length} ` +
-      `dropped=${reviewsDropped} -> ${args.out}`,
+      `dropped=${reviewsDropped} ` +
+      `| zaps raw=${zapsParsed.length} counted=${zapsDeduped.length} ` +
+      `duplicates=${zapsParsed.length - zapsDeduped.length} ` +
+      `-> ${args.out}`,
 
   );
+  if (malformed.length) {
+    console.error(
+      `ingest: dropped ${malformed.length} malformed event(s): ` +
+        Object.entries(malformedByReason).map(([k, v]) => `${k}=${v}`).join(" "),
+    );
+  }
   if (allow.errors.length) console.error("allow-list errors: " + allow.errors.join("; "));
 }
 

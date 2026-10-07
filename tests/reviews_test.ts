@@ -19,6 +19,12 @@ import {
 } from "../collector/reviews.ts";
 import { groupServices } from "../collector/lib.ts";
 import type { Classified } from "../collector/lib.ts";
+import {
+  attachZaps,
+  classifyZap,
+  tallyZapsByTarget,
+  ZAP_RECEIPT_KIND,
+} from "../collector/zaps.ts";
 
 const PROVIDER = "ae317038b9c8c2fb681b163e9903d179785292b95d964dcb89bd053ba83e84bd";
 const REVIEWER = "4e5970390303ed7c17be1d5f2656b6a7edf8ca9c2e97796bed97956ba578a50d";
@@ -254,4 +260,79 @@ Deno.test("reviews: survive service grouping — the page renders services, not 
   ] as unknown as Classified[]);
   const none = (bare[0] as unknown as { reviews?: unknown[] }).reviews ?? [];
   eq(none.length, 0, "a service with no reviews must not invent any");
+});
+
+Deno.test("reviews: the cvm.rating label is selected by NAMESPACE, not by position", () => {
+  // Taking `tagValues(l)[0]` regardless of namespace loses ["l","4","cvm.rating"]
+  // whenever any other namespaced label precedes it — the rating silently became
+  // "unrated" (or fell through to the payload tag).
+  const twoLabels = ev({
+    tags: [
+      ["d", "x"],
+      ["a", `11317:${PROVIDER}:x`],
+      ["t", "cvm:review"],
+      ["L", "cvm.rating"],
+      ["L", "content-warning"],
+      ["l", "nsfw", "content-warning"],
+      ["l", "4", "cvm.rating"],
+    ],
+  });
+  const r = classifyReview(twoLabels)!;
+  eq(r.rating, 4, "our namespace is found even when another l tag precedes it");
+  eq(r.rating_source, "l", "source");
+
+  // A label from a foreign namespace is never mistaken for our rating.
+  const foreignOnly = ev({
+    tags: [["d", "x"], ["a", `11317:${PROVIDER}:x`], ["t", "cvm:review"], ["l", "3", "other.ns"]],
+  });
+  const r2 = classifyReview(foreignOnly)!;
+  eq(r2.rating, null, "a foreign namespace is not a rating");
+  ok(r2.warnings.includes("no-rating"), `expected no-rating, got ${JSON.stringify(r2.warnings)}`);
+
+  // The undecorated legacy shape (bare value + L declaring the namespace) still works.
+  const legacy = ev({
+    tags: [["d", "x"], ["a", `11317:${PROVIDER}:x`], ["t", "cvm:review"], ["L", "cvm.rating"], ["l", "2"]],
+  });
+  const r3 = classifyReview(legacy)!;
+  eq(r3.rating, 2, "legacy bare l tag with L still reads");
+  eq(r3.rating_source, "l", "source");
+});
+
+/** A minimal kind-9735 receipt paying toward `target`. */
+function zapReceipt(id: string, target: string) {
+  return {
+    id,
+    kind: ZAP_RECEIPT_KIND,
+    pubkey: "c".repeat(64),
+    created_at: 1791223700,
+    content: "",
+    sig: "0".repeat(128),
+    tags: [["p", "d".repeat(64)], ["e", target], ["P", "9".repeat(64)], ["amount", "1000000000"]],
+  };
+}
+
+Deno.test("reviews: zap tallies do not reorder the ATTACHED list (R3 on the rendered order)", () => {
+  // attachZaps maps in place and never sorts, so the zaps_test ordering guard
+  // cannot see a comparator that ranks by sats: the order the page renders comes
+  // from attachReviews' own sort. A mutation that ranked by zap sats left the
+  // suite green at 62/0 while the catalogue flipped to richest-first and still
+  // claimed `scoring: none`. This RED exercises the comparator that decides.
+  const oldButRich = classifyReview(ev({ created_at: 100, id: "1".repeat(64) }))!;
+  const newButPoor = classifyReview(ev({ created_at: 900, id: "9".repeat(64), pubkey: REVIEWER_B }))!;
+
+  const tallies = tallyZapsByTarget([
+    classifyZap(zapReceipt("b".repeat(64), oldButRich.event_id))!,
+    classifyZap(zapReceipt("a".repeat(64), oldButRich.event_id))!,
+  ]);
+  const withZaps = attachZaps([oldButRich, newButPoor], tallies).reviews;
+  eq(withZaps[0].zaps!.sats_known, 2_000_000, "the OLD review is the rich one");
+  eq(withZaps[1].zaps, null, "the new review has no zaps");
+
+  const entries = [{ pubkey: PROVIDER, d: "doppelt-kaese-berlin" }];
+  const rendered = (attachReviews(entries, withZaps).entries[0] as {
+    reviews: Array<{ created_at: number; zaps: unknown }>;
+  }).reviews;
+
+  eq(rendered.map((r) => r.created_at), [900, 100], "newest-first, sats ignored");
+  eq(rendered[0].zaps, null, "the richest review is NOT promoted to the top");
 });

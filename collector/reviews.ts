@@ -56,8 +56,19 @@ export function parseRating(
   const candidates: Array<[RatingSource, string | undefined]> = [
     ["t", tagValues(e.tags, "t").find((v) => v.startsWith(RATING_PREFIX))?.slice(RATING_PREFIX.length)],
     ["l", (() => {
-      const namespaced = tagValues(e.tags, "L").includes(RATING_NS);
-      return namespaced ? tagValues(e.tags, "l")[0] : undefined;
+      // NIP-32 labels are ["l", <value>, <namespace>]. Taking the FIRST `l` tag
+      // regardless of namespace loses ["l","4","cvm.rating"] as soon as any other
+      // namespaced label precedes it, so select the row that declares OUR
+      // namespace (the third element is the authoritative one).
+      const rows = e.tags.filter((t) =>
+        Array.isArray(t) && t[0] === "l" && typeof t[1] === "string"
+      );
+      const named = rows.find((t) => t[2] === RATING_NS);
+      if (named) return named[1] as string;
+      // Legacy/undecorated shape: a bare value is usable only when the `L` tag
+      // declared the namespace for us.
+      if (!tagValues(e.tags, "L").includes(RATING_NS)) return undefined;
+      return rows.find((t) => t[2] === undefined)?.[1] as string | undefined;
     })()],
     ["payload", tagValues(e.tags, "rating")[0]],
   ];

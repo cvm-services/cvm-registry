@@ -12,6 +12,9 @@ import {
   groupServices,
   httpUrlOrNull,
   hexToNpub,
+  malformedReason,
+  malformedTally,
+  partitionIngestable,
   serviceKey,
   matchesFieldAnd,
   matchesTierShorthand,
@@ -22,6 +25,7 @@ import {
   tierPrefilter,
   verdictText,
   type Classified,
+  type MalformedReason,
   type NostrEvent,
   type Vocab,
 } from "../collector/lib.ts";
@@ -385,4 +389,79 @@ Deno.test("verdictText: UNKNOWN is never a pass and never silent", () => {
   assertEquals(verdictText({ checked: true, ok: null, reason: "unreachable" }), "unreachable", "a transport failure is SHOWN");
   assertEquals(verdictText({ checked: true, ok: null, reason: "timeout" }), "no reply", "a timeout is SHOWN");
   assertEquals(verdictText({ checked: true, ok: false, reason: "http-404" }), "unreachable 404", "an HTTP refusal names the status");
+});
+
+// --------------------------------------------------------------------------
+// the ingest boundary (B2): a malformed event must never blank the catalogue
+// --------------------------------------------------------------------------
+
+/** A raw harvest object, deliberately NOT typed as a NostrEvent: that is the point. */
+function raw(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: "e".repeat(64),
+    pubkey: PK_A,
+    created_at: 1_700_000_000,
+    kind: 30316,
+    content: "ok",
+    sig: "0".repeat(128),
+    tags: [["t", "cvm:review"]],
+    ...over,
+  };
+}
+
+Deno.test("ingest: a well-formed event passes the shape guard untouched", () => {
+  assertEquals(malformedReason(raw()), null, "no reason to drop it");
+  assertEquals(malformedReason(ev({ tags: [] })), null, "an announcement with no tags is still valid");
+  const { ok, malformed } = partitionIngestable([raw(), ev({ tags: [] })]);
+  assertEquals([ok.length, malformed.length], [2, 0], "both kept");
+});
+
+Deno.test("ingest: every malformed shape is DROPPED AND COUNTED, never fatal", () => {
+  // Each pair is (reason, event). The first three are the ones the review
+  // measured as run-killers; the rest are the same contract.
+  const shapes: Array<[MalformedReason, unknown]> = [
+    ["pubkey-not-hex64", raw({ kind: 30316, tags: [["t", "cvm:review"]], pubkey: "zz" })],
+    ["content-not-a-string", raw({ kind: 30317, tags: [["t", "cvm:attestation"]] , content: undefined })],
+    ["content-not-a-string", raw({ kind: 30317, tags: [["t", "cvm:attestation"]], content: null })],
+    ["tags-not-an-array", (() => { const e = raw(); delete e.tags; return e; })()],
+    ["tags-not-an-array", raw({ tags: null })],
+    ["not-an-object", "this is not an event at all"],
+    ["not-an-object", null],
+    ["id-not-a-string", raw({ id: 42 })],
+    ["kind-not-a-number", raw({ kind: "30316" })],
+    ["created_at-not-a-number", raw({ created_at: "yesterday" })],
+  ];
+
+  const { ok, malformed } = partitionIngestable(shapes.map(([, e]) => e));
+  assertEquals(ok.length, 0, "nothing malformed survives into the pipeline");
+  assertEquals(malformed.length, shapes.length, "every event is accounted for");
+  assertEquals(
+    malformed.map((m) => m.reason),
+    shapes.map(([r]) => r),
+    "the reason reported is the reason it failed, in order",
+  );
+
+  const tally = malformedTally(malformed);
+  assertEquals(tally["content-not-a-string"], 2, "counted per reason");
+  assertEquals(tally["tags-not-an-array"], 2, "counted per reason");
+  assertEquals(tally["not-an-object"], 2, "counted per reason");
+  assertEquals(tally["pubkey-not-hex64"], 1, "counted per reason");
+  // A non-object has no identity to report; it must not invent one.
+  assertEquals(malformed.filter((m) => m.reason === "not-an-object").map((m) => m.id), [null, null], "no fabricated id");
+});
+
+Deno.test("ingest: the triggers that killed the run are exactly what the guard catches", () => {
+  // The three crash sites, asserted directly so the guard cannot silently stop
+  // covering one of them:
+  assertThrows(() => hexToNpub("zz"), "hexToNpub throws on a non-64-hex pubkey (reviews.ts called it before the allow-list)");
+  assertThrows(
+    () => classify(raw({ tags: null }) as unknown as NostrEvent, VOCAB),
+    "the pipeline's own tag reader is not iterable-safe: a missing `tags` used to kill the run",
+  );
+  const { ok } = partitionIngestable([
+    raw({ pubkey: "zz" }),
+    raw({ content: null }),
+    (() => { const e = raw(); delete e.tags; return e; })(),
+  ]);
+  assertEquals(ok.length, 0, "all three crash shapes are dropped before any classifier sees them");
 });

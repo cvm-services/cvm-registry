@@ -101,10 +101,10 @@ Deno.test("attestations: latest wins per (venue, reviewer), ties by larger id", 
 Deno.test("attestations: A THIRD PARTY CANNOT VOUCH FOR A VENUE", () => {
   const forged = classifyAttestation(att({ pubkey: IMPOSTOR }))!;
   const index = indexAttestations([forged]);
-  const reviews = [{ pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin" }];
-  const providers = new Map([["doppelt-kaese-berlin", VENUE]]);
+  const reviews = [{ pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE }];
+  const entryKeys = new Set([`${VENUE}:doppelt-kaese-berlin`]);
 
-  const res = applyAttestations(reviews, providers, index);
+  const res = applyAttestations(reviews, entryKeys, index);
   eq(res.reviews[0].attestation, null, "a forged attestation must produce NO badge");
   eq(res.confirmed, 0, "nothing confirmed");
   eq(res.rejected_wrong_author, 1, "and it is counted, not ignored");
@@ -113,18 +113,19 @@ Deno.test("attestations: A THIRD PARTY CANNOT VOUCH FOR A VENUE", () => {
 
 Deno.test("attestations: the venue's own vouch confirms exactly one review", () => {
   const genuine = classifyAttestation(att())!;
+  const otherProvider = "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891";
   const index = indexAttestations([genuine]);
   const reviews = [
-    { pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin" },
-    { pubkey: OTHER_REVIEWER, venue_slug: "doppelt-kaese-berlin" }, // not vouched for
-    { pubkey: REVIEWER, venue_slug: "pizza-e-pasta-ruedesheimerplatz" }, // different venue
+    { pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE },
+    { pubkey: OTHER_REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE }, // not vouched for
+    { pubkey: REVIEWER, venue_slug: "pizza-e-pasta-ruedesheimerplatz", provider_pubkey: otherProvider }, // different venue
   ];
-  const providers = new Map([
-    ["doppelt-kaese-berlin", VENUE],
-    ["pizza-e-pasta-ruedesheimerplatz", "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891"],
+  const entryKeys = new Set([
+    `${VENUE}:doppelt-kaese-berlin`,
+    `${otherProvider}:pizza-e-pasta-ruedesheimerplatz`,
   ]);
 
-  const res = applyAttestations(reviews, providers, index);
+  const res = applyAttestations(reviews, entryKeys, index);
   ok(res.reviews[0].attestation, "the vouched review is badged");
   eq(res.reviews[0].attestation!.status, "venue-signed", "status");
   eq(res.reviews[0].attestation!.attestation_id, genuine.event_id, "which attestation");
@@ -134,11 +135,49 @@ Deno.test("attestations: the venue's own vouch confirms exactly one review", () 
   eq(res.confirmed, 1, "exactly one");
 });
 
+Deno.test("attestations: two providers sharing a slug cannot badge each other", () => {
+  // The old slug->provider map held ONE provider per slug, so with two providers
+  // publishing the same `d` one of the two vouches was resolved against the wrong
+  // venue: B's vouch badged A's venue while A's own vouch was refused. The
+  // identity now comes from the review's own `provider_pubkey` binding.
+  const otherProvider = "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891";
+  const SHARED = "shared-slug";
+  const vouchFromA = classifyAttestation(att({
+    tags: [
+      ["d", `${SHARED}:${REVIEWER}`],
+      ["a", `11317:${VENUE}:${SHARED}`],
+      ["p", REVIEWER],
+      ["t", "cvm:attestation"],
+    ],
+  }))!;
+  const index = indexAttestations([vouchFromA]);
+  const entryKeys = new Set([`${VENUE}:${SHARED}`, `${otherProvider}:${SHARED}`]);
+
+  // B's review of B's own venue, which happens to use the same slug.
+  const resB = applyAttestations(
+    [{ pubkey: REVIEWER, venue_slug: SHARED, provider_pubkey: otherProvider }],
+    entryKeys,
+    index,
+  );
+  eq(resB.reviews[0].attestation, null, "A's vouch must NOT badge B's venue");
+  eq(resB.confirmed, 0, "nothing confirmed for B");
+  eq(resB.rejected_wrong_author, 1, "counted as wrong author");
+
+  // …and A's own review of that slug is still honoured.
+  const resA = applyAttestations(
+    [{ pubkey: REVIEWER, venue_slug: SHARED, provider_pubkey: VENUE }],
+    entryKeys,
+    index,
+  );
+  ok(resA.reviews[0].attestation, "A's own vouch is honoured");
+  eq(resA.confirmed, 1, "confirmed for A");
+});
+
 Deno.test("attestations: an unknown venue cannot be badged", () => {
   const genuine = classifyAttestation(att())!;
   const res = applyAttestations(
-    [{ pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin" }],
-    new Map(),
+    [{ pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE }],
+    new Set(),
     indexAttestations([genuine]),
   );
   eq(res.reviews[0].attestation, null, "no catalogue entry => no badge");
@@ -148,11 +187,15 @@ Deno.test("attestations: an unknown venue cannot be badged", () => {
 Deno.test("attestations: attaching does not reorder reviews", () => {
   const genuine = classifyAttestation(att())!;
   const reviews = [
-    { pubkey: OTHER_REVIEWER, venue_slug: "doppelt-kaese-berlin", created_at: 900 },
-    { pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin", created_at: 100 },
+    { pubkey: OTHER_REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE, created_at: 900 },
+    { pubkey: REVIEWER, venue_slug: "doppelt-kaese-berlin", provider_pubkey: VENUE, created_at: 100 },
   ];
   const before = reviews.map((r) => r.created_at);
-  const res = applyAttestations(reviews, new Map([["doppelt-kaese-berlin", VENUE]]), indexAttestations([genuine]));
+  const res = applyAttestations(
+    reviews,
+    new Set([`${VENUE}:doppelt-kaese-berlin`]),
+    indexAttestations([genuine]),
+  );
   eq(res.reviews.map((r) => r.created_at), before, "order untouched by a confirmation");
   ok(res.reviews[1].attestation, "the older, vouched review stays last and is still badged");
 });
