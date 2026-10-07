@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>ContextVM services — usability mockup (desktop)</title>
+<style>
+  :root{
+    --bg:#0b0d10; --card:#141821; --card2:#1b202b; --line:#252b38; --rail:#0e1117;
+    --ink:#e9edf5; --dim:#9aa4b8; --dimmer:#6b7488;
+    --ok:#3ddc97; --warn:#ffb454; --accent:#5b8cff; --accent-ink:#fff;
+  }
+  *{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:#05070a;color:var(--ink);
+    font:14.5px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  .screen{width:1440px;height:900px;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+  .top{height:52px;display:flex;align-items:center;gap:14px;padding:0 22px;border-bottom:1px solid var(--line);flex:none}
+  .brand{font-weight:700;letter-spacing:.2px}
+  .brand em{font-style:normal;color:var(--accent)}
+  .top .grow{flex:1}
+  .top .meta{color:var(--dimmer);font-size:12px}
+  .search{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 12px;color:var(--dim);font-size:13px;width:280px}
+  .btn{border:0;border-radius:10px;padding:10px 14px;font-size:13.5px;font-weight:600;background:var(--accent);color:#fff;cursor:default}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+  .btn.full{width:100%;padding:13px}
+  .panes{flex:1;display:flex;min-height:0}
+  .pane{border-right:1px solid var(--line);min-height:0;display:flex;flex-direction:column}
+  .pane:last-child{border-right:0}
+  .phead{padding:14px 18px 8px;flex:none}
+  .phead h2{margin:0;font-size:15px}
+  .phead .sub{color:var(--dimmer);font-size:12px;margin-top:2px}
+  .scroll{overflow:hidden;padding:0 12px 16px}
+  .srow{display:flex;align-items:center;gap:11px;padding:11px 9px;border-radius:11px;margin-bottom:4px}
+  .srow.on{background:var(--card);border:1px solid var(--line)}
+  .ico{width:34px;height:34px;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+  .grow{flex:1;min-width:0}
+  .name{font-weight:600;font-size:14px}
+  .oneline{color:var(--dim);font-size:12px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:999px;background:var(--card2);color:var(--dim);border:1px solid var(--line);white-space:nowrap}
+  .pill.ok{color:var(--ok);border-color:#1f4736;background:#0f2a20}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;margin:2px 18px 10px}
+  .seg button{flex:1;border:0;background:none;color:var(--dim);padding:8px;border-radius:8px;font-size:13px;font-weight:600}
+  .seg button.on{background:var(--accent);color:var(--accent-ink)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 26px;padding:0 18px}
+  .item{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .sats{font-variant-numeric:tabular-nums;font-weight:600;font-size:13.5px}
+  .fiat{font-size:11px;color:var(--dimmer);font-variant-numeric:tabular-nums;text-align:right;margin-top:1px}
+  .item.out .name,.item.out .sats,.item.out .fiat{color:var(--dimmer)}
+  .addplus{width:27px;height:27px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-size:15px;line-height:1;flex:none}
+  .cart{background:var(--rail);flex:none}
+  .line{display:flex;align-items:flex-start;gap:10px;padding:12px 18px;border-bottom:1px solid #1c2130}
+  .stepper{display:flex;align-items:center;gap:7px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:2px 4px}
+  .stepper button{width:22px;height:22px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:14px;line-height:1}
+  .stepper .q{min-width:12px;text-align:center;font-weight:600;font-size:13px}
+  .totalrow{display:flex;justify-content:space-between;align-items:baseline;padding:11px 18px;border-bottom:1px solid #1c2130;font-size:13px;color:var(--dim)}
+  .totalrow b{color:var(--ink);font-weight:600}
+  .grand{font-size:19px}
+  .warnbox{background:#1d1b12;border:1px solid #3a3420;color:#e8d9a8;border-radius:10px;padding:10px 12px;font-size:12px;margin:12px 18px}
+  .foot{padding:14px 18px;flex:none}
+  .hint{color:var(--dimmer);font-size:11.5px;text-align:center;margin-top:8px}
+  .paycard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center;margin:0 18px}
+  .qr{width:206px;height:206px;margin:0 auto 14px;background:#fff;border-radius:10px;display:grid;
+    grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);padding:10px;gap:1px}
+  .qr i{background:#fff}.qr i.on{background:#0b0d10}
+  .amount{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+  .amount .fiat{font-size:14px;margin-top:2px}
+  .rate{color:var(--dimmer);font-size:12px;margin-top:4px}
+  .state{display:inline-flex;align-items:center;gap:8px;color:var(--warn);font-size:13px;margin-top:12px;background:#201a10;border:1px solid #3a3420;border-radius:999px;padding:6px 12px}
+  .dot{width:8px;height:8px;border-radius:999px;background:var(--warn)}
+  .invoice{font:11.5px/1.6 ui-monospace,Menlo,monospace;color:var(--dim);background:var(--card2);border-radius:9px;padding:10px;margin-top:14px;word-break:break-all;text-align:left}
+  .steps{display:flex;gap:6px;margin:0 18px 14px}
+  .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .steps i.done{background:var(--accent)}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #1c2130;font-size:12.5px}
+  .kv span{color:var(--dimmer)} .kv b{font-weight:500;color:var(--dim);text-align:right;max-width:64%;word-break:break-all}
+  .check{width:64px;height:64px;border-radius:999px;background:#0f2a20;border:2px solid var(--ok);color:var(--ok);
+    font-size:30px;display:flex;align-items:center;justify-content:center}
+  h1.big{font-size:25px;margin:14px 0 4px}
+</style></head><body>
+<div class="screen" id="screen"></div>
+<script>
+const SATS_PER_EUR = 1000;
+const rate = '1 € ≈ 1 000 sats';
+const fmtE = n => n.toFixed(2).replace('.', ',') + ' €';
+const fmtS = n => Math.round(n * SATS_PER_EUR).toLocaleString('de-DE').replace(/\./g,' ') + ' sats';
+const price = e => `<div><div class="sats">${fmtS(e)}</div><div class="fiat">${fmtE(e)}</div></div>`;
+const qr = () => { let s='<div class="qr">';
+  const m=[[0,0],[0,20],[20,0],[0,1],[1,0],[1,1],[19,20],[20,19],[20,20],[19,19],[1,20],[20,1]];
+  const on=new Set(); for(const [x,y] of m){for(let a=0;a<3;a++)for(let b=0;b<3;b++){on.add((x+a)+','+(y+b));}}
+  for(let y=0;y<21;y++)for(let x=0;x<21;x++){
+    const core=(x<7&&y<7)||(x>13&&y<7)||(x<7&&y>13);
+    s += core ? (on.has(x+','+y)?"<i class='on'></i>":"<i></i>") : (((x*7+y*13)%5<2)?"<i class='on'></i>":"<i></i>");
+  } return s+'</div>'; };
+
+const services = [
+  {i:'🍔',n:'Doppelt Käse',s:'Burgers · pickup or delivery · Berlin',t:'orderable',on:1},
+  {i:'🍕',n:'Pizza e Pasta',s:'Pizza · pickup · Berlin',t:'orderable'},
+  {i:'💬',n:'nosms',s:'Send an SMS · pay per message',t:'2 900 sats'},
+  {i:'⚙️',n:'cvm-lambda',s:'Run code in a sandbox · pay per call',t:'2 000 sats'},
+];
+const menu = [
+  ['Cheeseburger',8.9,1],['Der Doppelt Käse-Burger',10.9,1],['Beyond Meat-Burger',9.9,1],
+  ['Sweet Dreams',7.2,1],['Hamburger',7.9,1],['Onion Rings 12 Stück',9.0,1],
+  ['Curly Fries',4.5,1],['Parmesan Pommes frites',6.8,1],['Chicken Fingers 6 Stück',6.5,0],
+  ['Potato Tots',5.5,0],['Burgersoße',0.9,1],['Club Mate 0,33 l',2.9,1],
+  ['Käsesoße',2.7,1],['Vio Still 0,5 l',2.3,1],
+];
+/* NOTE: do not name this `top` — a top-level `const top = …` in a classic script
+   throws "Identifier 'top' has already been declared" (window.top is a
+   non-configurable global), which silently blanks the whole page. */
+const topbar = () => `<div class="top"><span class="brand">Context<em>VM</em></span>
+  <span class="search">Search services…</span>
+  <button class="btn ghost">Filters</button>
+  <span class="grow"></span>
+  <span class="meta">cache, not proxy · snapshot 22:52:59Z · 4 services</span></div>`;
+
+const D = {
+1: () => `${topbar()}<div class="panes">
+  <div class="pane" style="width:330px">
+    <div class="phead"><h2>Services</h2><div class="sub">4 available</div></div>
+    <div class="scroll">${services.map(v=>`<div class="srow ${v.on?'on':''}"><div class="ico">${v.i}</div>
+      <div class="grow"><div class="name">${v.n}</div><div class="oneline">${v.s}</div></div>
+      ${v.t?`<span class="pill ${v.t==='orderable'?'ok':''}">${v.t}</span>`:''}</div>`).join('')}</div>
+  </div>
+  <div class="pane grow">
+    <div class="phead"><h2>Doppelt Käse <span class="pill ok">pickup 10 min</span></h2>
+      <div class="sub">Burgers · Laubacher Str. 16 · prices are the venue's own</div></div>
+    <div class="seg"><button class="on">Pickup</button><button>Delivery</button></div>
+    <div class="cols">${menu.map(([n,p,av])=>`<div class="item ${av?'':'out'}"><div class="grow"><div class="name">${n}</div></div>
+      ${price(p)}${av?`<button class="addplus">+</button>`:`<span class="pill">sold out</span>`}</div>`).join('')}</div>
+    <div class="foot"><div class="hint">${rate} · 76 items · pay on the venue's site</div></div>
+  </div>
+  <div class="pane cart" style="width:350px">
+    <div class="phead"><h2>Your order</h2><div class="sub">Doppelt Käse · pickup ~10 min</div></div>
+    <div class="line"><div class="ico">🍔</div><div class="grow"><div class="name">Cheeseburger</div>
+      <div class="oneline">extra cheese · no onions</div><div class="fiat" style="text-align:left">8 900 sats · 8,90 €</div></div>
+      <div class="stepper"><button>−</button><span class="q">2</span><button>+</button></div></div>
+    <div class="line"><div class="ico">🍟</div><div class="grow"><div class="name">Curly Fries</div>
+      <div class="fiat" style="text-align:left">4 500 sats · 4,50 €</div></div>
+      <div class="stepper"><button>−</button><span class="q">1</span><button>+</button></div></div>
+    <div class="totalrow"><span>Subtotal</span><b>17 800 sats · 17,80 €</b></div>
+    <div class="totalrow"><span>Rate</span><b>${rate}</b></div>
+    <div class="totalrow" style="border:0"><span style="color:var(--ink)">Total</span><b class="grand">17 800 sats</b></div>
+    <div class="warnbox">This venue takes payment on its own page. The next step hands you over with the basket above.</div>
+    <div class="foot" style="margin-top:auto"><button class="btn full">Continue to Doppelt Käse</button>
+      <div class="hint">Nothing is charged here.</div></div>
+  </div>
+</div>`,
+2: () => `${topbar()}<div class="panes">
+  <div class="pane" style="width:360px">
+    <div class="phead"><h2>Doppelt Käse</h2><div class="sub">pickup ~10 min · Laubacher Str. 16</div></div>
+    <div class="line"><div class="ico">🍔</div><div class="grow"><div class="name">Cheeseburger ×2</div>
+      <div class="fiat" style="text-align:left">17 800 sats · 17,80 €</div></div></div>
+    <div class="line"><div class="ico">🍟</div><div class="grow"><div class="name">Curly Fries ×1</div>
+      <div class="fiat" style="text-align:left">4 500 sats · 4,50 €</div></div></div>
+    <div class="totalrow"><span>Subtotal</span><b>22 300 sats</b></div>
+    <div class="totalrow"><span>Invoice</span><b>17 800 sats</b></div>
+    <div class="totalrow" style="border:0"><span style="color:var(--ink)">Payable now</span><b class="grand">17 800 sats</b></div>
+    <div class="warnbox">Issued only if the venue's trust proof checks out. One invoice per order — a second attempt with the same proof is refused.</div>
+  </div>
+  <div class="pane grow">
+    <div class="phead"><h2>Pay with Lightning</h2><div class="sub">waiting for payment · the page watches the mint, not the screen</div></div>
+    <div class="steps"><i class="done"></i><i class="done"></i><i class="done"></i><i></i></div>
+    <div class="paycard">${qr()}
+      <div class="amount">17 800 sats<div class="fiat">17,80 €</div></div>
+      <div class="rate">${rate} · quote held 15 min</div>
+      <div class="state"><span class="dot"></span>Waiting for payment…</div>
+      <div class="invoice">lnbc178u1p⋯q9x8f2m4k7d3n5zsa6t0lwvghcrqvpsxqcrqvpsxqcrz</div>
+    </div>
+    <div class="foot"><button class="btn full ghost">Copy invoice</button>
+      <div class="hint">Real BOLT11 from our own mint. The order advances only when the mint reports PAID.</div></div>
+  </div>
+  <div class="pane cart" style="width:300px">
+    <div class="phead"><h2>What happens next</h2></div>
+    <div class="line"><div class="grow"><div class="name">1 · Pay the invoice</div><div class="oneline">Any Lightning wallet.</div></div></div>
+    <div class="line"><div class="grow"><div class="name">2 · Order is placed</div><div class="oneline">On payment, we place it with the venue.</div></div></div>
+    <div class="line"><div class="grow"><div class="name">3 · Proof at the counter</div><div class="oneline">Order id + pickup time.</div></div></div>
+    <div class="totalrow" style="border:0;margin-top:auto"><span>Cap declared</span><b>0 sats</b></div>
+    <div class="warnbox" style="margin-top:0">Declared price is a call price, not a settlement claim. This venue is not declared Lightning-payable.</div>
+  </div>
+</div>`,
+3: () => `${topbar()}<div class="panes">
+  <div class="pane" style="width:430px">
+    <div class="phead"></div>
+    <div style="padding:0 18px">
+      <div class="check">✓</div>
+      <h1 class="big">Paid — order placed</h1>
+      <div class="sub" style="color:var(--dim)">Doppelt Käse · pickup ~10 min</div>
+      <div class="line" style="border-top:1px solid #1c2130"><div class="ico">🧾</div><div class="grow">
+        <div class="name">Order 7K2M-441</div><div class="oneline">17 800 sats · 17,80 €</div></div>
+        <span class="pill ok">paid</span></div>
+      <div class="line"><div class="ico">📍</div><div class="grow"><div class="name">Laubacher Str. 16, 14197 Berlin</div>
+        <div class="oneline">Show this screen at the counter</div></div></div>
+      <div class="warnbox">Receipt and cancellation terms: see Details.</div>
+    </div>
+    <div class="foot" style="margin-top:auto"><button class="btn full ghost">Back to services</button>
+      <div class="hint">Rated the order? A review helps the next customer.</div></div>
+  </div>
+  <div class="pane grow">
+    <div class="phead"><h2>Details</h2><div class="sub">everything that used to be on the card</div></div>
+    <div style="padding:0 18px">
+      <div class="kv"><span>Announcement</span><b>kind 11317 · CEP-6 · 2 announcements (server + tools)</b></div>
+      <div class="kv"><span>Class</span><b>meatspace / restaurant</b></div>
+      <div class="kv"><span>Service id</span><b>doppelt-kaese-berlin</b></div>
+      <div class="kv"><span>Announced</span><b>2026-10-07T20:57:10Z</b></div>
+      <div class="kv"><span>Geohash</span><b>u336, u336x0, u336x058</b></div>
+      <div class="kv"><span>Curator</span><b>npub1lecq5zgff9gxvqrhg3a7m48qkw4uzj5za9fz0vcn46lc8dme3xzq9klwgp</b></div>
+      <div class="kv"><span>Signer</span><b>fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984</b></div>
+      <div class="kv"><span>Input appetite</span><b>required: contact.phone, order.fulfilment, order.items, order.when · optional: contact.name, order.notes, ship.address</b></div>
+      <div class="kv"><span>Settlement</span><b>venue's own rail (FoodAmigos: Adyen/Stripe/PayPal/cash) · cvm cap 0 sats</b></div>
+      <div class="kv"><span>Rate used</span><b>${rate}</b></div>
+      <div class="kv" style="border:0"><span>Order id</span><b>7K2M-441 · paid 17 800 sats</b></div>
+      <div class="warnbox">Declared by the provider in its own signed announcement — a declaration, not an audited fact. The page is a static cache; it never opens a relay connection and never makes a per-service CVM call.</div>
+    </div>
+  </div>
+</div>`,
+};
+const want = new URLSearchParams(location.search).get('s') || '1';
+document.getElementById('screen').innerHTML = (D[want] || D['1'])();
+</script></body></html>

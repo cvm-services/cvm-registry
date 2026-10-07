@@ -1,29 +1,30 @@
 #!/bin/bash
 # Render every mockup screen to PNG with headless Chrome.
 #   bash docs/ui-mockups/shot.sh
-# Output: docs/ui-mockups/screens/screen-N-<slug>.png  (780x1688, 2x of a 390x844 phone)
+# Output: docs/ui-mockups/screens/<file>.png
+#   mobile  screen-N-<slug>.png          780x1688  (2x of a 390x844 phone)
+#   desktop desktop-N-<slug>.png        2880x1800  (2x of a 1440x900 window)
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="$HERE/screens"
 CHROME="${CHROME:-/usr/bin/google-chrome-stable}"
 mkdir -p "$OUT"
 
-# URL query -> file name. Order is the reading order of the flow.
-SCREENS=(
-  "1:services"
-  "2:menu"
-  "3:basket"
-  "4:pay-lightning"
-  "5:paid"
-  "6:details"
-)
-
-for entry in "${SCREENS[@]}"; do
-  n="${entry%%:*}"; slug="${entry##*:}"
+shoot() { # <file> <url> <w> <h>
   "$CHROME" --headless=old --disable-gpu --no-sandbox --hide-scrollbars \
-    --window-size=390,844 --force-device-scale-factor=2 \
-    --default-background-color=00000000 \
-    --screenshot="$OUT/screen-$n-$slug.png" \
-    "file://$HERE/mockups.html?s=$n" >/dev/null 2>&1
-  printf '%-28s %s\n' "screen-$n-$slug.png" "$(identify -format '%wx%h %b' "$OUT/screen-$n-$slug.png" 2>/dev/null || stat -c '%s bytes' "$OUT/screen-$n-$slug.png")"
+    --window-size="$3,$4" --force-device-scale-factor=2 \
+    --screenshot="$OUT/$1" "$2" >/dev/null 2>&1
+  printf '%-30s %s\n' "$1" "$(identify -format '%wx%h %b' "$OUT/$1" 2>/dev/null || stat -c '%s bytes' "$OUT/$1")"
+}
+
+# Mobile: the ordering flow, in reading order.
+for entry in 1:services 2:menu 3:basket 4:pay-lightning 5:paid 6:details; do
+  n="${entry%%:*}"; slug="${entry##*:}"
+  shoot "screen-$n-$slug.png" "file://$HERE/mockups.html?s=$n" 390 844
+done
+
+# Desktop: the same flow laid out as a three-pane app.
+for entry in 1:services-menu-cart 2:checkout-lightning 3:paid-details; do
+  n="${entry%%:*}"; slug="${entry##*:}"
+  shoot "desktop-$n-$slug.png" "file://$HERE/mockups-desktop.html?s=$n" 1440 900
 done

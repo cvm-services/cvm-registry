@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-<title>ContextVM services — usability mockup</title>
+<title>ContextVM services — usability mockup (mobile)</title>
 <style>
   :root{
     --bg:#0b0d10; --card:#141821; --card2:#1b202b; --line:#252b38;
@@ -23,7 +23,6 @@
   .filters b{color:var(--ink);font-weight:600}
   .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:14px;margin-bottom:10px}
-  .row:active{background:var(--card2)}
   .ico{width:38px;height:38px;border-radius:10px;background:var(--card2);display:flex;align-items:center;
     justify-content:center;font-size:19px;flex:none}
   .row .grow{flex:1;min-width:0}
@@ -35,17 +34,18 @@
   .pill.ok{color:var(--ok);border-color:#1f4736;background:#0f2a20}
   .pill.quiet{color:var(--dimmer)}
   .note{color:var(--dimmer);font-size:11.5px;text-align:center;margin:6px 0 14px}
-  /* menu */
   .mhead{display:flex;align-items:flex-start;gap:12px;margin:4px 0 12px}
   .back{border:0;background:none;color:var(--dim);font-size:22px;padding:0 4px 0 0;line-height:1}
   .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px;margin-bottom:12px}
   .seg button{flex:1;border:0;background:none;color:var(--dim);padding:9px;border-radius:9px;font-size:13.5px;font-weight:600}
   .seg button.on{background:var(--accent);color:var(--accent-ink)}
-  .item{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
   .item .grow{flex:1;min-width:0}
-  .price{font-variant-numeric:tabular-nums;font-weight:600;font-size:14.5px;color:var(--ink)}
-  .item.out .name,.item.out .price{color:var(--dimmer)}
-  .item.out{border-bottom-color:#1c2130}
+  /* SATS FIRST, fiat second and smaller — everywhere a price is shown */
+  .sats{font-variant-numeric:tabular-nums;font-weight:600;font-size:14.5px;color:var(--ink);direction:rtl}
+  .sats small{font-weight:400;font-size:11px;color:var(--dimmer);direction:ltr}
+  .fiat{font-size:11.5px;color:var(--dimmer);font-variant-numeric:tabular-nums;text-align:right;margin-top:1px}
+  .item.out .name,.item.out .sats,.item.out .fiat{color:var(--dimmer)}
   .stepper{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);
     border-radius:999px;padding:3px 5px}
   .stepper button{width:26px;height:26px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:16px;line-height:1}
@@ -53,37 +53,41 @@
   .addplus{width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:var(--card2);
     color:var(--ink);font-size:17px;line-height:1;flex:none}
   .bar{position:absolute;left:16px;right:16px;bottom:16px;background:var(--accent);color:#fff;border-radius:14px;
-    padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600;box-shadow:0 8px 24px #000a}
-  .bar.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none;font-weight:500}
-  .cta{width:100%;border:0;border-radius:14px;padding:16px;font-size:15.5px;font-weight:600;background:var(--accent);color:#fff}
+    padding:13px 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600;box-shadow:0 8px 24px #000a}
+  .bar .fiat{color:#dbe4ff}
+  .cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:15.5px;font-weight:600;background:var(--accent);color:#fff}
   .cta.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
-  /* details sheet */
-  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
-    border-radius:18px 18px 0 0;padding:16px}
   .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #1c2130;font-size:12.5px}
   .kv span{color:var(--dimmer)} .kv b{font-weight:500;color:var(--dim);text-align:right;max-width:62%;word-break:break-all}
   .warnbox{background:#1d1b12;border:1px solid #3a3420;color:#e8d9a8;border-radius:11px;padding:11px;font-size:12px;margin:10px 0}
-  /* pay */
-  .paybox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;margin-top:8px}
-  .qr{width:190px;height:190px;margin:6px auto 12px;background:#fff;border-radius:10px;display:grid;
-    grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);padding:10px;gap:1px}
+  .paybox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;margin-top:6px}
+  .qr{width:176px;height:176px;margin:4px auto 10px;background:#fff;border-radius:10px;display:grid;
+    grid-template-columns:repeat(21,1fr);grid-template-rows:repeat(21,1fr);padding:9px;gap:1px}
   .qr i{background:#fff} .qr i.on{background:#0b0d10}
-  .amount{font-size:27px;font-weight:700;font-variant-numeric:tabular-nums}
-  .state{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--warn);font-size:13px;margin-top:4px}
-  .dot{width:8px;height:8px;border-radius:999px;background:var(--warn);animation:none}
+  .amount{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums}
+  .amount .fiat{font-size:13px;margin-top:2px}
+  .rate{color:var(--dimmer);font-size:11.5px;margin-top:4px}
+  .state{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--warn);font-size:13px;margin-top:8px}
+  .dot{width:8px;height:8px;border-radius:999px;background:var(--warn)}
   .invoice{font:11.5px/1.5 ui-monospace,Menlo,monospace;color:var(--dim);background:var(--card2);border-radius:9px;
-    padding:10px;margin-top:12px;word-break:break-all;text-align:left}
-  .check{width:76px;height:76px;border-radius:999px;background:#0f2a20;border:2px solid var(--ok);color:var(--ok);
-    font-size:38px;display:flex;align-items:center;justify-content:center;margin:24px auto 14px}
+    padding:9px;margin-top:11px;word-break:break-all;text-align:left}
+  .check{width:70px;height:70px;border-radius:999px;background:#0f2a20;border:2px solid var(--ok);color:var(--ok);
+    font-size:34px;display:flex;align-items:center;justify-content:center;margin:18px auto 12px}
   .center{text-align:center}
-  .steps{display:flex;gap:6px;margin:14px 0 4px}
+  .steps{display:flex;gap:6px;margin:12px 0 4px}
   .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
   .steps i.done{background:var(--accent)}
   .hint{color:var(--dimmer);font-size:12px;margin-top:10px;text-align:center}
 </style></head><body>
 <div class="screen" id="screen"></div>
 <script>
-const KB = i => i % 2 === 0 ? "<i class='on'></i>" : "<i></i>";
+/* One rate, one place. Prices are always SATS FIRST, the fiat second and smaller. */
+const SATS_PER_EUR = 1000;
+const rate = '1 € ≈ 1 000 sats';
+const fmtE = n => n.toFixed(2).replace('.', ',') + ' €';
+const fmtS = n => Math.round(n * SATS_PER_EUR).toLocaleString('de-DE').replace(/\./g, ' ') + ' sats';
+const price = e => `<div><div class="sats">${fmtS(e)}</div><div class="fiat">${fmtE(e)}</div></div>`;
+
 const qr = () => { let s='<div class="qr">';
   const m=[[0,0],[0,20],[20,0],[0,1],[1,0],[1,1],[19,20],[20,19],[20,20],[19,19],[1,20],[20,1]];
   const on=new Set(); for(const [x,y] of m){for(let a=0;a<3;a++)for(let b=0;b<3;b++){on.add((x+a)+','+(y+b));}}
@@ -98,13 +102,13 @@ const status = () => `<div class="status"><span>9:41</span><span>ContextVM · cv
 const services = [
   {i:'🍔', n:'Doppelt Käse', s:'Burgers · pickup or delivery · Berlin', t:'orderable'},
   {i:'🍕', n:'Pizza e Pasta', s:'Pizza · pickup · Berlin', t:'orderable'},
-  {i:'💬', n:'nosms', s:'Send an SMS · pay per message', t:'pay 2 900 sats'},
-  {i:'⚙️', n:'cvm-lambda', s:'Run code in a sandbox · pay per call', t:''},
+  {i:'💬', n:'nosms', s:'Send an SMS · pay per message', t:'2 900 sats'},
+  {i:'⚙️', n:'cvm-lambda', s:'Run code in a sandbox · pay per call', t:'2 000 sats'},
 ];
 const menu = [
   ['Cheeseburger',8.9,1],['Curly Fries',4.5,1],['Der Doppelt Käse-Burger',10.9,1],
   ['Parmesan Pommes frites',6.8,1],['Beyond Meat-Burger',9.9,1],['Sweet Dreams',7.2,1],
-  ['Chicken Fingers 6 Stück',6.5,0],['POTATO TOTS',5.5,0],['Hamburger',7.9,1],
+  ['Chicken Fingers 6 Stück',6.5,0],['Potato Tots',5.5,0],['Hamburger',7.9,1],
   ['Onion Rings 12 Stück',9.0,1],['Burgersoße',0.9,1],['Club Mate 0,33 l',2.9,1],
 ];
 
@@ -123,11 +127,11 @@ const S = {
     <div class="oneline" style="margin-top:3px">Burgers · Laubacher Str. · <span class="pill ok">pickup 10 min</span></div></div></div>
   <div class="seg"><button class="on">Pickup</button><button>Delivery</button></div>
   ${menu.map(([n,p,av])=>`<div class="item ${av?'':'out'}"><div class="grow"><div class="name">${n}</div></div>
-    <div class="price">${p.toFixed(2).replace('.',',')} €</div>
+    ${price(p)}
     ${av?`<button class="addplus">+</button>`:`<span class="pill quiet">sold out</span>`}</div>`).join('')}
-  <div class="note">Prices are the venue's own. Pay on the venue's site.</div>
+  <div class="note">Prices are the venue's own. ${rate}. Pay on the venue's site.</div>
   </div>
-  <div class="bar"><span>Basket · 2 items</span><span>17,80 € ›</span></div>`,
+  <div class="bar"><span>Basket · 2 items<div class="fiat">17,80 €</div></span><span>17 800 sats ›</span></div>`,
 3: () => `${status()}<div class="body">
   <div class="mhead"><button class="back">‹</button><div class="grow"><h1 style="font-size:19px;margin:0">Your order</h1>
     <div class="oneline" style="margin-top:3px">Doppelt Käse · pickup ~10 min</div></div></div>
@@ -136,32 +140,33 @@ const S = {
     <div class="stepper"><button>−</button><span class="q">2</span><button>+</button></div></div>
   <div class="row"><div class="ico">🍟</div><div class="grow"><div class="name">Curly Fries</div></div>
     <div class="stepper"><button>−</button><span class="q">1</span><button>+</button></div></div>
-  <div class="kv" style="margin-top:16px"><span>Subtotal</span><b>17,80 €</b></div>
+  <div class="kv" style="margin-top:14px"><span>Subtotal</span><b>17 800 sats · 17,80 €</b></div>
+  <div class="kv"><span>Rate</span><b>${rate}</b></div>
   <div class="kv"><span>Venue's own rail</span><b>card · cash</b></div>
-  <div class="kv" style="border:0"><span style="color:var(--ink);font-size:15px">Total</span><b style="color:var(--ink);font-size:17px">17,80 €</b></div>
+  <div class="kv" style="border:0"><span style="color:var(--ink);font-size:15px">Total</span><b style="color:var(--ink);font-size:16px">17 800 sats</b></div>
   <div class="warnbox">This venue takes payment on its own page. Next step hands you over with the basket above.</div>
   </div>
-  <div style="padding:0 16px 16px"><button class="cta">Continue to Doppelt Käse · 17,80 €</button>
+  <div style="padding:0 16px 16px"><button class="cta">Continue to Doppelt Käse<div style="font-size:12px;font-weight:400;color:#dbe4ff">17 800 sats · 17,80 €</div></button>
   <div class="hint">Nothing is charged here.</div></div>`,
 4: () => `${status()}<div class="body">
   <div class="mhead"><button class="back">‹</button><div class="grow"><h1 style="font-size:19px;margin:0">Pay with Lightning</h1>
     <div class="oneline" style="margin-top:3px">Doppelt Käse · pickup ~10 min</div></div></div>
   <div class="steps"><i class="done"></i><i class="done"></i><i class="done"></i><i></i></div>
   <div class="paybox">${qr()}
-    <div class="amount">17,80 €</div>
-    <div style="color:var(--dim);font-size:12.5px">1 780 sats · rate 1 € = 100 sats (demo)</div>
+    <div class="amount">17 800 sats<div class="fiat">17,80 €</div></div>
+    <div class="rate">${rate}</div>
     <div class="state"><span class="dot"></span>Waiting for payment…</div>
-    <div class="invoice">lnbc1780u1p⋯q9x8f2m4k7d3n5zsa6t0lwvghcrqvpsxqcrqvpsxqcrz</div>
+    <div class="invoice">lnbc178u1p⋯q9x8f2m4k7d3n5zsa6t0lwvghcrqvpsxqcrqvpsxqcrz</div>
   </div>
   </div>
   <div style="padding:0 16px 16px"><button class="cta ghost">Copy invoice</button>
-  <div class="hint">The invoice is issued by our own mint. The page watches it and advances on payment.</div></div>`,
+  <div class="hint">Issued by our own mint. The page watches it and advances on payment.</div></div>`,
 5: () => `${status()}<div class="body"><div class="center">
   <div class="check">✓</div>
   <h1 style="margin:0">Paid — order placed</h1>
   <div class="sub" style="margin-top:6px">Doppelt Käse · pickup ~10 min</div>
   <div class="row" style="text-align:left"><div class="ico">🧾</div><div class="grow">
-    <div class="name">Order 7K2M-441</div><div class="oneline">17,80 € paid · 1 780 sats</div></div>
+    <div class="name">Order 7K2M-441</div><div class="oneline">17 800 sats · 17,80 €</div></div>
     <span class="pill ok">paid</span></div>
   <div class="row" style="text-align:left"><div class="ico">📍</div><div class="grow">
     <div class="name">Laubacher Str. 16, 14197 Berlin</div><div class="oneline">Show this screen at the counter</div></div></div>
@@ -181,6 +186,7 @@ const S = {
   <div class="kv"><span>Signer</span><b>fe700a09…b7798984</b></div>
   <div class="kv"><span>Input appetite</span><b>contact.phone, order.fulfilment, order.items, order.when</b></div>
   <div class="kv"><span>Settlement</span><b>venue's own rail · cap 0 sats</b></div>
+  <div class="kv"><span>Rate used</span><b>${rate}</b></div>
   <div class="warnbox">Declared by the provider in its own signed announcement. A declaration, not an audited fact. The page is a static cache; it never contacts a relay.</div>
   </div>`,
 };
