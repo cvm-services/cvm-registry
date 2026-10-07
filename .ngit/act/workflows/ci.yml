@@ -1,0 +1,36 @@
+name: ci
+
+# ngit CI (Nostr) runs .ngit/act/workflows/ ONLY; .github/workflows/ is never
+# executed by the coordinator. cvm-registry has no deno.json and no package.json,
+# so there is no `deno task` indirection — the commands below are the real ones
+# the repo is run with locally.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deno:
+    name: deno
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.9.0
+      # Type-check the 17 TypeScript modules (8 in collector/, 9 in tests/).
+      # Exit 0 on 6ec6f28; zero remote imports, so a cold runner resolves nothing.
+      - run: deno check collector/ tests/
+      # The suite as run locally: 112 passed / 0 failed on 6ec6f28 from a cold
+      # cache. --allow-net is needed only for the loopback Deno.serve in
+      # tests/link_check_test.ts — no external network is touched.
+      - run: deno test --allow-read --allow-net --allow-env tests/
