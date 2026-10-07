@@ -86,7 +86,16 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
 
   await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" });
-  const cards = await page.locator("article.card").count();
+  // The dashboard fetches catalog.json after load, so the cards are NOT in the
+  // first DOM paint — counting immediately is a race that a fast localhost hides
+  // and a real origin exposes. Wait for the first card, then count.
+  let cards = 0;
+  try {
+    await page.waitForSelector("article.card", { timeout: 25000 });
+    cards = await page.locator("article.card").count();
+  } catch {
+    cards = await page.locator("article.card").count();
+  }
   step("dashboard-loaded", { cards });
   if (cards === 0) fail("the deployed dashboard rendered no service cards (stale catalog? see policy max_age)");
 
