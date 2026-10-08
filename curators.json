@@ -1,7 +1,7 @@
 {
   "_comment": "Hardcoded allow-list of npubs whose CVM announcements the dashboard may render. Fork this repo and edit THIS FILE for your own deployment - curation is a claim, so it lives in your git history, not in a database. Unknown npub => not rendered. Empty list => nothing rendered (fail closed).",
   "version": 1,
-  "updated": "2026-10-06",
+  "updated": "2026-10-08",
   "dashboard_host": "cvm.orangesync.tech",
   "policy": {
     "unknown_npub": "not rendered",
@@ -38,6 +38,24 @@
     {
       "npub": "npub1aurs5hw24gmg6pwk5fyqgyv4a8em8z82xg72ps9p6uldgn33ag4sqfhz0g",
       "role": "provider"
+    },
+    {
+      "npub": "npub1w2j9gz000xx5q589ewjyq7fga97e9nfh0tut4ls2y0f42ta6992q2clvhc",
+      "role": "provider",
+      "derived_from": "secp256k1 key 72a45409ef798d4050e5cba4407928e97d92cd377af8bafe0a23d3552fba2954 (cvm-sms4sats SERVER_SECRET_KEY on testserver2; npub re-derived with `nak encode npub` on 2026-10-08, round-trip verified with `nak decode`)",
+      "note": "cvm-sms4sats. Will sign the kind-11316 announcement d=cvm-sms4sats-01 (class cvm:service:sms). PRE-REGISTERED while ANNOUNCE=false: cvm-service-kit evidence/announce-readiness-2026-10-08.md shows the paid rail (NWC_URL) empty and the treasury refusing rail_unavailable, so no announcement exists to render yet — this entry is inert until the service announces (an allowlisted npub with no live announcement simply renders nothing; it is not an error)."
+    },
+    {
+      "npub": "npub16qv7vqdmqcuftkd03vzar69aegjpzjxwlhh2eyxh9tqwmmtj4stsuqg9s3",
+      "role": "provider",
+      "derived_from": "secp256k1 key d019e601bb063895d9af8b05d1e8bdca241148cefdeeac90d72ac0eded72ac17 (cvm-ppq SERVER_SECRET_KEY on testserver2; npub re-derived with `nak encode npub` on 2026-10-08, round-trip verified with `nak decode`)",
+      "note": "cvm-ppq. Will sign the kind-11316 announcement d=cvm-ppq-01 (class cvm:service:ai). PRE-REGISTERED while ANNOUNCE=false: no funded PPQ_API_KEY exists in the fleet (old key dead at $0.00 since 2026-08-20), so `chat` cannot fulfil and the service stays unannounced by the readiness gate in cvm-service-kit deploy/ansible/playbook-wrappers.yml."
+    },
+    {
+      "npub": "npub1hazrzfaczqgu80pz3kh4qm5sk65937rwngz33ds6ek6le4xtwrvqdwg7sz",
+      "role": "provider",
+      "derived_from": "secp256k1 key bf443127b81011c3bc228daf506e90b6a858f86e9a0518b61acdb5fcd4cb70d8 (cvm-nanogpt SERVER_SECRET_KEY on testserver2; npub re-derived with `nak encode npub` on 2026-10-08, round-trip verified with `nak decode`)",
+      "note": "cvm-nanogpt. Will sign the kind-11316 announcement d=cvm-nanogpt-01 (class cvm:service:ai). PRE-REGISTERED while ANNOUNCE=false: no NANOGPT_API_KEY exists anywhere in the fleet vaults, so `chat` cannot fulfil and the service stays unannounced by the readiness gate in cvm-service-kit deploy/ansible/playbook-wrappers.yml."
     }
   ]
 }
