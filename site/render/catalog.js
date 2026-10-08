@@ -21,11 +21,66 @@
 /** Only this spec version is rendered. Anything else is refused wholesale. */
 export const SPEC_VERSION = 1;
 
-/** Ceiling on the serialized spec. A bigger spec is refused (see renderer.js). */
-export const SPEC_MAX_BYTES = 16 * 1024;
+/**
+ * Ceiling on the serialized spec. A bigger spec is refused (see renderer.js).
+ *
+ * The refusal is WHOLESALE — an over-cap spec paints nothing — so this number has
+ * to cover ordinary venues, not just the one it was tuned on. Measured against
+ * the real capture (`site/menu.json`, captured 2026-10-07 over relay.primal.net):
+ *
+ *     doppelt-kaese-berlin  76 items  ->  15 856 B
+ *     pizza-e-pasta-ruedesheimerplatz 112 items  ->  22 622 B
+ *
+ * 16 KiB was set from the 76-item venue and silently made the 112-item one
+ * invisible (fail-closed, but unreachable only by luck). 32 KiB covers both with
+ * ~44% headroom — roughly 180 items at the observed ~95 B/item — and is still a
+ * trivial payload. `tests/menu_capture_test.ts` asserts every venue in the real
+ * capture fits, so this cannot silently regress.
+ */
+export const SPEC_MAX_BYTES = 32 * 1024;
 
 /** Tones the catalog defines. A spec may pick one; it may not invent one. */
 export const TONES = ["ok", "warn", "loud", "tier", "stale", "disabled"];
+
+/**
+ * Resolve a spec's item reference to EXACTLY ONE served item.
+ *
+ * A `sku` identifies an item only when it is unique in the menu. The venue server
+ * makes the same call, and for the same reason: pizza collides on skus 36 / 110 /
+ * 44, so its `order` tool refuses an ambiguous sku and asks for the venue `id`
+ * instead. A lookup table that quietly keeps the first (or last) item for a
+ * duplicated sku lets a PriceRow be verified against the WRONG product — which is
+ * how a 2.70 drink gets painted at 3.60.
+ *
+ * So: `id` first (it is the venue's own unique key), then a sku ONLY when the
+ * capture carries it exactly once. `null` means the reference identifies nothing,
+ * and the caller must refuse rather than guess.
+ */
+export function menuItemIndex(items) {
+  const byId = new Map();
+  const byUniqueSku = new Map();
+  const skuCounts = new Map();
+  for (const it of items || []) {
+    if (!it) continue;
+    if (it.id) byId.set(String(it.id), it);
+    if (it.sku) {
+      const k = String(it.sku);
+      skuCounts.set(k, (skuCounts.get(k) || 0) + 1);
+      if (!byUniqueSku.has(k)) byUniqueSku.set(k, it);
+    }
+  }
+  for (const [k, n] of skuCounts) if (n > 1) byUniqueSku.delete(k);
+  return {
+    byId,
+    byUniqueSku,
+    skuCounts,
+    /** How many served items carry this sku (>1 = it identifies nothing). */
+    skuCount: (sku) => skuCounts.get(String(sku)) || 0,
+    resolve: (id, sku) =>
+      (id ? byId.get(String(id)) ?? null : null) ||
+      (sku ? byUniqueSku.get(String(sku)) ?? null : null),
+  };
+}
 
 /**
  * The component catalog.

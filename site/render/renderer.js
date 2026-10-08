@@ -6,9 +6,12 @@
  *   - unknown component  -> the element renders nothing (fail closed)
  *   - unknown action     -> the action is refused, never dispatched
  *   - spec.version != 1  -> the whole spec is refused
- *   - spec > 16 KiB      -> the whole spec is refused
+ *   - spec over SPEC_MAX_BYTES -> the whole spec is refused
  *   - a `money` prop the served data does not back -> the element is refused,
  *     and the refusal is recorded. Money is never painted from the spec.
+ *     A spec item is resolved to exactly one served item by `id`, or by a sku
+ *     that is unique — an ambiguous sku resolves to nothing and is refused
+ *     (catalog.js `menuItemIndex`).
  *   - any URL in the spec -> the element is refused; the ordering URL comes from
  *     the trusted context (the announcement), never from the spec
  *   - DOM is built with createElement/textContent/setAttribute only. There is no
@@ -25,6 +28,7 @@ import {
   SPEC_MAX_BYTES,
   isKnownAction,
   isKnownComponent,
+  menuItemIndex,
   validateProps,
 } from "./catalog.js";
 
@@ -39,11 +43,7 @@ export function byteLength(s) {
 function normalizeCtx(raw = {}) {
   const menu = raw.menu || { items: [] };
   const items = Array.isArray(menu.items) ? menu.items : [];
-  const bySku = new Map();
-  for (const it of items) {
-    if (it && it.sku) bySku.set(String(it.sku), it);
-    if (it && it.id) bySku.set(String(it.id), it);
-  }
+  const index = menuItemIndex(items);
   const tools = Array.isArray(raw.tools) ? raw.tools.slice() : [];
   const declaresOrder = raw.declaresOrder === true;
   const orderUrl = typeof raw.orderUrl === "string" && /^https?:\/\/[^\s]+$/i.test(raw.orderUrl) ? raw.orderUrl : null;
@@ -52,7 +52,9 @@ function normalizeCtx(raw = {}) {
     venueSlug: String(raw.venueSlug || menu.venue_slug || ""),
     menu,
     currency: menu.currency || "EUR",
-    bySku,
+    bySku: index.byUniqueSku,
+    /** Resolve a spec item reference to exactly one served item (or null). */
+    resolveItem: index.resolve,
     // the method the venue actually serves *and* prices — validated against served data
     methods: Array.isArray(raw.methods) ? raw.methods : [],
     method: raw.method ?? null,
@@ -119,9 +121,12 @@ export function createRenderer(opts = {}) {
         if (!parent || parent.component !== "MenuItem") {
           return "PriceRow must sit inside a MenuItem (no served item to source a price from)";
         }
-        const key = parent.props.sku || parent.props.id;
-        const item = key ? ctx.bySku.get(String(key)) : null;
-        if (!item) return "PriceRow parent names no served item";
+        // `id` first (the venue's unique key); a sku only when it identifies
+        // exactly one served item. An ambiguous sku resolves to nothing, so the
+        // row is refused rather than checked against the wrong product.
+        const item = ctx.resolveItem(parent.props.id, parent.props.sku);
+        const key = parent.props.id || parent.props.sku;
+        if (!item) return `PriceRow parent names no single served item (${JSON.stringify(key)})`;
         const served = servedPrice(ctx, item, props.method);
         if (served === null) return `no served price for ${key}/${props.method}`;
         if (served !== props.amount) return `stated price ${props.amount} for ${key}/${props.method} but the venue serves ${served}`;
@@ -131,12 +136,12 @@ export function createRenderer(opts = {}) {
         return null;
       }
       case "BasketLine": {
-        const key = String(props.sku || props.id || "");
-        const line = ctx.basket.lines.find((l) => String(l.sku || l.id) === key);
+        const key = String(props.id || props.sku || "");
+        const line = ctx.basket.lines.find((l) => String(l.id || l.sku) === key);
         if (!line) return "BasketLine names no served basket line";
         if (line.name !== props.name) return `BasketLine name ${props.name} != served ${line.name}`;
         if (line.qty !== props.qty) return `BasketLine qty ${props.qty} != served ${line.qty}`;
-        const item = ctx.bySku.get(key);
+        const item = ctx.resolveItem(props.id, props.sku);
         const served = item ? servedPrice(ctx, item, ctx.basket.method) : null;
         if (served !== null && served !== props.amount) return `BasketLine amount ${props.amount} != served ${served}`;
         if (line.amount !== props.amount) return `BasketLine amount ${props.amount} != served ${line.amount}`;
@@ -161,9 +166,8 @@ export function createRenderer(opts = {}) {
   function gate(el, props, ctx) {
     switch (el.component) {
       case "MenuItem": {
-        const key = String(props.sku || props.id || "");
-        const item = key ? ctx.bySku.get(key) : null;
-        if (!item) return "MenuItem names no served item";
+        const item = ctx.resolveItem(props.id, props.sku);
+        if (!item) return `MenuItem names no single served item (${JSON.stringify(props.id || props.sku)})`;
         const servedAvail = item.available !== false;
         if (props.available !== undefined && props.available !== servedAvail) {
           return `availability ${props.available} disagrees with served ${servedAvail}`;
@@ -241,13 +245,20 @@ export function createRenderer(opts = {}) {
         if (props.available === false) row.append(textEl("span", "badge warn mi-avail", "unavailable"));
         const add = textEl("button", "chip add", "add to basket");
         add.type = "button";
+        // The dataset key stays the sku for the e2e harness's selector; `data-id`
+        // carries the venue item id, which is what identifies an ambiguous sku.
         add.dataset.sku = props.sku || props.id || "";
+        if (props.id) add.dataset.id = String(props.id);
         add.disabled = props.available === false;
         add.onclick = () => {
-          const sel = ctx.selection.map((s) => ({ sku: s.sku, qty: s.qty }));
-          const key = props.sku || props.id;
-          const hit = sel.find((s) => s.sku === key);
-          if (hit) hit.qty += 1; else if (key) sel.push({ sku: key, qty: 1 });
+          // A selection line carries BOTH keys, so an item whose sku is ambiguous
+          // is still identified — by id — in the basket and in the order payload.
+          const sel = ctx.selection.map((s) => ({ id: s.id, sku: s.sku, qty: s.qty }));
+          const key = props.id || props.sku;
+          const same = (s) => (props.id ? s.id === key : s.sku === key);
+          const hit = sel.find(same);
+          if (hit) hit.qty += 1;
+          else if (key) sel.push({ id: props.id || "", sku: props.sku || "", qty: 1 });
           const payload = ctx.orderPayload ? ctx.orderPayload(sel) : null;
           dispatch("order.build", payload, ctx);
           // The host gets the resulting selection, so it re-renders the basket

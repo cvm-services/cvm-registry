@@ -110,11 +110,11 @@
   ],
   "failures": [],
   "served_catalog_note": "site/fixtures/doppelt.catalog.json -> catalog.json, with generated_at rewritten to now (freshness field only; no data changed)",
-  "base": "http://127.0.0.1:34311/",
-  "browser": "153.0.8010.12",
+  "base": "http://127.0.0.1:46203/",
+  "browser": "151.0.7922.137",
   "launch": {
     "headless": true,
-    "executablePath": "$HOME/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome"
+    "channel": "chrome"
   },
   "price_check": {
     "method": "pickup",
@@ -546,9 +546,9 @@
     },
     "oversize": {
       "ok": false,
-      "refusedWholesale": "spec is 36059 bytes, over the 16384-byte cap",
+      "refusedWholesale": "spec is 36059 bytes, over the 32768-byte cap",
       "refusals": [
-        "spec is 36059 bytes, over the 16384-byte cap"
+        "spec is 36059 bytes, over the 32768-byte cap"
       ],
       "dom": {
         "elementCount": 0,

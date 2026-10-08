@@ -1,0 +1,120 @@
+{
+  "check": "live deploy — real menus on the deployed dashboard",
+  "base": "https://cvm.orangesync.tech",
+  "steps": [
+    {
+      "name": "assets",
+      "/": {
+        "status": 200,
+        "bytes": 1274
+      },
+      "/menu.json": {
+        "status": 200,
+        "bytes": 56968
+      },
+      "/render/catalog.js": {
+        "status": 200,
+        "bytes": 10591
+      },
+      "/render/spec.js": {
+        "status": 200,
+        "bytes": 9705
+      },
+      "/render/renderer.js": {
+        "status": 200,
+        "bytes": 18014
+      },
+      "/catalog.json": {
+        "status": 200,
+        "bytes": 33115
+      }
+    },
+    {
+      "name": "served-capture",
+      "venues": [
+        {
+          "slug": "doppelt-kaese-berlin",
+          "items": 76
+        },
+        {
+          "slug": "pizza-e-pasta-ruedesheimerplatz",
+          "items": 112
+        }
+      ],
+      "tools": [
+        "menu",
+        "order"
+      ]
+    },
+    {
+      "name": "dashboard-loaded",
+      "cards": 4
+    },
+    {
+      "name": "venue-view",
+      "slug": "doppelt-kaese-berlin",
+      "rendered": 76,
+      "expected": 76,
+      "method": "pickup",
+      "bytes": 15981,
+      "cap": 32768,
+      "ok": true,
+      "refusals": 0,
+      "hasOrderAction": true,
+      "hasHandoff": true
+    },
+    {
+      "name": "venue-view",
+      "slug": "pizza-e-pasta-ruedesheimerplatz",
+      "rendered": 112,
+      "expected": 112,
+      "method": "pickup",
+      "bytes": 22852,
+      "cap": 32768,
+      "ok": true,
+      "refusals": 0,
+      "hasOrderAction": true,
+      "hasHandoff": true
+    },
+    {
+      "name": "verdict",
+      "verdict": "PASS — 2 venue(s) rendered from the live capture at https://cvm.orangesync.tech"
+    }
+  ],
+  "failures": [],
+  "per_venue": {
+    "doppelt-kaese-berlin": {
+      "rendered": 76,
+      "expected": 76,
+      "method": "pickup",
+      "bytes": 15981,
+      "cap": 32768,
+      "ok": true,
+      "refusals": 0,
+      "hasOrderAction": true,
+      "hasHandoff": true,
+      "priceCheck": {
+        "method": "pickup",
+        "checked": 76,
+        "mismatches": 0
+      }
+    },
+    "pizza-e-pasta-ruedesheimerplatz": {
+      "rendered": 112,
+      "expected": 112,
+      "method": "pickup",
+      "bytes": 22852,
+      "cap": 32768,
+      "ok": true,
+      "refusals": 0,
+      "hasOrderAction": true,
+      "hasHandoff": true,
+      "priceCheck": {
+        "method": "pickup",
+        "checked": 112,
+        "mismatches": 0
+      }
+    }
+  },
+  "verdict": "PASS — 2 venue(s) rendered from the live capture at https://cvm.orangesync.tech"
+}
