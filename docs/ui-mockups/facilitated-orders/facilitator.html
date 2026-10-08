@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Facilitator console (mockup)</title>
+<style>
+  :root{
+    --bg:#101214; --pane:#171a1d; --card:#1e2226; --ink:#eceae4; --dim:#8b9096; --line:#2a2f34;
+    --accent:#f59e0b; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --blue:#60a5fa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .app{display:none;height:100vh;overflow:hidden}
+  .app.on{display:grid}
+  .app.s1{grid-template-columns:250px 1fr 320px}
+  .app.s2{grid-template-columns:250px 1fr 1fr}
+  .app.s3{grid-template-columns:250px 1fr}
+  nav{background:var(--pane);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:2px}
+  .brand{font-size:15px;font-weight:700;padding:0 10px 14px}
+  .brand small{display:block;font-size:10.5px;color:var(--dim);font-weight:500;margin-top:2px}
+  .navitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;font-size:13.5px;color:var(--dim)}
+  .navitem.on{background:var(--card);color:var(--ink)}
+  .bdg{margin-left:auto;background:var(--bad);color:#fff;font-size:10.5px;font-weight:700;border-radius:99px;padding:1px 7px}
+  .navfoot{margin-top:auto;font-size:11px;color:var(--dim);padding:10px;border-top:1px solid var(--line);line-height:1.7}
+  .pane{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+  .phead{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+  .phead h1{font-size:18px}
+  .phead .sub{font-size:12px;color:var(--dim);margin-top:3px}
+  .grow{flex:1;overflow:auto;padding:14px 20px 20px}
+  .sat{font-weight:700}
+  .fiat{color:var(--dim);font-size:12px}
+  .tag{display:inline-flex;align-items:center;font-size:11px;border-radius:99px;padding:2px 9px;border:1px solid var(--line);white-space:nowrap}
+  .tag.ok{color:var(--ok);border-color:#1d5c40;background:#0d2018}
+  .tag.warn{color:var(--warn);border-color:#66531a;background:#211a08}
+  .tag.bad{color:var(--bad);border-color:#6b2b2b;background:#221010}
+  .tag.blue{color:var(--blue);border-color:#2b4a6b;background:#101a26}
+  .qrow{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:9px;cursor:pointer}
+  .qrow.sel{border-color:var(--accent);outline:1px solid #6b4a0d}
+  .qrow .r1{display:flex;align-items:center;gap:10px}
+  .qrow .oid{font-size:14px;font-weight:650}
+  .qrow .r2{display:flex;gap:14px;font-size:12px;color:var(--dim);margin-top:7px}
+  .detail{background:var(--pane);border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+  .detail .grow{padding:14px 18px}
+  .dsec{margin-bottom:16px}
+  .dsec h3{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:7px}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+  .kv span{color:var(--dim)}
+  .kv b{font-weight:600}
+  .big{font-size:19px;font-weight:800}
+  .lines2{font-size:13px;line-height:1.7}
+  .lines2 .o{color:var(--dim);font-size:12px}
+  .actions{padding:14px 18px 18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+  .btn{border:0;border-radius:10px;padding:11px 14px;font-size:13.5px;font-weight:650}
+  .btn.gold{background:var(--accent);color:#3d2a00}
+  .btn.line{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+  .btn.line.blue{color:var(--blue);border-color:#2b4a6b}
+  .btn.ghost{background:transparent;border:0;color:var(--dim);font-weight:500;font-size:12.5px}
+  .checkout{background:#fff;color:#1c1b18;border-left:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+  .checkout .phead{border-color:#e7e4dd}
+  .checkout .sub{color:#6f6b62}
+  .ckbox{background:#f6f5f2;border:1px solid #e7e4dd;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.8}
+  .cksum{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid #e7e4dd;padding-top:10px;margin-top:6px;font-size:14px}
+  .cksum b{font-weight:700}
+  input.ck{width:100%;border:1px solid #e7e4dd;border-radius:10px;padding:10px 12px;font-size:13.5px;background:#fff;color:#1c1b18;margin-bottom:10px}
+  .cknote{font-size:12px;color:#6f6b62;line-height:1.6;margin-top:10px}
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:9px}
+  .scard .r1{display:flex;align-items:center;gap:10px}
+  .sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .sumbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .sumbox .v{font-size:16px;font-weight:800}
+  .sumbox .l{color:var(--dim);font-size:11px;margin-top:2px}
+  .pulse{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--warn)}
+  .pulse i{width:7px;height:7px;border-radius:99px;background:var(--warn);animation:p 1.4s infinite}
+  @keyframes p{50%{opacity:.3}}
+  .empty{color:var(--dim);font-size:13px;padding:30px 20px;text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- s=1 QUEUE -->
+<div class="app s1" data-s="1">
+  <nav>
+    <div class="brand">Facilitator console<small>facilitated sats orders · CVM</small></div>
+    <div class="navitem on">Queue <span class="bdg">3</span></div>
+    <div class="navitem">Settlements</div>
+    <div class="navitem">Venues</div>
+    <div class="navitem">Rate &amp; fees</div>
+    <div class="navfoot">Rate today: <b>1 € = 1 000 sats</b><br>Fee: 8 % · sats-first<br>Earned today: <b>4 310 sats</b></div>
+  </nav>
+  <section class="pane">
+    <div class="phead"><h1>Queue</h1><div class="sub">Paid baskets waiting to be placed at the venue · SLA: place within 5 min of payment</div></div>
+    <div class="grow">
+      <div class="qrow sel">
+        <div class="r1"><span class="oid">#A7X2 · Doppelt Käse</span><span class="tag warn" style="margin-left:auto">place now · 2:10</span></div>
+        <div class="r2"><span>2× Cheeseburger · 1× Curly Fries</span><span class="sat">27 320 sats</span><span class="fiat">27.32 €</span><span>fee 2 020 sats</span><span>+49 170 555…</span></div>
+      </div>
+      <div class="qrow">
+        <div class="r1"><span class="oid">#B4K9 · Pizza e Pasta</span><span class="tag warn" style="margin-left:auto">place now · 0:41</span></div>
+        <div class="r2"><span>1× Margherita · 1× Cola</span><span class="sat">14 850 sats</span><span class="fiat">14.85 €</span><span>fee 1 100 sats</span><span>+49 176 221…</span></div>
+      </div>
+      <div class="qrow">
+        <div class="r1"><span class="oid">#C1M4 · Doppelt Käse</span><span class="tag bad" style="margin-left:auto">refund · venue closed</span></div>
+        <div class="r2"><span>1× Double Cheese</span><span class="sat">12 860 sats</span><span class="fiat">12.86 €</span><span>auto-refund armed</span></div>
+      </div>
+    </div>
+  </section>
+  <aside class="detail">
+    <div class="phead"><h1 style="font-size:16px">#A7X2 — Doppelt Käse</h1><div class="sub">paid 18:02 · Cashu · pickup 18:25 · customer +49 170 555 0192</div></div>
+    <div class="grow">
+      <div class="dsec"><h3>Order</h3>
+        <div class="lines2">2 × Cheeseburger — house sauce · +bacon · single<br><span class="o">890 sats each · 1 780 sats</span><br>1 × Curly Fries<br><span class="o">450 sats</span></div>
+      </div>
+      <div class="dsec"><h3>Money</h3>
+        <div class="kv"><span>Venue total (fiat)</span><b>25.30 €</b></div>
+        <div class="kv"><span>Customer paid</span><b class="sat">27 320 sats</b> <span class="fiat">27.32 €</span></div>
+        <div class="kv"><span>Your fee (8 %)</span><b style="color:var(--ok)">2 020 sats</b></div>
+        <div class="kv"><span>You owe venue</span><b>25.30 €</b></div>
+      </div>
+      <div class="dsec"><h3>Venue rail</h3>
+        <div class="kv"><span>Checkout</span><b class="tag blue">web · FoodAmigos</b></div>
+        <div class="kv"><span>Prefilled link</span><b>yes ↗</b></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn gold">Place order at venue →</button>
+      <button class="btn line blue">Open venue checkout</button>
+      <button class="btn ghost">Can't place? Refund customer in full</button>
+    </div>
+  </aside>
+</div>
+
+<!-- s=2 PLACING -->
+<div class="app s2" data-s="2">
+  <nav>
+    <div class="brand">Facilitator console<small>facilitated sats orders · CVM</small></div>
+    <div class="navitem on">Queue <span class="bdg">3</span></div>
+    <div class="navitem">Settlements</div>
+    <div class="navitem">Venues</div>
+    <div class="navitem">Rate &amp; fees</div>
+    <div class="navfoot">Rate today: <b>1 € = 1 000 sats</b><br>Fee: 8 % · sats-first<br>Earned today: <b>4 310 sats</b></div>
+  </nav>
+  <section class="pane">
+    <div class="phead"><h1>Placing #A7X2</h1><div class="sub">Complete the venue's checkout, then record the confirmation</div></div>
+    <div class="grow">
+      <div class="dsec"><h3 style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:7px">Basket to enter</h3>
+        <div class="ckbox" style="background:var(--card);border-color:var(--line);color:var(--ink)">
+          <b>2 × Cheeseburger</b> — house sauce · +bacon · single<br>
+          <b>1 × Curly Fries</b><br>
+          <div class="cksum" style="border-color:var(--line)"><span>Venue total</span><b>25.30 €</b></div>
+        </div>
+      </div>
+      <div class="dsec"><h3 style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:7px">After checkout, record</h3>
+        <div class="kv"><span>Venue order number</span><input class="ck" style="max-width:200px;background:var(--card);border-color:var(--line);color:var(--ink)" placeholder="#4471"></div>
+        <div class="kv"><span>Ready time told</span><input class="ck" style="max-width:200px;background:var(--card);border-color:var(--line);color:var(--ink)" placeholder="18:25"></div>
+      </div>
+      <div class="pulse"><i></i> checkout open in right pane — card pre-filled where the venue allows it</div>
+    </div>
+  </section>
+  <section class="checkout">
+    <div class="phead"><h1 style="font-size:15px">FoodAmigos — Doppelt Käse</h1><div class="sub">venue checkout · sandbox · the facilitator finishes this</div></div>
+    <div class="grow" style="padding:14px 18px">
+      <div class="ckbox">
+        2 × Cheeseburger <span style="color:#6f6b62">(house sauce, bacon, single)</span> — 17.80 €<br>
+        1 × Curly Fries — 4.50 €<br>
+        <div class="cksum"><span>Total</span><b>25.30 €</b></div>
+      </div>
+      <input class="ck" value="+49 170 555 0192">
+      <input class="ck" value="Pickup — Laubacher Str. 76">
+      <input class="ck" value="Card •••• 4242 (facilitator float)">
+      <div class="cknote">The facilitator pays fiat here from float; the customer's sats already cover it plus the fee.</div>
+      <button class="btn gold" style="width:100%">Pay 25.30 €</button>
+    </div>
+  </section>
+</div>
+
+<!-- s=3 SETTLEMENTS -->
+<div class="app s3" data-s="3">
+  <nav>
+    <div class="brand">Facilitator console<small>facilitated sats orders · CVM</small></div>
+    <div class="navitem">Queue</div>
+    <div class="navitem on">Settlements</div>
+    <div class="navitem">Venues</div>
+    <div class="navitem">Rate &amp; fees</div>
+    <div class="navfoot">Rate today: <b>1 € = 1 000 sats</b><br>Fee: 8 % · sats-first<br>Earned today: <b>4 310 sats</b></div>
+  </nav>
+  <section class="pane">
+    <div class="phead"><h1>Settlements</h1><div class="sub">Fees earned, fiat spent, refunds owed — today</div></div>
+    <div class="grow">
+      <div class="sumgrid">
+        <div class="sumbox"><div class="v">4 310 sats</div><div class="l">fees earned today</div></div>
+        <div class="sumbox"><div class="v">64.15 €</div><div class="l">fiat spent at venues</div></div>
+        <div class="sumbox"><div class="v">12 860 sats</div><div class="l">refunds owed (1)</div></div>
+      </div>
+      <div class="scard">
+        <div class="r1"><span class="oid">#A7X2 · Doppelt Käse</span><span class="tag ok" style="margin-left:auto">settled</span></div>
+        <div class="r2" style="display:flex;gap:14px;font-size:12px;color:var(--dim);margin-top:7px"><span>fee 2 020 sats kept</span><span>25.30 € paid by card</span><span>18:04 placed · #4471</span></div>
+      </div>
+      <div class="scard">
+        <div class="r1"><span class="oid">#C1M4 · Doppelt Käse</span><span class="tag bad" style="margin-left:auto">refund due</span></div>
+        <div class="r2" style="display:flex;gap:14px;font-size:12px;color:var(--dim);margin-top:7px"><span>venue closed at 18:20</span><span>refund 12 860 sats → customer</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button class="btn gold">Send refund now</button><button class="btn line blue">Mark venue closed</button></div>
+      </div>
+      <div class="scard">
+        <div class="r1"><span class="oid">#B4K9 · Pizza e Pasta</span><span class="tag warn" style="margin-left:auto">awaiting pickup</span></div>
+        <div class="r2" style="display:flex;gap:14px;font-size:12px;color:var(--dim);margin-top:7px"><span>fee 1 100 sats pending</span><span>placed · #2210 · ready 18:40</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  var q=new URLSearchParams(location.search),n=q.get("s")||"1";
+  document.querySelectorAll(".app").forEach(function(a){a.classList.toggle("on",a.dataset.s===n)});
+</script>
+</body>
+</html>
