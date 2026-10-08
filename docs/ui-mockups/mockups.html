@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>ContextVM services — usability mockup (mobile)</title>
+<style>
+  :root{
+    --bg:#0b0d10; --card:#141821; --card2:#1b202b; --line:#252b38;
+    --ink:#e9edf5; --dim:#9aa4b8; --dimmer:#6b7488;
+    --ok:#3ddc97; --warn:#ffb454; --accent:#5b8cff; --accent-ink:#fff;
+  }
+  *{box-sizing:border-box; -webkit-font-smoothing:antialiased}
+  html,body{margin:0;background:#05070a}
+  body{font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:var(--ink)}
+  .screen{width:390px;height:844px;background:var(--bg);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .status{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:12px;color:var(--dimmer)}
+  .body{flex:1;overflow:hidden;padding:0 16px}
+  h1{font-size:22px;margin:6px 0 2px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:14px}
+  .search{display:flex;gap:8px;margin-bottom:14px}
+  .search input{flex:1;background:var(--card);border:1px solid var(--line);border-radius:11px;color:var(--ink);
+    padding:11px 13px;font-size:14px}
+  .filters{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:0 13px;display:flex;align-items:center;
+    gap:6px;font-size:13px;color:var(--dim);white-space:nowrap}
+  .filters b{color:var(--ink);font-weight:600}
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:14px;margin-bottom:10px}
+  .ico{width:38px;height:38px;border-radius:10px;background:var(--card2);display:flex;align-items:center;
+    justify-content:center;font-size:19px;flex:none}
+  .row .grow{flex:1;min-width:0}
+  .name{font-weight:600;font-size:15px}
+  .oneline{color:var(--dim);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chev{color:var(--dimmer);font-size:20px;flex:none}
+  .pill{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;background:var(--card2);
+    color:var(--dim);border:1px solid var(--line)}
+  .pill.ok{color:var(--ok);border-color:#1f4736;background:#0f2a20}
+  .pill.quiet{color:var(--dimmer)}
+  .note{color:var(--dimmer);font-size:11.5px;text-align:center;margin:6px 0 14px}
+  .mhead{display:flex;align-items:flex-start;gap:12px;margin:4px 0 12px}
+  .back{border:0;background:none;color:var(--dim);font-size:22px;padding:0 4px 0 0;line-height:1}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:3px;margin-bottom:12px}
+  .seg button{flex:1;border:0;background:none;color:var(--dim);padding:9px;border-radius:9px;font-size:13.5px;font-weight:600}
+  .seg button.on{background:var(--accent);color:var(--accent-ink)}
+  .item{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+  .item .grow{flex:1;min-width:0}
+  /* SATS FIRST, fiat second and smaller — everywhere a price is shown */
+  .sats{font-variant-numeric:tabular-nums;font-weight:600;font-size:14.5px;color:var(--ink);direction:rtl}
+  .sats small{font-weight:400;font-size:11px;color:var(--dimmer);direction:ltr}
+  .fiat{font-size:11.5px;color:var(--dimmer);font-variant-numeric:tabular-nums;text-align:right;margin-top:1px}
+  .item.out .name,.item.out .sats,.item.out .fiat{color:var(--dimmer)}
+  .stepper{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);
+    border-radius:999px;padding:3px 5px}
+  .stepper button{width:26px;height:26px;border-radius:999px;border:0;background:var(--accent);color:#fff;font-size:16px;line-height:1}
+  .stepper .q{min-width:14px;text-align:center;font-weight:600}
+  .addplus{width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:var(--card2);
+    color:var(--ink);font-size:17px;line-height:1;flex:none}
+  .bar{position:absolute;left:16px;right:16px;bottom:16px;background:var(--accent);color:#fff;border-radius:14px;
+    padding:13px 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600;box-shadow:0 8px 24px #000a}
+  .bar .fiat{color:#dbe4ff}
+  .cta{width:100%;border:0;border-radius:14px;padding:15px;font-size:15.5px;font-weight:600;background:var(--accent);color:#fff}
+  .cta.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #1c2130;font-size:12.5px}
+  .kv span{color:var(--dimmer)} .kv b{font-weight:500;color:var(--dim);text-align:right;max-width:62%;word-break:break-all}
+  .warnbox{background:#1d1b12;border:1px solid #3a3420;color:#e8d9a8;border-radius:11px;padding:11px;font-size:12px;margin:10px 0}
+  .handoffbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;margin-top:6px}
+  .amount{font-size:25px;font-weight:700;font-variant-numeric:tabular-nums}
+  .amount .fiat{font-size:13px;margin-top:2px}
+  .rate{color:var(--dimmer);font-size:11.5px;margin-top:4px}
+  .state{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--warn);font-size:13px;margin-top:8px}
+  .dot{width:8px;height:8px;border-radius:999px;background:var(--warn)}
+  .payload{font:11.5px/1.5 ui-monospace,Menlo,monospace;color:var(--dim);background:var(--card2);border-radius:9px;
+    padding:9px;margin-top:11px;word-break:break-all;text-align:left}
+  .check{width:70px;height:70px;border-radius:999px;background:#0f2a20;border:2px solid var(--ok);color:var(--ok);
+    font-size:34px;display:flex;align-items:center;justify-content:center;margin:18px auto 12px}
+  .center{text-align:center}
+  .steps{display:flex;gap:6px;margin:12px 0 4px}
+  .steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .steps i.done{background:var(--accent)}
+  .hint{color:var(--dimmer);font-size:12px;margin-top:10px;text-align:center}
+</style></head><body>
+<div class="screen" id="screen"></div>
+<script>
+/* One rate, one place. Prices are always SATS FIRST, the fiat second and smaller. */
+const SATS_PER_EUR = 1000;
+const rate = 'Illustrative only · 1 € ≈ 1 000 sats';
+const fmtE = n => n.toFixed(2).replace('.', ',') + ' €';
+const fmtS = n => Math.round(n * SATS_PER_EUR).toLocaleString('de-DE').replace(/\./g, ' ') + ' sats';
+const price = e => `<div><div class="sats">${fmtS(e)}</div><div class="fiat">${fmtE(e)}</div></div>`;
+
+
+const status = () => `<div class="status"><span>9:41</span><span>ContextVM · cvm.orangesync.tech</span></div>`;
+
+const services = [
+  {i:'🍔', n:'Doppelt Käse', s:'Burgers · pickup or delivery · Berlin', t:'orderable'},
+  {i:'🍕', n:'Pizza e Pasta', s:'Pizza · pickup · Berlin', t:'orderable'},
+  {i:'💬', n:'nosms', s:'Send an SMS · pay per message', t:'2 900 sats'},
+  {i:'⚙️', n:'cvm-lambda', s:'Run code in a sandbox · pay per call', t:'2 000 sats'},
+];
+const menu = [
+  ['Cheeseburger',8.9,1],['Curly Fries',4.5,1],['Der Doppelt Käse-Burger',10.9,1],
+  ['Parmesan Pommes frites',6.8,1],['Beyond Meat-Burger',9.9,1],['Sweet Dreams',7.2,1],
+  ['Chicken Fingers 6 Stück',6.5,0],['Potato Tots',5.5,0],['Hamburger',7.9,1],
+  ['Onion Rings 12 Stück',9.0,1],['Burgersoße',0.9,1],['Club Mate 0,33 l',2.9,1],
+];
+
+const S = {
+1: () => `${status()}<div class="body">
+  <h1>Services</h1>
+  <div class="sub">4 available</div>
+  <div class="search"><input value="" placeholder="Search services">  <div class="filters">⚟ <b>Filters</b></div></div>
+  ${services.map(v=>`<div class="row"><div class="ico">${v.i}</div>
+    <div class="grow"><div class="name">${v.n}</div><div class="oneline">${v.s}</div></div>
+    ${v.t?`<span class="pill ${v.t==='orderable'?'ok':''}">${v.t}</span>`:''}<span class="chev">›</span></div>`).join('')}
+  <div class="note">A cache of signed announcements — not a live connection.</div>
+  </div>`,
+2: () => `${status()}<div class="body">
+  <div class="mhead"><button class="back">‹</button><div class="grow"><h1 style="font-size:19px;margin:0">Doppelt Käse</h1>
+    <div class="oneline" style="margin-top:3px">Burgers · Laubacher Str. · <span class="pill ok">pickup 10 min</span></div></div></div>
+  <div class="seg"><button class="on">Pickup</button><button>Delivery</button></div>
+  ${menu.map(([n,p,av])=>`<div class="item ${av?'':'out'}"><div class="grow"><div class="name">${n}</div></div>
+    ${price(p)}
+    ${av?`<button class="addplus">+</button>`:`<span class="pill quiet">sold out</span>`}</div>`).join('')}
+  <div class="note">Prices are the venue's own. ${rate}. Pay on the venue's site.</div>
+  </div>
+  <div class="bar"><span>Basket · 3 items<div class="fiat">${fmtE(22.3)}</div></span><span>${fmtS(22.3)} ›</span></div>`,
+3: () => `${status()}<div class="body">
+  <div class="mhead"><button class="back">‹</button><div class="grow"><h1 style="font-size:19px;margin:0">Your basket</h1>
+    <div class="oneline" style="margin-top:3px">Doppelt Käse · pickup ~10 min</div></div></div>
+  <div class="row"><div class="ico">🍔</div><div class="grow"><div class="name">Cheeseburger</div>
+    <div class="oneline">extra cheese · no onions</div></div>
+    <div class="stepper"><button>−</button><span class="q">2</span><button>+</button></div></div>
+  <div class="row"><div class="ico">🍟</div><div class="grow"><div class="name">Curly Fries</div></div>
+    <div class="stepper"><button>−</button><span class="q">1</span><button>+</button></div></div>
+  <div class="kv" style="margin-top:14px"><span>Subtotal</span><b>${fmtS(22.3)} · ${fmtE(22.3)}</b></div>
+  <div class="kv"><span>Rate</span><b>${rate}</b></div>
+  <div class="kv"><span>Venue's own rail</span><b>card · cash</b></div>
+  <div class="kv" style="border:0"><span style="color:var(--ink);font-size:15px">Total</span><b style="color:var(--ink);font-size:16px">${fmtS(22.3)}</b></div>
+  <div class="warnbox">This venue takes payment on its own page. Build a basket, then open the venue page. You may need to enter the items again.</div>
+  </div>
+  <div style="padding:0 16px 16px"><button class="cta">Build basket<div style="font-size:12px;font-weight:400;color:#dbe4ff">${fmtS(22.3)} · ${fmtE(22.3)}</div></button>
+  <div class="hint">Nothing is charged here.</div></div>`,
+4: () => `${status()}<div class="body">
+  <h1>Basket ready</h1><div class="sub">Doppelt Käse · venue hand-off</div>
+  <div class="handoffbox"><div class="amount">${fmtS(22.3)}<div class="fiat">${fmtE(22.3)}</div></div>
+    <div class="rate">${rate}</div>
+    <div class="payload">Basket payload produced by order<br>Cheeseburger ×2 · ${fmtE(17.8)}<br>Curly Fries ×1 · ${fmtE(4.5)}<br>Fulfilment: pickup</div>
+  </div>
+  <div class="warnbox">The order tool builds a basket only. Nothing has been placed or charged.</div>
+  <div class="sub">Review availability, final prices and fulfilment on the venue's own site. Basket transfer is not guaranteed; you may need to enter items again.</div>
+  </div><div style="padding:0 16px 16px"><button class="cta">Open venue page ↗</button>
+  <div class="hint">Published venue link · leaves ContextVM</div></div>`,
+5: () => `${status()}<div class="body">
+  <h1>Continue at the venue</h1><div class="sub">External step · not a dashboard confirmation</div>
+  <div class="handoffbox"><div class="name">Your basket reference</div>
+    <div class="amount">${fmtS(22.3)}<div class="fiat">${fmtE(22.3)}</div></div>
+    <div class="rate">${rate}</div>
+    <div class="payload">Cheeseburger ×2 · ${fmtE(17.8)}<br>Curly Fries ×1 · ${fmtE(4.5)}</div></div>
+  <div class="warnbox">“Placed on the venue's own site” is the end state after you complete its checkout — only that site can confirm it.</div>
+  <div class="sub">ContextVM cannot verify placement or payment. Use the venue's confirmation, receipt and pickup instructions, not this screen.</div>
+  </div><div style="padding:0 16px 16px"><button class="cta ghost">Back to services</button></div>`,
+6: () => `${status()}<div class="body">
+  <div class="mhead"><button class="back">‹</button><div class="grow"><h1 style="font-size:19px;margin:0">Details</h1>
+    <div class="oneline" style="margin-top:3px">Everything that used to be on the card</div></div></div>
+  <div class="kv"><span>Announcement</span><b>kind 11317 · CEP-6</b></div>
+  <div class="kv"><span>Class</span><b>meatspace / restaurant</b></div>
+  <div class="kv"><span>Service id</span><b>doppelt-kaese-berlin</b></div>
+  <div class="kv"><span>Announced</span><b>2026-10-07T20:57:10Z</b></div>
+  <div class="kv"><span>Geohash</span><b>u336, u336x0, u336x058</b></div>
+  <div class="kv"><span>Curator</span><b>npub1lecq5zg…me3xzq9klwgp</b></div>
+  <div class="kv"><span>Signer</span><b>fe700a09…b7798984</b></div>
+  <div class="kv"><span>Input appetite</span><b>contact.phone, order.fulfilment, order.items, order.when</b></div>
+  <div class="kv"><span>Settlement</span><b>venue's own rail · cap 0 sats</b></div>
+  <div class="kv"><span>Rate used</span><b>${rate}</b></div>
+  <div class="warnbox">Declared by the provider in its own signed announcement. A declaration, not an audited fact. The page is a static cache; it never contacts a relay.</div>
+  </div>`,
+};
+
+const want = new URLSearchParams(location.search).get('s') || '1';
+document.getElementById('screen').innerHTML = (S[want] || S['1'])();
+</script></body></html>
