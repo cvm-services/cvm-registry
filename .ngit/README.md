@@ -43,3 +43,17 @@ Pins: `actions/checkout` v4 and `denoland/setup-deno` v2.0.5 by commit SHA, `den
   a relay outage or network change would report as a repo failure. The hermetic unit suite in
   `tests/` covers the classification, policy, catalog, render-spec, and link-check logic they build
   on.
+
+## Where the lane runs (operational wiring, 2026-10-08)
+
+The workflow file is necessary but not sufficient: the repo must also be watched
+by a **live coordinator**. This lane is served by the `hermes-nvme` coordinator
+(identity `npub1wewdg7…` / `765cd47b…`), which has watched `cvm-registry` since
+2026-10-08 under a standing Service Request (kind 9843, signed by the coordinate
+key, addressed to that coordinator). The watch list itself is infrastructure-as-
+code — `ngit_ci_watchlist` in `hermes-orchestration/host_vars/hermes-nvme.yml`,
+converged by role `26-dispatch-balance` — so a redeploy cannot silently drop
+coverage. First verified green run: `trigger=manual`, `conclusion=success` at
+`7dec48a8` on 2026-10-08 by that coordinator (after one environment-race
+failure where two simultaneous setup-deno jobs raced the act toolcache — a
+coordinator-side transient, not a repo fault; the solo re-run was green).
