@@ -213,6 +213,95 @@ export function dedupe(events: NostrEvent[]): NostrEvent[] {
   );
 }
 
+// --------------------------------------------------------------------------
+// ingest boundary — the event shape this collector is willing to look at
+// --------------------------------------------------------------------------
+
+/**
+ * Why an event cannot be ingested. A closed list on purpose: the catalogue
+ * reports a count per reason instead of one opaque "malformed" number.
+ */
+export type MalformedReason =
+  | "not-an-object"
+  | "id-not-a-string"
+  | "kind-not-a-number"
+  | "pubkey-not-hex64"
+  | "tags-not-an-array"
+  | "content-not-a-string"
+  | "created_at-not-a-number";
+
+export interface MalformedEvent {
+  /** Best-effort identity for the report; a non-object has none. */
+  id: string | null;
+  kind: unknown;
+  reason: MalformedReason;
+}
+
+const HEX64_RE = /^[0-9a-f]{64}$/i;
+
+/**
+ * The shape this collector relies on, checked ONCE at the ingest boundary.
+ *
+ * Every relay's events are concatenated into one list (collect.ts) and ANY third
+ * party can publish a kind 30316/30317, so before this guard a single bad event
+ * took the whole run down and NO catalogue was written:
+ *   - `tags: undefined`  -> tagValues/`for (const t of tags)` threw
+ *                           "tags is not iterable";
+ *   - `content: null`    -> attestations.ts threw on `.trim()`;
+ *   - `pubkey: "zz"`     -> reviews.ts called hexToNpub() BEFORE the reviewer
+ *                           allow-list, and hexToNpub throws on non-64-hex.
+ * One junk event from one relay therefore blanked the dashboard. Per-event
+ * validation turns a run-killer into a counted, reportable drop.
+ */
+export function malformedReason(e: unknown): MalformedReason | null {
+  if (typeof e !== "object" || e === null) return "not-an-object";
+  const ev = e as Partial<NostrEvent>;
+  // `id` is the dedupe/receipt identity, so it is part of the contract.
+  if (typeof ev.id !== "string" || ev.id === "") return "id-not-a-string";
+  if (typeof ev.kind !== "number" || !Number.isFinite(ev.kind)) return "kind-not-a-number";
+  if (typeof ev.pubkey !== "string" || !HEX64_RE.test(ev.pubkey)) return "pubkey-not-hex64";
+  if (!Array.isArray(ev.tags)) return "tags-not-an-array";
+  // An absent/null content is not "empty content": it is a broken event.
+  if (typeof ev.content !== "string") return "content-not-a-string";
+  if (typeof ev.created_at !== "number" || !Number.isFinite(ev.created_at)) {
+    return "created_at-not-a-number";
+  }
+  return null;
+}
+
+/**
+ * Split a harvest into what can be ingested and what cannot. Malformed events are
+ * DROPPED AND COUNTED — never silently, and never at the cost of the whole run.
+ * Order of the surviving events is untouched.
+ */
+export function partitionIngestable(
+  events: unknown[],
+): { ok: NostrEvent[]; malformed: MalformedEvent[] } {
+  const ok: NostrEvent[] = [];
+  const malformed: MalformedEvent[] = [];
+  for (const e of events) {
+    const reason = malformedReason(e);
+    if (reason === null) {
+      ok.push(e as NostrEvent);
+      continue;
+    }
+    const ev = (typeof e === "object" && e !== null ? e : {}) as Partial<NostrEvent>;
+    malformed.push({
+      id: typeof ev.id === "string" ? ev.id : null,
+      kind: typeof ev.kind === "number" ? ev.kind : null,
+      reason,
+    });
+  }
+  return { ok, malformed };
+}
+
+/** Counts per reason, for the catalogue. */
+export function malformedTally(malformed: MalformedEvent[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const m of malformed) out[m.reason] = (out[m.reason] ?? 0) + 1;
+  return out;
+}
+
 function uniqSorted(xs: string[]): string[] {
   return [...new Set(xs)].sort();
 }

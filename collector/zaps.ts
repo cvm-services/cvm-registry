@@ -110,20 +110,53 @@ export function classifyZap(e: NostrEvent): Zap | null {
 }
 
 export interface ZapTally {
+  /** DISTINCT receipts behind this target. A receipt served by two relays is ONE zap. */
   count: number;
+  /** Receipts seen again with an id already counted for this target. Reported, not hidden. */
+  duplicates_dropped: number;
   /** Sum over receipts whose amount we could actually read. */
   sats_known: number;
   /** Receipts with an unreadable amount, counted but not summed. */
   count_amount_unknown: number;
   senders: string[];
+  /** Distinct receipt ids, in first-seen order. */
   receipts: string[];
   /** How to read these numbers. Rendered verbatim by the dashboard. */
   label: string;
 }
 
 /**
+ * Dedupe receipt events by id, BEFORE anything is tallied.
+ *
+ * The default relay set is two relays and every relay's events are concatenated,
+ * so the same kind-9735 receipt arrives twice as a matter of course. Services and
+ * reviews are deduped (collect.ts); receipts used to be the one list that was
+ * not, which turned one 21-sat zap into "2 zap(s) · 42 sats" on the dashboard —
+ * i.e. the zap label lied by a factor of two, which is exactly the kind of
+ * authoritative-looking number R3 exists to refuse.
+ *
+ * A Nostr event id is the hash of the serialised event, so two events with the
+ * same id are the same event; keeping the first is deterministic.
+ */
+export function dedupeZaps(zaps: Zap[]): Zap[] {
+  const seen = new Set<string>();
+  const out: Zap[] = [];
+  for (const z of zaps) {
+    if (seen.has(z.receipt_id)) continue;
+    seen.add(z.receipt_id);
+    out.push(z);
+  }
+  return out;
+}
+
+/**
  * Tally zap receipts per target event id. Missing amounts are counted and
  * reported, never treated as zero and never estimated.
+ *
+ * The id check here is deliberate redundancy: this function is the line the
+ * double-count was measured on, so it refuses to count one receipt twice even if
+ * a caller forgets to dedupe first. `count` is always a count of DISTINCT
+ * receipts; repeats are surfaced as `duplicates_dropped`.
  */
 export function tallyZapsByTarget(zaps: Zap[]): Map<string, ZapTally> {
   const out = new Map<string, ZapTally>();
@@ -133,6 +166,7 @@ export function tallyZapsByTarget(zaps: Zap[]): Map<string, ZapTally> {
     if (!t) {
       t = {
         count: 0,
+        duplicates_dropped: 0,
         sats_known: 0,
         count_amount_unknown: 0,
         senders: [],
@@ -140,6 +174,10 @@ export function tallyZapsByTarget(zaps: Zap[]): Map<string, ZapTally> {
         label: "zaps are a spend signal, not a score",
       };
       out.set(z.target_event_id, t);
+    }
+    if (t.receipts.includes(z.receipt_id)) {
+      t.duplicates_dropped += 1;
+      continue;
     }
     t.count += 1;
     t.receipts.push(z.receipt_id);

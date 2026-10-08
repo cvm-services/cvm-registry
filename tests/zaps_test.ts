@@ -11,6 +11,7 @@
 import {
   attachZaps,
   classifyZap,
+  dedupeZaps,
   isZapReceipt,
   parseZapRequest,
   tallyZapsByTarget,
@@ -128,6 +129,39 @@ Deno.test("zaps: attaching does not reorder reviews — this is the point of R3"
   eq(res.sats_total, 2_000_000, "sats are surfaced for display, not for ranking");
   eq(attachZaps([oldButRich, newButPoor], new Map()).reviews[0].zaps, null,
     "a review with no zaps gets null, not a zeroed tally that looks like data");
+});
+
+Deno.test("zaps: the SAME receipt served twice is ONE zap — this was the double-count", () => {
+  // B1: the default relay set is two relays and every relay's events are
+  // concatenated, so the identical kind-9735 arrives twice as a matter of
+  // course. Classifying it twice used to produce count=2 / sats_known=42 for a
+  // single 21-sat zap, and the dashboard printed "2 zap(s) · 42 sats".
+  const first = classifyZap(receipt())!;
+  const again = classifyZap(receipt())!; // same event id, second relay
+
+  eq(dedupeZaps([first, again]).length, 1, "receipts are deduped by event id");
+
+  // The tally refuses the repeat even if a caller forgets to dedupe first: this
+  // is the exact call the double-count was measured on.
+  const t = tallyZapsByTarget([first, again]).get(REVIEW_ID)!;
+  eq(t.count, 1, "one receipt is counted once");
+  eq(t.sats_known, 21, "and its 21 sats are summed once, not twice");
+  eq(t.receipts.length, 1, "one distinct receipt id");
+  eq(t.duplicates_dropped, 1, "the repeat is reported, never hidden");
+
+  const deduped = tallyZapsByTarget(dedupeZaps([first, again])).get(REVIEW_ID)!;
+  eq([deduped.count, deduped.sats_known], [1, 21], "same answer on pre-deduped input");
+});
+
+Deno.test("zaps: two DIFFERENT receipts for one review still count twice", () => {
+  // The dedupe must key on the event id, not on the target: a second, genuine
+  // 21-sat zap is a second zap.
+  const one = classifyZap(receipt())!;
+  const two = classifyZap(receipt({ id: "b".repeat(64) }))!;
+  const t = tallyZapsByTarget(dedupeZaps([one, two])).get(REVIEW_ID)!;
+  eq(t.count, 2, "two distinct receipts");
+  eq(t.sats_known, 42, "42 sats");
+  eq(t.duplicates_dropped, 0, "nothing was a duplicate");
 });
 
 Deno.test("zaps: the label tells the reader what the number is", () => {

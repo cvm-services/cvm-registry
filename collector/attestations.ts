@@ -108,7 +108,7 @@ export function classifyAttestation(e: NostrEvent): Attestation | null {
     reviewer_pubkey: parsed?.reviewer_pubkey ?? pTag,
     announcement_author: announcementAuthor,
     review_event_id: reviewEventId,
-    claim: e.content.trim(),
+    claim: typeof e.content === "string" ? e.content.trim() : "",
     created_at: e.created_at,
     warnings,
   };
@@ -146,15 +146,23 @@ export interface ApplyResult<T> {
  * Attach a "venue-signed" confirmation to reviews the venue actually vouched for.
  *
  * Three conditions must all hold, and each failure is counted separately:
- *   1. the attestation's author is the pubkey of the venue's own announcement
- *   2. the venue slug matches the entry the review is attached to
- *   3. the reviewer pubkey matches the review's author
+ *   1. the attestation's author is the pubkey of the venue's own announcement —
+ *      resolved through the REVIEW'S OWN binding (`provider_pubkey`), which the
+ *      review carries from its `a` coordinate. A slug→provider map is NOT good
+ *      enough: two providers can publish the same `d` slug, and through a slug
+ *      map provider B's vouch would badge provider A's venue while A's own vouch
+ *      was refused. `entryKeys` only answers "does this venue identity exist in
+ *      the catalogue at all";
+ *   2. the venue slug matches the entry the review is attached to;
+ *   3. the reviewer pubkey matches the review's author.
  *
  * ORDER IS NOT TOUCHED, exactly as with zaps: a confirmed review is not promoted.
  */
-export function applyAttestations<T extends { pubkey: string; venue_slug: string | null }>(
+export function applyAttestations<
+  T extends { pubkey: string; venue_slug: string | null; provider_pubkey: string },
+>(
   reviews: T[],
-  entryProviderBySlug: Map<string, string>,
+  entryKeys: Set<string>,
   index: Map<string, Attestation>,
 ): ApplyResult<T & { attestation: ReviewAttestation | null }> {
   const rejected: Array<{ attestation_id: string; reason: string }> = [];
@@ -167,13 +175,13 @@ export function applyAttestations<T extends { pubkey: string; venue_slug: string
     const att = index.get(`${r.venue_slug}:${r.pubkey}`);
     if (!att) return { ...r, attestation: null };
 
-    const provider = entryProviderBySlug.get(r.venue_slug);
-    if (provider === undefined) {
+    // `${provider_pubkey}:${d}` — the same identity attachReviews binds on.
+    if (!r.provider_pubkey || !entryKeys.has(`${r.provider_pubkey}:${r.venue_slug}`)) {
       rejectedVenue++;
       rejected.push({ attestation_id: att.event_id, reason: "unknown-venue" });
       return { ...r, attestation: null };
     }
-    if (att.author_pubkey !== provider) {
+    if (att.author_pubkey !== r.provider_pubkey) {
       rejectedAuthor++;
       rejected.push({ attestation_id: att.event_id, reason: "author-is-not-the-venue" });
       return { ...r, attestation: null };
