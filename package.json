@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "description": "Browser end-to-end checks for cvm-registry",
   "scripts": {
-    "e2e": "node tools/run-e2e.mjs"
+    "e2e": "node tools/run-e2e.mjs all",
+    "e2e:hermetic": "node tools/run-e2e.mjs hermetic",
+    "e2e:live": "node tools/run-e2e.mjs live"
   },
   "type": "module",
   "devDependencies": {

@@ -16,7 +16,15 @@ Honest scope: there is NO ContextVM/MCP server call and NO ring proof in this
 flow. The announcement declares a tool; the ordering rail is the venue's own
 page. Absences are labelled, not faked.
 
-Run:  e2e/venue_deep_link_e2e.py [--headless|--headed]
+The dashboard leg is HERMETIC: `tools/run-e2e.mjs` provisions `site/catalog.json`
+from the committed capture (`fixtures/e2e-dashboard.catalog.json`) and serves
+`site/` on loopback, so this script never needs a relay, a collector or the live
+origin. Only the CLICK-THROUGH to each venue's own page needs the open network:
+when the venues cannot be reached, `--skip-venue-pages` keeps every dashboard and
+deep-link assertion (the href is read from the rendered DOM) and says out loud
+that the click-through was NOT verified.
+
+Run:  e2e/venue_deep_link_e2e.py [--headless|--headed] [--skip-venue-pages] [--catalog PATH]
 Env:  E2E_BASE_URL (default http://127.0.0.1:8099)
 """
 from __future__ import annotations
@@ -48,9 +56,23 @@ def log(msg: str) -> None:
     print(f"[e2e] {msg}", flush=True)
 
 
+def repo_rel(p: pathlib.Path) -> str:
+    """Path as written in committed evidence: repo-relative when it lives in the
+    repo, otherwise the path as given. Keeps home paths out of the record."""
+    try:
+        return str(pathlib.Path(p).resolve().relative_to(ROOT))
+    except ValueError:
+        return str(p)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--headed", action="store_true", help="run headed (needs a display / xvfb)")
+    ap.add_argument("--skip-venue-pages", action="store_true",
+                    help="assert the dashboard + the announced deep-links in the DOM, but do NOT open the "
+                         "venues' own pages (they need the open network). Reported as SKIPPED, never as a pass.")
+    ap.add_argument("--catalog", default=None,
+                    help="catalog path to render (default site/catalog.json; the runner provisions it)")
     args = ap.parse_args()
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -59,9 +81,9 @@ def main() -> int:
         shutil.rmtree(video_dir)
     video_dir.mkdir(parents=True)
 
-    catalog_path = SITE / "catalog.json"
+    catalog_path = pathlib.Path(args.catalog) if args.catalog else SITE / "catalog.json"
     if not catalog_path.exists():
-        log(f"FATAL: {catalog_path} missing — run the collector first")
+        log(f"FATAL: {catalog_path} missing — run `npm run e2e` (it provisions the cache), or the collector")
         return 2
     catalog = json.loads(catalog_path.read_text())
     entries = {e["d"]: e for e in catalog.get("entries", [])}
@@ -78,7 +100,15 @@ def main() -> int:
             return 2
         log(f"OK {slug}: r-published={got[0]}")
 
-    results = {"catalog": str(catalog_path), "entries": {}, "venue_pages": {}}
+    results = {
+        # Repo-relative: a committed evidence file must not carry a literal home
+        # path (it would not travel to another box, and the fleet gate refuses it).
+        "catalog": repo_rel(catalog_path),
+        "base": BASE,
+        "venue_pages_skipped": bool(args.skip_venue_pages),
+        "entries": {},
+        "venue_pages": {},
+    }
 
     with sync_playwright() as p:
         # A real browser, not the bundled headless shell: venue sites sit behind
@@ -88,6 +118,11 @@ def main() -> int:
         if args.headed:
             launch_kwargs["channel"] = "chrome"
         browser = p.chromium.launch(**launch_kwargs)
+        results["browser"] = {
+            "headless": not args.headed,
+            "how": "system chrome (channel)" if args.headed else "playwright chromium",
+            "version": browser.version,
+        }
         ctx = browser.new_context(
             viewport={"width": 1280, "height": 800},
             record_video_dir=str(video_dir),
@@ -185,6 +220,18 @@ def main() -> int:
             assert href == url, f"{slug}: rendered href {href} != announced {url}"
             page.screenshot(path=str(OUT / f"0{idx}-card-{slug}.png"))
 
+            if args.skip_venue_pages:
+                # The announced URL was verified in the DOM above (this is the real
+                # assertion). Opening it needs the open network, so it is SKIPPED
+                # loudly and recorded as skipped — never counted as verified.
+                log(f"SKIPPED (live network) {slug}: not opening {url} — the venue host is unreachable "
+                    f"from this host, so the click-through that lands on it is NOT verified")
+                results["venue_pages"][slug] = {
+                    "announced_url": url,
+                    "skipped": "venue host unreachable from this host at run time",
+                }
+                continue
+
             with ctx.expect_page() as new_page_info:
                 link.click()
             venue_page = new_page_info.value
@@ -250,7 +297,12 @@ def main() -> int:
     log("wrote docs/e2e/venue-discovery-e2e.json")
     print("\n=== E2E RESULT ===")
     for slug, v in results["venue_pages"].items():
-        print(f"{slug}: {v['announced_url']} -> HTTP final {v['final_url']} | title={v['title']!r}")
+        if v.get("skipped"):
+            print(f"{slug}: {v['announced_url']} -> SKIPPED ({v['skipped']}) — the deep-link was verified in the DOM")
+        else:
+            print(f"{slug}: {v['announced_url']} -> HTTP final {v['final_url']} | title={v['title']!r}")
+    if results["venue_pages_skipped"]:
+        print("NOTE: the venue click-through was SKIPPED — this run does NOT prove the venues' own pages open.")
     return 0
 
 

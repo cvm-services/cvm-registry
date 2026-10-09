@@ -17,11 +17,10 @@
 //   E2E_BASE_URL=http://127.0.0.1:8000 node e2e/live_deploy_check.mjs
 // Env: E2E_EVIDENCE (default docs/e2e/live-menu-e2e.json), E2E_CHROMIUM
 
-import { chromium } from "playwright";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { launchChromium } from "./browser.mjs";
 // The same resolver the page uses, so this check cannot disagree with the
 // renderer about which served item a row names (an ambiguous sku resolves by id).
 import { menuItemIndex } from "../site/render/catalog.js";
@@ -29,7 +28,6 @@ import { menuItemIndex } from "../site/render/catalog.js";
 const ROOT = resolve(fileURLToPath(import.meta.url), "../..");
 const BASE = (process.env.E2E_BASE_URL ?? "https://cvm.orangesync.tech").replace(/\/+$/, "");
 const EVIDENCE = process.env.E2E_EVIDENCE ?? join(ROOT, "docs", "e2e", "live-menu-e2e.json");
-const CHROMIUM = process.env.E2E_CHROMIUM ?? join(homedir(), ".cache", "ms-playwright", "chromium-1243", "chrome-linux64", "chrome");
 
 // The capture this deployment is expected to be serving, read from the repo.
 const LOCAL = JSON.parse(readFileSync(join(ROOT, "site", "menu.json"), "utf8"));
@@ -77,10 +75,9 @@ try {
   }
 
   // ------------------------------------------------ 2. the page renders them
-  const launch = existsSync(CHROMIUM)
-    ? { headless: true, executablePath: CHROMIUM }
-    : { headless: true, channel: "chrome" };
-  browser = await chromium.launch(launch);
+  const launched = await launchChromium({ headless: true });
+  browser = launched.browser;
+  step("browser", { how: launched.how, version: browser.version() });
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));

@@ -13,8 +13,8 @@
 // Env: DASHBOARD_URL (default https://cvm.orangesync.tech/), VIDEO_DIR, VENUE
 //      (slug to click), REQUIRE_MEATSPACE_CHIP=0 to tolerate its absence.
 
-import { chromium } from "playwright";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { launchChromium } from "./browser.mjs";
 
 const BASE = process.env.DASHBOARD_URL ?? "https://cvm.orangesync.tech/";
 const OUT = process.env.VIDEO_DIR ?? ".scratch/e2e";
@@ -28,11 +28,11 @@ const step = (name, data = {}) => {
   console.log(`[step] ${name} ${JSON.stringify(data)}`);
 };
 
-const browser = await chromium.launch({
-  headless: false,
-  channel: "chrome",
-  args: ["--window-size=1440,1000"],
-});
+// Headed, because the venue hosts challenge the headless shell. e2e/browser.mjs
+// picks the browser; run it under xvfb when there is no display.
+const launched = await launchChromium({ headless: false, args: ["--window-size=1440,1000"] });
+const browser = launched.browser;
+step("browser", { how: launched.how, version: browser.version() });
 const context = await browser.newContext({
   viewport: { width: 1440, height: 1000 },
   recordVideo: { dir: OUT, size: { width: 1440, height: 1000 } },
