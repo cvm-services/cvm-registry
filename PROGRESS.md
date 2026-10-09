@@ -73,6 +73,8 @@ one commit behind (`cc4cb78`).
 - **ngit CI at `791f5a4a`**: workflow `ci.yml` `conclusion: success`, `job deno
   success`, `job e2e success`, integrity "commit present, workflow hash matches".
   The prior head `34209ac` failed the same job — that is the regression this fixes.
+- **ngit CI at the final head `39e09593`**: `conclusion: success`, `job deno
+  success`, `job e2e success`, same integrity line. The whole branch head is green.
 - live origin `https://cvm.orangesync.tech/` -> http 200.
 
 ## REMAINING
