@@ -61,6 +61,10 @@ ssh "${SSH_OPTS[@]}" "$EMU_HOST" 'python3 -c "import uiautomator2" 2>/dev/null |
 echo "== 3-4/6 boot guest + wait for boot"
 scp -q "${SSH_OPTS[@]}" "$HERE/emu_boot_and_wait.sh" "$HERE/drive_pwa.py" "$HERE/emu_teardown.sh" "$EMU_HOST:/tmp/"
 ssh "${SSH_OPTS[@]}" "$EMU_HOST" "bash /tmp/emu_boot_and_wait.sh $AVD"
+# Let the guest settle before handing it to Chrome: driving immediately after
+# sys.boot_completed makes Chrome ANR on a cold emulator (observed 2026-10-09).
+echo "   settling 30s before driving"
+sleep 30
 
 echo "== 5/6 drive the PWA"
 mkdir -p "$OUT"

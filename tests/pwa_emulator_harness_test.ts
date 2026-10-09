@@ -46,6 +46,15 @@ Deno.test("deploy makes the tree readable by the caddy user", () => {
   assertStringIncludes(dep, "chmod 644", "files are readable");
 });
 
+Deno.test("harness guards against the cold-boot Chrome ANR", () => {
+  // Driving straight after boot, or onto a stale Chrome, ANRs the browser and
+  // renders nothing (observed against the deployed site 2026-10-09).
+  const driver = read("drive_pwa.py");
+  assertStringIncludes(driver, "force-stop", "Chrome is force-stopped before driving");
+  const run = read("run-pwa-emulator-test.sh");
+  assertStringIncludes(run, "settling", "runner lets the guest settle after boot");
+});
+
 Deno.test("harness can validate a real deployment, not just a local tree", () => {
   const run = Deno.readTextFileSync("tools/pwa-emulator-test/run-pwa-emulator-test.sh");
   assertStringIncludes(run, "--external-url", "external URL mode exists");
