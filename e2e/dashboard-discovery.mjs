@@ -14,7 +14,7 @@
 //      (slug to click), REQUIRE_MEATSPACE_CHIP=0 to tolerate its absence.
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { launchChromium } from "./browser.mjs";
+import { launchChromium, videoOptions } from "./browser.mjs";
 
 const BASE = process.env.DASHBOARD_URL ?? "https://cvm.orangesync.tech/";
 const OUT = process.env.VIDEO_DIR ?? ".scratch/e2e";
@@ -35,7 +35,7 @@ const browser = launched.browser;
 step("browser", { how: launched.how, version: browser.version() });
 const context = await browser.newContext({
   viewport: { width: 1440, height: 1000 },
-  recordVideo: { dir: OUT, size: { width: 1440, height: 1000 } },
+  ...videoOptions(OUT, { width: 1440, height: 1000 }),
 });
 const page = await context.newPage();
 

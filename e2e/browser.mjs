@@ -15,12 +15,36 @@
 // browser it actually used. This module owns the Playwright import, so callers
 // pass launch options — not a browser type — and cannot get the shape wrong.
 
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
 export const LEGACY_CHROMIUM = join(homedir(), ".cache", "ms-playwright", "chromium-1243", "chrome-linux64", "chrome");
+
+const say = (msg) => console.error(`[e2e] ${msg}`);
+
+export function playwrightFfmpeg() {
+  const base = join(homedir(), ".cache", "ms-playwright");
+  if (!existsSync(base)) return null;
+  const hit = readdirSync(base).filter((d) => d.startsWith("ffmpeg-")).sort().pop();
+  if (!hit) return null;
+  const bin = join(base, hit, "ffmpeg-linux");
+  return existsSync(bin) ? bin : null;
+}
+
+// Video is evidence for a human, not a correctness assertion — but a context
+// that ASKS for recording without Playwright's bundled ffmpeg dies at
+// newPage() with "Executable doesn't exist at …/ffmpeg-*/ffmpeg-linux". Ask
+// only when the encoder is actually there, and say so when it is not.
+export function videoOptions(dir, size) {
+  if (!playwrightFfmpeg()) {
+    say("WARN: no Playwright ffmpeg — recording WITHOUT video; the assertions still run in full");
+    return {};
+  }
+  return { recordVideo: { dir, size } };
+}
+
 
 // Playwright's own Chromium binary path, or null when it is not downloaded.
 // `npm ci` installs the package but NOT the browser, so this is genuinely

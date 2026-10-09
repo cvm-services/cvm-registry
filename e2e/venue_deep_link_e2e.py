@@ -65,6 +65,42 @@ def repo_rel(p: pathlib.Path) -> str:
         return str(p)
 
 
+def resolve_channel() -> str | None:
+    """The Playwright `channel` to launch, or None for the bundled Chromium.
+
+    Only a real Google Chrome qualifies for channel="chrome" — a binary named
+    `chromium` is not that channel, and asking for it makes Playwright fail with
+    "Chromium distribution 'chrome' is not found" instead of falling back.
+    E2E_BROWSER_CHANNEL pins the choice ("" forces the bundled build).
+    """
+    if "E2E_BROWSER_CHANNEL" in os.environ:
+        return os.environ["E2E_BROWSER_CHANNEL"] or None
+    for name in ("google-chrome", "google-chrome-stable"):
+        if shutil.which(name):
+            return "chrome"
+    return None
+
+
+def video_kwargs(video_dir: pathlib.Path) -> dict:
+    """`record_video_dir` only when Playwright's OWN ffmpeg is present.
+
+    A context that asks for video recording needs the bundled ffmpeg (it is not
+    resolved from PATH), and without it page creation dies with
+    "Executable doesn't exist at .../ffmpeg-1011/ffmpeg-linux" — a failure that
+    looks like a product bug but is a missing encoder. Video is evidence for a
+    human, not a correctness assertion, so its absence degrades with a loud
+    warning instead of failing the leg.
+    """
+    if sorted(pathlib.Path.home().glob(".cache/ms-playwright/ffmpeg-*/ffmpeg-linux")):
+        return {
+            "record_video_dir": str(video_dir),
+            "record_video_size": {"width": 1280, "height": 800},
+        }
+    log("WARN: no Playwright ffmpeg — running WITHOUT video recording; "
+        "every dashboard and deep-link assertion still runs in full")
+    return {}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--headed", action="store_true", help="run headed (needs a display / xvfb)")
@@ -110,23 +146,33 @@ def main() -> int:
         "venue_pages": {},
     }
 
+    # Video is optional evidence: `video_kwargs` returns {} when the bundled
+    # encoder is absent, so the tail of this script must not then demand a file
+    # that was never requested. Computed once, outside the browser block.
+    video_opts = video_kwargs(video_dir)
+
     with sync_playwright() as p:
         # A real browser, not the bundled headless shell: venue sites sit behind
-        # Cloudflare and challenge the headless shell. `--headed` under xvfb uses
-        # the system Chrome, which is also what a user actually has.
+        # Cloudflare and challenge the headless shell. `--headed` under xvfb
+        # prefers the system Chrome, which is also what a user actually has.
+        #
+        # The channel is RESOLVED, not assumed: this used to hardcode
+        # channel="chrome" whenever --headed was passed, which is a lie in a CI
+        # container (there is no Google Chrome there) and makes the launch fail
+        # outright rather than falling back. Say which browser actually ran.
         launch_kwargs: dict = {"headless": not args.headed}
-        if args.headed:
-            launch_kwargs["channel"] = "chrome"
+        channel = resolve_channel() if args.headed else None
+        if channel:
+            launch_kwargs["channel"] = channel
         browser = p.chromium.launch(**launch_kwargs)
         results["browser"] = {
             "headless": not args.headed,
-            "how": "system chrome (channel)" if args.headed else "playwright chromium",
+            "how": f"system chrome (channel={channel})" if channel else "playwright chromium",
             "version": browser.version,
         }
         ctx = browser.new_context(
             viewport={"width": 1280, "height": 800},
-            record_video_dir=str(video_dir),
-            record_video_size={"width": 1280, "height": 800},
+            **video_opts,
         )
         page = ctx.new_page()
         page.set_default_timeout(30_000)
@@ -269,13 +315,29 @@ def main() -> int:
 
     vids = sorted(video_dir.glob("*.webm"))
     if not vids:
-        log("FATAL: no video produced")
-        return 3
+        # `video_opts` is empty only when the encoder is missing, in which case
+        # no video was ever requested — demanding one here would turn an absent
+        # evidence artifact into a product failure. Say so in the record instead.
+        if video_opts:
+            log("FATAL: video recording was requested but no video was produced")
+            return 3
+        results["video_note"] = (
+            "not recorded: this host has no Playwright ffmpeg. The committed "
+            "webm/mp4 next to this file are from an earlier full run."
+        )
+        log("WARN: no video recorded (see video_note in the evidence)")
+        (OUT / "venue-discovery-e2e.json").write_text(json.dumps(results, indent=2) + "\n")
+        log("wrote docs/e2e/venue-discovery-e2e.json")
+        return 0
     final_webm = OUT / "venue-discovery-e2e.webm"
     if final_webm.exists():
         final_webm.unlink()
     shutil.move(str(vids[0]), str(final_webm))
     log(f"video: {final_webm} ({final_webm.stat().st_size} bytes)")
+    results["video"] = {
+        "webm": repo_rel(final_webm),
+        "bytes": final_webm.stat().st_size,
+    }
 
     mp4 = OUT / "venue-discovery-e2e.mp4"
     ffmpeg = shutil.which("ffmpeg")

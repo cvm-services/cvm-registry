@@ -54,8 +54,8 @@
     "doppelt-kaese-berlin": {
       "announced_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
       "final_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
-      "title": "Speisekarte | doppelt K\u00e4se Berlin",
-      "body_head": "Doppelt K\u00e4se Laubacher Stra\u00dfe\n\nLaubacher Stra\u00dfe 11, Berlin \u00b7 Ge\u00f6ffnet 12:00 - 21:15\n\nDeutsch\nAnmelden\nRegistrieren\n\nMen\u00fc\n\nPr\u00e4mien\n\nStore-Details\n\nStartseite\n\nAbholung\n\nLieferung\n\nAbholung an Laubacher Stra\u00dfe 11, 14197 Berlin\n|\nBereit in 10 min\n4,00\u00a0\u20ac, 3,00\u00a0\u20ac, 3,00\u00a0\u20ac Rabatt (MBW: 20,00\u00a0\u20ac)\n\nJetzt verf\u00fcgbar\n\n10% Rabatt auf Abholung \u00fcber den Webshop\nBereits automatisch angewandt\n5,00\u00a0\u20ac AppAnmelde-Bonus\nErhalte 5,00\u00a0\u20ac Cashback, wenn du dich in unserer App anmeldest.\nAm Beliebtesten\n\ud83c\udfc5 #1 Beliebtesten\n\nCheeseburger\n\n9,50\u00a0\u20ac\n\n8,90\u00a0\u20ac\n\n46\n\ud83c\udfc5 #2 Beliebtesten\n\nCurly Fries\n\n4,90\u00a0\u20ac\n\n4,50\u00a0\u20ac\n\n11\n\ud83c\udfc5 #3 Beliebtest"
+      "title": "FoodAmigos - Order online",
+      "body_head": "Opens Today 00:00\n\nEnglish\nSign in\nSign up\n\nMenu\n\nStore Info\n\nHome\n\nPickup\n\nDelivery\n\nPickup at\n|\nUnavailable\nNo items available yet\n\nThis menu doesn\u2019t have anything to show right now. Please check back soon.\n\nAddress\n\nContact\n\nTerms of Use\n\nPrivacy Policy\n\nCookie Policy\n\nCookie Settings\n\nImpressum\n\n\u00a9 2026 All Rights Reserved\n\nMade with FoodAmigos\n\nBy using this website you agree to our Cookie Policy.\nAccept\nReject"
     },
     "pizza-e-pasta-ruedesheimerplatz": {
       "announced_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
@@ -66,7 +66,11 @@
   },
   "browser": {
     "headless": false,
-    "how": "system chrome (channel)",
+    "how": "system chrome (channel=chrome)",
     "version": "151.0.7922.137"
+  },
+  "video": {
+    "webm": "docs/e2e/venue-discovery-e2e.webm",
+    "bytes": 5271663
   }
 }

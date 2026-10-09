@@ -72,11 +72,38 @@ const curlOk = (url, seconds = 10) =>
 // process — and this process is also the loopback server the child is about to
 // fetch the dashboard from, so a synchronous spawn deadlocks the leg it is
 // waiting on (observed: Page.goto timed out at 30s against our own server).
+// A leg that never returns is the worst failure shape the suite can have: it
+// hangs CI until the job's own timeout and leaves no verdict at all. Every leg
+// gets a wall-clock cap (E2E_LEG_TIMEOUT seconds, default 300) and a timeout is
+// reported as a FAIL with its cause, never as a hang.
+const LEG_TIMEOUT = Number(process.env.E2E_LEG_TIMEOUT ?? 300);
+
+// A timeout is its own cause and must read as one in the summary.
+const failNote = (r) => (r.timedOut ? `timed out after ${LEG_TIMEOUT}s` : `exit ${r.status}`);
+
 function run(cmd, args, opts = {}) {
   return new Promise((resolveRun) => {
-    const child = spawn(cmd, args, { stdio: "inherit", ...opts });
-    child.on("error", () => resolveRun({ status: 127, signal: null }));
-    child.on("exit", (status, signal) => resolveRun({ status, signal }));
+    // `detached` puts the leg in its own process group so a timeout can kill the
+    // WHOLE tree. Killing only the direct child leaves `xvfb-run`'s X server and
+    // its Chrome behind, and those orphans then wedge the next run (observed: a
+    // kill left 1 Xvfb + 2 chrome-linux alive and the following hermetic run hung
+    // forever waiting on them).
+    const child = spawn(cmd, args, { stdio: "inherit", detached: true, ...opts });
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try {
+        process.kill(-child.pid, "SIGKILL");
+      } catch {
+        child.kill("SIGKILL");
+      }
+    }, LEG_TIMEOUT * 1000);
+    const done = (r) => {
+      clearTimeout(timer);
+      resolveRun(timedOut ? { ...r, status: 124, timedOut: true } : r);
+    };
+    child.on("error", () => done({ status: 127, signal: null }));
+    child.on("exit", (status, signal) => done({ status, signal }));
   });
 }
 
@@ -96,8 +123,11 @@ function ensureBrowser() {
   const bundled = playwrightBrowser();
   if (bundled) { say(`browser: Playwright Chromium at ${bundled.replace(process.env.HOME, "$HOME")}`); return true; }
   if (systemChrome) { say(`browser: no Playwright Chromium; falling back to the system Chrome (${systemChrome})`); return true; }
-  say("browser: none found — installing the pinned Playwright Chromium");
-  const r = spawnSync("npx", ["playwright", "install", "chromium"], { cwd: ROOT, stdio: "inherit" });
+  // ffmpeg is a SEPARATE install target, not a chromium dependency: a context
+  // that asks for recordVideo without it dies at newPage(). The scripts also
+  // guard for that, but install it here so the evidence keeps its video.
+  say("browser: none found — installing the pinned Playwright Chromium + ffmpeg");
+  const r = spawnSync("npx", ["playwright", "install", "chromium", "ffmpeg"], { cwd: ROOT, stdio: "inherit" });
   if (r.status !== 0 || !playwrightBrowser()) {
     say("browser: install failed; the browser legs cannot run");
     return false;
@@ -105,10 +135,27 @@ function ensureBrowser() {
   return true;
 }
 
+// The python and npm Playwrights are pinned separately (1.56.0 vs 1.56.1) and
+// each resolves its OWN browser revision from its own browsers.json. Reusing a
+// browser installed for the other one is a coin flip: when it loses you get an
+// "Executable doesn't exist at …/chromium-1234/…" at page creation, which reads
+// like a product bug. Install from the interpreter that will drive the browser.
+function ensurePythonBrowser(py, key) {
+  const marker = join(SCRATCH, `python-browser-${key}.ok`);
+  if (existsSync(marker)) return;
+  say(`python: provisioning the browser for the ${key} interpreter (its own Playwright revision)`);
+  const r = spawnSync(py, ["-m", "playwright", "install", "chromium", "ffmpeg"], { cwd: ROOT, stdio: "inherit" });
+  if (r.status !== 0) say(`python: browser install failed — the python leg will report it`);
+  else writeFileSync(marker, "");
+}
+
 function resolvePython() {
   const candidates = [process.env.PYTHON, "python3", "python"].filter(Boolean);
   for (const p of candidates) {
-    if (spawnSync(p, ["-c", "import playwright"], { stdio: "ignore" }).status === 0) return { cmd: p, note: `${p} (already has Playwright)` };
+    if (spawnSync(p, ["-c", "import playwright"], { stdio: "ignore" }).status === 0) {
+      ensurePythonBrowser(p, "system");
+      return { cmd: p, note: `${p} (already has Playwright)` };
+    }
   }
   const venv = join(SCRATCH, "e2e-venv");
   const venvPy = join(venv, "bin", "python");
@@ -120,6 +167,7 @@ function resolvePython() {
   }
   if (spawnSync(venvPy, ["-m", "pip", "install", "--quiet", "--disable-pip-version-check", "-r", join(ROOT, "requirements-e2e.txt")], { cwd: ROOT, stdio: "inherit" }).status !== 0) return null;
   if (spawnSync(venvPy, ["-c", "import playwright"], { stdio: "ignore" }).status !== 0) return null;
+  ensurePythonBrowser(venvPy, "venv");
   return { cmd: venvPy, note: ".scratch/e2e-venv" };
 }
 
@@ -203,7 +251,7 @@ async function main() {
   // ---- leg 1: the renderer, against its own served fixture (offline)
   if (hermetic && browserOk) {
     const r = await run(process.execPath, ["e2e/catalog_render_e2e.mjs"], { cwd: ROOT });
-    record("e2e/catalog_render_e2e.mjs", "hermetic", r.status === 0 ? "PASS" : "FAIL", r.status === 0 ? "served fixture, real browser" : `exit ${r.status}`);
+    record("e2e/catalog_render_e2e.mjs", "hermetic", r.status === 0 ? "PASS" : "FAIL", r.status === 0 ? "served fixture, real browser" : failNote(r));
   } else if (hermetic) {
     record("e2e/catalog_render_e2e.mjs", "hermetic", "FAIL", "no browser available");
   }
@@ -248,7 +296,7 @@ async function main() {
       const argv = headed ? ["-a", py.cmd, ...args] : args;
       say(`python: ${py.note}; ${headed ? "headed Chrome under xvfb" : "headless"}; base ${localBase}`);
       const r = await run(cmd, argv, { cwd: ROOT, env });
-      const detail = r.status === 0 ? `provisioned dashboard, ${headed ? "headed" : "headless"}${venueSafe ? "" : ", venue pages skipped"}` : `exit ${r.status}`;
+      const detail = r.status === 0 ? `provisioned dashboard, ${headed ? "headed" : "headless"}${venueSafe ? "" : ", venue pages skipped"}` : failNote(r);
       record("e2e/venue_deep_link_e2e.py", "hermetic", r.status === 0 ? "PASS" : "FAIL", detail);
     }
   }
@@ -280,7 +328,7 @@ async function main() {
         const r = useXvfb
           ? await run(xvfbRun, ["-a", process.execPath, leg], { cwd: ROOT })
           : await run(process.execPath, [leg], { cwd: ROOT });
-        record(leg, "live", r.status === 0 ? "PASS" : "FAIL", r.status === 0 ? `${why}${useXvfb ? " (xvfb)" : ""}` : `exit ${r.status}`);
+        record(leg, "live", r.status === 0 ? "PASS" : "FAIL", r.status === 0 ? `${why}${useXvfb ? " (xvfb)" : ""}` : failNote(r));
       }
     }
   }
