@@ -43,13 +43,43 @@ that branch (`docs/e2e/s5c-nosms/`). The earlier "not published" measurement was
 taken in cvm-registry, where that commit does not (and should not) exist. ngit is
 one commit behind (`cc4cb78`).
 
+## Landed since (this run)
+
+- `37eda21` test(e2e): recovered the S5c nosms proof into **this** repo's history —
+  the 5 PNGs extracted from `cb1b12f13fa4afe021c481ee6f3fd23df1cf5465`
+  (`~/worktrees/t_167558e7`) + a `docs/e2e/s5c-nosms/README.md` naming the source
+  commit and sha256 of each still.
+- `791f5a4` fix(e2e): the CI e2e job failed on an evidence convenience, and a bot
+  challenge was recorded as a verified venue page. Two real defects:
+  1. `transcode_mp4` was fatal when ffmpeg was absent -> an evidence convenience
+     could fail CI. Now best-effort, never fatal (system ffmpeg, then Playwright's
+     bundled ffmpeg-linux, then SKIP).
+  2. the click-through recorded a Cloudflare interstitial ("Just a moment...") as a
+     verified venue page. Now the page is classified (`challenged: true`) and the
+     click-through is gated on `pagesClean` (every venue answered the probe) AND a
+     headed browser, or `E2E_VENUE_PAGES=1`. When it is not attempted the leg says
+     NOT VERIFIED, prints the per-venue probe, and the SUMMARY repeats it.
+- `docs/e2e/README.md` + `docs/e2e/clean-clone-transcript.txt` document the CI wiring,
+  the NOT-VERIFIED sub-assertion semantics, and which stills refresh per run.
+
+## Verified by running (not by reading) — this run
+
+- `npm run e2e:hermetic` x2 -> exit 0 (`/tmp/e2e-hermetic.log`, `/tmp/e2e-hermetic2.log`).
+- `node --check tools/run-e2e.mjs` + `ast.parse(e2e/venue_deep_link_e2e.py)` -> ok.
+- challenge matcher re-checked against 5 titles (CI's title + 2 real venue pages) -> correct.
+- **literal clean-clone**: `git clone` (working tree 0 changed, no node_modules, no
+  site/catalog.json) -> `npm ci` -> `npm run e2e` -> **4 passed, 0 failed, 0 skipped,
+  exit 0** (`docs/e2e/clean-clone-transcript.txt`).
+- **ngit CI at `791f5a4a`**: workflow `ci.yml` `conclusion: success`, `job deno
+  success`, `job e2e success`, integrity "commit present, workflow hash matches".
+  The prior head `34209ac` failed the same job — that is the regression this fixes.
+- live origin `https://cvm.orangesync.tech/` -> http 200.
+
 ## REMAINING
 
-1. Commit the refreshed `docs/e2e/` evidence + README, push the branch.
-2. Clean-clone transcript: fresh `git clone` into /tmp, `npm ci`, `npm run e2e`,
-   quote the exit 0.
-3. s5c: push `pr/s5c-playwright-e2e` (cb1b12f) to ngit so it is dual-published;
-   otherwise correct the card with the ls-remote evidence above.
-4. CI: get a run at the branch head with `conclusion: success` (live legs must be
-   loud-skipped, never silently green) and quote the workflow diff.
-5. Cold cross-family review published to the PR, then merge to main.
+1. Cold cross-family review of the branch diff, findings answered or fixed.
+2. Publish the review verdict + the evidence links on the PR, then merge
+   `wt/cvm-e2e-runnable` -> `main`.
+3. Out of scope for this card (different repo): dual-publish `pr/s5c-playwright-e2e`
+   (cb1b12f, NOSMS repo) to ngit. The card premise is already corrected by the
+   `ls-remote` evidence above, and the proof now also lives in this repo (`37eda21`).

@@ -63,6 +63,14 @@ The card, and the real page it opens:
 ![pizza-e-pasta card](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/03-card-pizza-e-pasta-ruedesheimerplatz.png)
 ![pizza-e-pasta real ordering page](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/03b-venue-page-pizza-e-pasta-ruedesheimerplatz.png)
 
+Freshness: `01-dashboard-two-venues.png`, `03-card-…png` and
+`04-review-venue-confirmed.png` are re-shot by **every** run of `npm run e2e`
+(the suite rewrites the evidence in this directory — that is how they stay
+current). `02b-…png` and `03b-…png` are the two venue pages as captured by the
+full-fidelity run and are **not** re-shot on a host where the click-through
+cannot run: re-shooting them there would mean screenshotting a Cloudflare
+challenge and filing it as the venue's page.
+
 ## Reproducing
 
 ```bash
@@ -82,11 +90,61 @@ two legs are network-gated against the deployment.
 | `npm run e2e:hermetic` | `catalog_render_e2e.mjs`, `venue_deep_link_e2e.py` | a browser |
 | `npm run e2e:live` | `dashboard-discovery.mjs`, `live_deploy_check.mjs` | the open network |
 
+## In CI
+
+`.ngit/act/workflows/ci.yml` runs `npm run e2e:hermetic` as the **gate** and
+`npm run e2e:live` as an **observational** leg. The gate can only fail for the
+code's reasons: the hermetic legs serve the committed capture on loopback, so no
+relay outage or Cloudflare challenge can turn them red. The live legs still run,
+still print their PASS/FAIL/SKIP rows and verdict into the job log, and still exit
+non-zero locally; the step is marked non-gating in exactly one place
+(`continue-on-error: true`, with `E2E_ALLOW_SKIP=1` and a comment saying why).
+This is not `|| true`: the check still executes and still speaks.
+
+Measured, not asserted — ngit CI at `791f5a4a`:
+
+```
+CI for 791f5a4a (791f5a4a)
+  success    .ngit/act/workflows/ci.yml  [Maintainer-directed]  Requested by a maintainer
+    integrity: commit present, workflow hash matches
+    job deno success [Maintainer-directed]
+    job e2e success [Maintainer-directed]
+  concluded (success)
+```
+
+The commit before the fix (`34209ac`) failed this same job on the evidence
+convenience, which is the bug this branch removes.
+
 Exit codes: `0` every leg ran and passed; `1` a leg failed; `3` a leg was
 SKIPPED — **a skip is never a pass**, and it prints a loud banner. Only
 `E2E_ALLOW_SKIP=1` downgrades that to a warning, and only an operator should set
 it. Running the suite rewrites the evidence files in this directory; that is
 intentional (it is how they stay current).
+
+A literal clean-clone run — `git clone` into an empty directory, `npm ci`,
+`npm run e2e` — is recorded verbatim in
+[`clean-clone-transcript.txt`](clean-clone-transcript.txt): exit 0, 4 passed,
+0 failed, 0 skipped, with the browser fallback shown rather than assumed.
+
+### One sub-assertion can be NOT verified inside a passing leg
+
+The click-through to the venues' **own** pages is the one thing this suite cannot
+promise on every host. Both venues sit behind Cloudflare, and the headless shell
+is challenged where headed Chrome is not (`title='Just a moment...'` — observed in
+ngit CI). So the click-through is attempted only when **every** venue answers the
+probe cleanly AND the run has a headed browser (`xvfb-run` + system Chrome), or
+when `E2E_VENUE_PAGES=1` asks for it anyway. When it is not attempted:
+
+- a banner says `NOT VERIFIED — the venue pages are not opened`;
+- the probe result for each venue is printed, so the reason is the data, not a guess;
+- the leg's own detail line reads `venue click-through NOT verified (…)`, and the
+  `=== E2E SUMMARY ===` block repeats it next to the verdict.
+
+The dashboard and the announced deep-links (read from the rendered DOM) are
+asserted either way. A venue page that answers with a bot challenge is recorded as
+`challenged: true` with a note — never as a verified page, because a leg that
+passes while the venue's page never loaded is exactly the silent-green failure
+this suite exists to kill.
 
 The full-fidelity replay — real relay, real signatures, real collector — is the
 longer path below. It needs `strfry` and is not what `npm run e2e` does:

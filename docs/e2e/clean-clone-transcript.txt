@@ -1,36 +1,70 @@
-cvm-registry e2e — literal clean-clone transcript
+cvm-registry e2e - literal clean-clone transcript
 =================================================
 
-Machine: CobradorWave (Linux), node v22.22.1, npm 9.2.0, git 2.53.0.
-Browser cache at the start: ~/.cache/ms-playwright holds only ffmpeg-1011 (no
-browser build) — so this proves the run does NOT depend on a pre-installed
-Playwright browser. The suite fell back to the system Chrome, which is what a
-fresh machine has. No relay, no collector and no local state were involved.
+### machine: CobradorWave, Linux 7.0.0-38-generic
+### node v22.22.1  npm 9.2.0  git version 2.53.0
+### Playwright browser cache BEFORE the run: chromium-1228 chromium_headless_shell-1228 ffmpeg-1011 
+### system Chrome present: /usr/bin/google-chrome Google Chrome 151.0.7922.137 
 
-Filler lines from the individual scripts are elided as [...]; the runner's own
-PASS/FAIL/SKIP lines and the summary are verbatim.
-
-### PWD: /home/c03rad0r/repos/cvm-registry/.worktrees/t_e2a7400c
-### git --version: git version 2.53.0
-### node --version: v22.22.1   npm --version: 9.2.0
-### browser present before we start:
-### 1. git clone --branch wt/cvm-e2e-runnable https://github.com/cvm-services/cvm-registry.git /tmp/cvm-e2e-clean
+$ rm -rf /tmp/cvm-e2e-clean
+$ git clone --branch wt/cvm-e2e-runnable https://github.com/cvm-services/cvm-registry.git /tmp/cvm-e2e-clean
+Cloning into '/tmp/cvm-e2e-clean'...
 clone exit=0
-HEAD: 69a081983e90d9398dad39ce6760f70dd8bc00a0  69a0819 docs(e2e): refresh the committed evidence and document `npm run e2e`
-clean tree? -> '0' changed paths
-### 2. npm ci
-added 2 packages, and audited 3 packages in 1s
+HEAD: 791f5a4a0c00374194419b51df0159c0bece8148  fix(e2e): the CI e2e job failed on an evidence convenience, and a bot challenge was recorded as a verified venue page
+working tree after clone: 0 changed paths
+node_modules present? no
+site/catalog.json present? no
+
+$ npm ci
+
+added 2 packages, and audited 3 packages in 4s
+
 found 0 vulnerabilities
 npm ci exit=0
-### 3. npm run e2e
+node_modules present? yes
+
+$ npm run e2e
+
 > cvm-registry-e2e@0.0.0 e2e
 > node tools/run-e2e.mjs all
+
 [e2e] browser: no Playwright Chromium; falling back to the system Chrome (google-chrome)
+[step] dashboard-loaded {"cards":1}
+[step] service-view-opened {"menuItems":76}
+[step] view-rendered {"menuItems":76,"selectedMethod":"pickup","bytes":15981,"ok":true,"refusals":0}
+[step] prices-match-served {"method":"pickup","checked":76}
+[step] add-to-basket {"action":"order.build","payload":{"venue_slug":"doppelt-kaese-berlin","items":[{"sku":"331227","qty":1}],"fulfilment":"pickup","when":"asap"}}
+[step] add-to-basket-again {"payload":{"venue_slug":"doppelt-kaese-berlin","items":[{"sku":"331227","qty":2}],"fulfilment":"pickup","when":"asap"}}
+[step] basket-rendered {"text":"BASKET (1) — TOTAL 17.8 EUR Basket only. No payment step exists here: checkout and settlement happen on the venue's own page. 2 × Cheeseburger 8.9 EUR"}
+[step] handoff {"opened":["https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"],"handoff":{"action":"order.handoff","payload":{"url":"https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"}}}
+[step] spec-has-no-url {"specBytes":16111}
+[step] unknown-component {"painted":0,"text":"Doppelt Käse Laubacher Straße\n\nDoppelt Käse Laubacher Straße — restaurant in Berlin, announced over ContextVM (CEP-6). Order via the venue's own rail; the deep-link asks for a delivery address and phone.\n\nannouncement: meatspace/restaurant\nkind 11316\nclass meatspace/restaurant\nservice id doppelt-kaese-berlin\nannounced 2026-10-06\ngeohash u336, u336x0, u336x058\nOrder method:pickupdelivery\n\nCached served menu. No payment here — checkout is on the venue's page.\n\nCheeseburgeradd to basket\n8.9 EUR\nCurly Friesadd to basket\n4.5 EUR\nDer Doppelt Käse-Burgeradd to basket\n10.9 EUR\nParmesan Pommes fritesadd to basket\n6.8 EUR\nBeyond Meat-Burgeradd to basket\n9.9 EUR\nBeyond Chili-Cheeseburgeradd to basket\n10.2 EUR\nSüßkartoffel-Pommesadd to basket\n4.9 EUR\nSweet Dreamsadd to basket\n7.2 EUR\nChili Cheese Pommes fritesadd to basket\n6.8 EUR\nChicken Fingers 6 Stückunavailableadd to basket\n6.5 EUR\nPotato Totsunavailableadd to basket\n5.5 EUR\nHamburgeradd to basket\n7.9 EUR\nBBQ Burgeradd to basket\n9.5 EUR\nChili-Cheeseburgeradd to basket\n9.5 EUR\nHabanero Burgeradd to basket\n9.9 EUR\nGorgonzola-Preiselbeere-Burgeradd to basket\n9.9 EUR\nClassic Burgeradd to basket\n8.5 EUR\nPilz-Burgerunavailableadd to basket\n9.9 EUR\nChicken Burgeradd to basket\n8.5 EUR\nPommes fritesadd to basket\n3.9 EUR\nGuacamole Pommes fritesunavailableadd to basket\n6.8 EUR\nLoaded Potato Totsunavailableadd to basket\n7.7 EUR\nChicken Wings 6 Stückadd to basket\n6 EUR\nChicken Wings 9 Stückadd to basket\n8.5 EUR\nChicken Wings 12 Stückadd to basket\n10.5 EUR\nChicken Fingers 9 Stückunavailableadd to basket\n9 EUR\nChicken Fingers 12 Stückunavailableadd to basket\n11 EUR\nOnion Rings 6 Stückadd to basket\n6.3 EUR\nOnion Rings 12 Stückadd to basket\n9 EUR\nOnion Rings 18 Stückadd to basket\n12.5 EUR\nBunter Krautsalatadd to basket\n3.2 EUR\nCaesar-Salatadd to basket\n8.1 EUR\nRatatouille Burgerunavailableadd to basket\n11.5 EUR\nBeyond BBQ-Burgeradd to basket\n9.9 EUR\nBeyond Habanero Burgeradd to basket\n11.5 EUR\nBeyond Preiselbeere-Burgeradd to basket\n11.2 EUR\nBeyond Klassik Burgeradd to basket\n9.9 EUR\nBeyond Pilz-Burgerunavailableadd to basket\n11.5 EUR\nBurgersoßeadd to basket\n0.9 EUR\nGetrüffelte Haussoßeadd to basket\n1.4 EUR\nKetchupadd to basket\n0.5 EUR\nMayonnaiseadd to basket\n0.5 EUR\nVegane Mayonnaiseadd to basket\n1.4 EUR\nBarbecuesoßeadd to basket\n0.9 EUR\nKäsesoßeadd to basket\n2.7 EUR\nSour Creamadd to basket\n0.9 EUR\nSüß-Sauer-Soßeadd to basket\n0.9 EUR\nTrüffelmayonnaiseadd to basket\n1.4 EUR\nGuacamoleunavailableadd to basket\n3.2 EUR\nAioli-Soßeunavailableadd to basket\n1.4 EUR\nClub Mate 0,33 ladd to basket\n2.9 EUR\nCoca-Cola® 0,33 ladd to basket\n2.9 EUR\nCoca-Cola® 1,0 lunavailableadd to basket\n3.6 EUR\nCoca-Cola® Zero 1,0 ladd to basket\n3.6 EUR\nCoca-Cola® Zero 0,33 ladd to basket\n2.9 EUR\nFanta 0,33 ladd to basket\n2.9 EUR\nFanta 1,0 ladd to basket\n3.6 EUR\nMezzo Mix 0,33 ladd to basket\n2.9 EUR\nMezzo Mix 1,0 ladd to basket\n3.6 EUR\nVio Schorle Apfel 0,33 lunavailableadd to basket\n2.9 EUR\nSprite 0,33 lunavailableadd to basket\n2.9 EUR\nSprite 1,0 ladd to basket\n3.6 EUR\nVio Still 0,5 ladd to basket\n2.3 EUR\nVio Spritzig 0,5 ladd to basket\n2.3 EUR\nWarsteiner Alkoholfrei 0,33 ladd to basket\n3.3 EUR\nRixdorfer Fassbrause 0,33 ladd to basket\n2.7 EUR\nIce Tea Peach 0.33ladd to basket\n2.7 EUR\nIce Tea Lemon Sparkling 0.33lunavailableadd to basket\n2.7 EUR\nIce Tea Pineapple Mango 0,33lunavailableadd to basket\n2.7 EUR\n1. Classic Bununavailableadd to basket\n6.3 EUR\n2. Avocado Bununavailableadd to basket\n8.6 EUR\n3. Parmesan Trüffel Bununavailableadd to basket\n8.1 EUR\n4. Pilz Bununavailableadd to basket\n8.1 EUR\n5. Preiselbeere Bununavailableadd to basket\n7.2 EUR\n6. Chicken Bununavailableadd to basket\n8.6 EUR\n7. Pastrami Bununavailableadd to basket\n9 EUR\nBasket (0) — total 0 EUR\n\nBasket only. No payment step exists here: checkout and settlement happen on the venue's own page.\n\nBuild basket (order tool)\nOrder on the venue's page","menuItems":76}
+[step] injected-price {"priceRows":75,"menus":76,"has999":false}
+[step] fail-closed-cases {"cases":13,"names":["baseline","catalog-surface","cycle","handoff-no-url","injected-price","injected-total","order-not-served","order-undeclared","oversize","unknown-action","unknown-component","url-in-facts","version-2"]}
+[step] verdict {"verdict":"PASS — 76 menu items from the served fixture, 76 prices matched, 13 fail-closed cases"}
+[evidence] /tmp/cvm-e2e-clean/docs/e2e/catalog-render-e2e.json
+{
+  "verdict": "PASS — 76 menu items from the served fixture, 76 prices matched, 13 fail-closed cases",
+  "failures": []
+}
 [e2e] PASS hermetic e2e/catalog_render_e2e.mjs — served fixture, real browser
 [e2e] provisioned site/catalog.json from the committed capture (2 entries; capture was 2026-10-05T20:33:23.000Z)
 [e2e] serving ./site at http://127.0.0.1:8099
+[e2e] python: provisioning the browser for the system interpreter (its own Playwright revision)
+Failed to install browsers
+Error: ERROR: Playwright does not support chromium on ubuntu26.04-x64
+[e2e] python: browser install failed — the python leg will report it
+
+[e2e] ###############################################################
+[e2e] # NOT VERIFIED — the venue pages are not opened.            #
+[e2e] # The dashboard + the announced deep-link are asserted in   #
+[e2e] # the DOM; the click-through to the venue's own page is NOT.#
+[e2e] ###############################################################
+[e2e] venue page probe 1/2: clear — https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
+[e2e] venue page probe 2/2: unreachable — https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
+[e2e] venue click-through not attempted: the venue pages do not answer cleanly from this host (probe: clear/unreachable)
 [e2e] python: python3 (already has Playwright); headed Chrome under xvfb; base http://127.0.0.1:8099
-[e2e] catalog: 2 entries, generated_at_iso=2026-10-09T18:25:22.000Z
+[e2e] catalog: 2 entries, generated_at_iso=2026-10-09T21:37:15.000Z
 [e2e] allowlist: ['npub1ftjlarsn0k4', 'npub19a4rasj4dcv', 'npub192w3smvqchg', 'npub1fevhqwgrq0k', 'npub1slp6y87snl5']
 [e2e] OK doppelt-kaese-berlin: r-published=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
 [e2e] OK pizza-e-pasta-ruedesheimerplatz: r-published=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
@@ -44,23 +78,90 @@ npm ci exit=0
 [e2e] venue-confirmed badges=1 confirmed rows=1 of 3 review rows
 [e2e] badge note: This reviewer placed an order at this venue. (the venue vouched for this reviewer; it is not proof the reviewer was present)
 [e2e] card doppelt-kaese-berlin: deep-link href=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
-[e2e] venue page: title='Speisekarte | doppelt Käse Berlin' url=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
+[e2e] SKIPPED (live network) doppelt-kaese-berlin: not opening https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase — the venue host is unreachable from this host, so the click-through that lands on it is NOT verified
 [e2e] card pizza-e-pasta-ruedesheimerplatz: deep-link href=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
-[e2e] venue page: title='Essen bestellen bei Pizza e Pasta in Berlin' url=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
-[e2e] video: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.webm (3002999 bytes)
-[e2e] mp4: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.mp4 (1532392 bytes)
+[e2e] SKIPPED (live network) pizza-e-pasta-ruedesheimerplatz: not opening https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway — the venue host is unreachable from this host, so the click-through that lands on it is NOT verified
+[e2e] video: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.webm (1421629 bytes)
+[e2e] mp4: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.mp4 (707482 bytes)
 [e2e] wrote docs/e2e/venue-discovery-e2e.json
+
 === E2E RESULT ===
-[e2e] PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed
+doppelt-kaese-berlin: https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase -> SKIPPED (venue host unreachable from this host at run time) — the deep-link was verified in the DOM; the venue's own page was NOT opened
+pizza-e-pasta-ruedesheimerplatz: https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway -> SKIPPED (venue host unreachable from this host at run time) — the deep-link was verified in the DOM; the venue's own page was NOT opened
+NOTE: the venue click-through was SKIPPED — this run does NOT prove the venues' own pages open.
+[e2e] PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed, venue click-through NOT verified (clear/unreachable)
+[step] browser {"how":"system chrome (channel)","version":"151.0.7922.137"}
+[step] dashboard-loaded {"title":"ContextVM services — cvm.orangesync.tech","head":"ContextVM services cvm.orangesync.tech — allow-list driven cache. Collector snapshot 2026-10-09T21:34:31.000Z (4m old, fresh). This page reads a static cache; it never contacts a relay. live cache Input appetite: any no ","names":{"doppelt":true,"pizza":true,"lambda":true,"nosms":true}}
+[step] meatspace-filter {"before":41,"stillThere":true,"digitalGone":true}
+[step] deep-link-found {"href":"https://doppelt-kaese-berlin.de"}
+[step] landed-on-venue {"url":"https://www.doppelt-kaese-berlin.de/","host":"www.doppelt-kaese-berlin.de","title":"doppelt Käse | Best Burger in Berlin Wilmersdorf","text":""}
+{
+  "base": "https://cvm.orangesync.tech/",
+  "venue": "doppelt-kaese-berlin",
+  "steps": [
+    {
+      "name": "browser",
+      "how": "system chrome (channel)",
+      "version": "151.0.7922.137"
+    },
+    {
+      "name": "dashboard-loaded",
+      "title": "ContextVM services — cvm.orangesync.tech",
+      "head": "ContextVM services cvm.orangesync.tech — allow-list driven cache. Collector snapshot 2026-10-09T21:34:31.000Z (4m old, fresh). This page reads a static cache; it never contacts a relay. live cache Input appetite: any no ",
+      "names": {
+        "doppelt": true,
+        "pizza": true,
+        "lambda": true,
+        "nosms": true
+      }
+    },
+    {
+      "name": "meatspace-filter",
+      "before": 41,
+      "stillThere": true,
+      "digitalGone": true
+    },
+    {
+      "name": "deep-link-found",
+      "href": "https://doppelt-kaese-berlin.de"
+    },
+    {
+      "name": "landed-on-venue",
+      "url": "https://www.doppelt-kaese-berlin.de/",
+      "host": "www.doppelt-kaese-berlin.de",
+      "title": "doppelt Käse | Best Burger in Berlin Wilmersdorf",
+      "text": ""
+    }
+  ],
+  "verdict": "PASS — discovery to the venue's own page; no checkout interaction",
+  "video": "/tmp/cvm-e2e-clean/.scratch/e2e/cc4916bc2b1e148983972cfd7c0a5d31.webm"
+}
 [e2e] PASS live     e2e/dashboard-discovery.mjs — live discovery on https://cvm.orangesync.tech (xvfb)
+[step] assets {"/":{"status":200,"bytes":1274},"/menu.json":{"status":200,"bytes":56968},"/render/catalog.js":{"status":200,"bytes":10591},"/render/spec.js":{"status":200,"bytes":9705},"/render/renderer.js":{"status":200,"bytes":18014},"/catalog.json":{"status":200,"bytes":33421}}
+[step] served-capture {"venues":[{"slug":"doppelt-kaese-berlin","items":76},{"slug":"pizza-e-pasta-ruedesheimerplatz","items":112}],"tools":["menu","order"]}
+[step] browser {"how":"system chrome (channel)","version":"151.0.7922.137"}
+[step] dashboard-loaded {"cards":4}
+[step] venue-view {"slug":"doppelt-kaese-berlin","rendered":76,"expected":76,"method":"pickup","bytes":15981,"cap":32768,"ok":true,"refusals":0,"hasOrderAction":true,"hasHandoff":true}
+[step] venue-view {"slug":"pizza-e-pasta-ruedesheimerplatz","rendered":112,"expected":112,"method":"pickup","bytes":22852,"cap":32768,"ok":true,"refusals":0,"hasOrderAction":true,"hasHandoff":true}
+[step] verdict {"verdict":"PASS — 2 venue(s) rendered from the live capture at https://cvm.orangesync.tech"}
+[evidence] /tmp/cvm-e2e-clean/docs/e2e/live-menu-e2e.json
+{
+  "verdict": "PASS — 2 venue(s) rendered from the live capture at https://cvm.orangesync.tech",
+  "failures": []
+}
 [e2e] PASS live     e2e/live_deploy_check.mjs — deployed menus on https://cvm.orangesync.tech
+
 === E2E SUMMARY ===
   PASS hermetic e2e/catalog_render_e2e.mjs — served fixture, real browser
-  PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed
+  PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed, venue click-through NOT verified (clear/unreachable)
   PASS live     e2e/dashboard-discovery.mjs — live discovery on https://cvm.orangesync.tech (xvfb)
   PASS live     e2e/live_deploy_check.mjs — deployed menus on https://cvm.orangesync.tech
   4 passed, 0 failed, 0 skipped
+  NOTE: e2e/venue_deep_link_e2e.py — a named sub-assertion was NOT verified: provisioned dashboard, headed, venue click-through NOT verified (clear/unreachable)
+  NOTE: 1 leg(s) carried an un-verified sub-assertion; the verdict covers only what ran.
   verdict: PASS — every leg ran and passed
-### npm run e2e exit=0
-### changed paths after the run: 4
+npm run e2e exit=0
+
+### changed paths after the run: 6
+### browser cache AFTER the run: chromium-1228 chromium_headless_shell-1228 ffmpeg-1011 
 ### VERDICT: GREEN (exit 0)
