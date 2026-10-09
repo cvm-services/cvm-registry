@@ -26,7 +26,7 @@
       },
       "/catalog.json": {
         "status": 200,
-        "bytes": 33115
+        "bytes": 33390
       }
     },
     {
@@ -45,6 +45,11 @@
         "menu",
         "order"
       ]
+    },
+    {
+      "name": "browser",
+      "how": "system chrome (channel)",
+      "version": "151.0.7922.137"
     },
     {
       "name": "dashboard-loaded",

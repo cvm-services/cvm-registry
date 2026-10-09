@@ -1,7 +1,8 @@
 # End-to-end evidence — restaurant announcements → dashboard → the venue's own ordering page
 
-Hermetic capture, 2026-10-05. Every step below ran for real; nothing is mocked on
-the CVM path. Re-run it with `e2e/venue_deep_link_e2e.py`.
+Hermetic capture, 2026-10-05; stills and video re-shot against the current
+dashboard. Every step below ran for real; nothing is mocked on the CVM path.
+Re-run the whole suite with `npm run e2e` (see Reproducing).
 
 ## What is actually exercised
 
@@ -63,6 +64,32 @@ The card, and the real page it opens:
 ![pizza-e-pasta real ordering page](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/03b-venue-page-pizza-e-pasta-ruedesheimerplatz.png)
 
 ## Reproducing
+
+```bash
+npm ci          # installs the pinned Playwright (the lockfile is committed)
+npm run e2e     # all four scripts, one PASS/FAIL/SKIP summary
+```
+
+`npm run e2e` is the entry point. It checks for a browser, installs Playwright's
+Chromium if none is present, provisions `site/catalog.json` from the committed
+capture (`fixtures/e2e-dashboard.catalog.json`) and serves `site/` on loopback, so
+the two offline legs need **no relay, no collector and no live origin**. The other
+two legs are network-gated against the deployment.
+
+| selector | legs | needs |
+|---|---|---|
+| `npm run e2e` | all four | a browser; the open network for the last two |
+| `npm run e2e:hermetic` | `catalog_render_e2e.mjs`, `venue_deep_link_e2e.py` | a browser |
+| `npm run e2e:live` | `dashboard-discovery.mjs`, `live_deploy_check.mjs` | the open network |
+
+Exit codes: `0` every leg ran and passed; `1` a leg failed; `3` a leg was
+SKIPPED — **a skip is never a pass**, and it prints a loud banner. Only
+`E2E_ALLOW_SKIP=1` downgrades that to a warning, and only an operator should set
+it. Running the suite rewrites the evidence files in this directory; that is
+intentional (it is how they stay current).
+
+The full-fidelity replay — real relay, real signatures, real collector — is the
+longer path below. It needs `strfry` and is not what `npm run e2e` does:
 
 ```bash
 # 1. a plain local relay (the fleet's 7780 is a NIP-29 relay and rejects these kinds)

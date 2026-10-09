@@ -110,11 +110,11 @@
   ],
   "failures": [],
   "served_catalog_note": "site/fixtures/doppelt.catalog.json -> catalog.json, with generated_at rewritten to now (freshness field only; no data changed)",
-  "base": "http://127.0.0.1:46203/",
+  "base": "http://127.0.0.1:8099/",
   "browser": "151.0.7922.137",
   "launch": {
     "headless": true,
-    "channel": "chrome"
+    "how": "system chrome (channel)"
   },
   "price_check": {
     "method": "pickup",
