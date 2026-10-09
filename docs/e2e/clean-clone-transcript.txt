@@ -1,0 +1,66 @@
+cvm-registry e2e — literal clean-clone transcript
+=================================================
+
+Machine: CobradorWave (Linux), node v22.22.1, npm 9.2.0, git 2.53.0.
+Browser cache at the start: ~/.cache/ms-playwright holds only ffmpeg-1011 (no
+browser build) — so this proves the run does NOT depend on a pre-installed
+Playwright browser. The suite fell back to the system Chrome, which is what a
+fresh machine has. No relay, no collector and no local state were involved.
+
+Filler lines from the individual scripts are elided as [...]; the runner's own
+PASS/FAIL/SKIP lines and the summary are verbatim.
+
+### PWD: /home/c03rad0r/repos/cvm-registry/.worktrees/t_e2a7400c
+### git --version: git version 2.53.0
+### node --version: v22.22.1   npm --version: 9.2.0
+### browser present before we start:
+### 1. git clone --branch wt/cvm-e2e-runnable https://github.com/cvm-services/cvm-registry.git /tmp/cvm-e2e-clean
+clone exit=0
+HEAD: 69a081983e90d9398dad39ce6760f70dd8bc00a0  69a0819 docs(e2e): refresh the committed evidence and document `npm run e2e`
+clean tree? -> '0' changed paths
+### 2. npm ci
+added 2 packages, and audited 3 packages in 1s
+found 0 vulnerabilities
+npm ci exit=0
+### 3. npm run e2e
+> cvm-registry-e2e@0.0.0 e2e
+> node tools/run-e2e.mjs all
+[e2e] browser: no Playwright Chromium; falling back to the system Chrome (google-chrome)
+[e2e] PASS hermetic e2e/catalog_render_e2e.mjs — served fixture, real browser
+[e2e] provisioned site/catalog.json from the committed capture (2 entries; capture was 2026-10-05T20:33:23.000Z)
+[e2e] serving ./site at http://127.0.0.1:8099
+[e2e] python: python3 (already has Playwright); headed Chrome under xvfb; base http://127.0.0.1:8099
+[e2e] catalog: 2 entries, generated_at_iso=2026-10-09T18:25:22.000Z
+[e2e] allowlist: ['npub1ftjlarsn0k4', 'npub19a4rasj4dcv', 'npub192w3smvqchg', 'npub1fevhqwgrq0k', 'npub1slp6y87snl5']
+[e2e] OK doppelt-kaese-berlin: r-published=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
+[e2e] OK pizza-e-pasta-ruedesheimerplatz: r-published=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
+[e2e] goto http://127.0.0.1:8099/
+[e2e] dashboard rendered 2 card(s)
+[e2e] summary line: 2 service(s) from 2 allow-listed signer(s) (2 announcement(s) — CEP-6 facets collapse per service), 2 shown after filters, 0 dropped by the allow-list at collect time.
+[e2e] card doppelt-kaese-berlin: 2 review(s) rendered
+[e2e] card pizza-e-pasta-ruedesheimerplatz: 1 review(s) rendered
+[e2e] doppelt-kaese-berlin: created_at=[1791231994, 1791224794] zap_sats=[21, 5000] (rendered order)
+[e2e] doppelt-kaese-berlin: richest review (5000 sats) renders at index 1, NOT first — zaps did not promote it
+[e2e] venue-confirmed badges=1 confirmed rows=1 of 3 review rows
+[e2e] badge note: This reviewer placed an order at this venue. (the venue vouched for this reviewer; it is not proof the reviewer was present)
+[e2e] card doppelt-kaese-berlin: deep-link href=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
+[e2e] venue page: title='Speisekarte | doppelt Käse Berlin' url=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase
+[e2e] card pizza-e-pasta-ruedesheimerplatz: deep-link href=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
+[e2e] venue page: title='Essen bestellen bei Pizza e Pasta in Berlin' url=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway
+[e2e] video: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.webm (3002999 bytes)
+[e2e] mp4: /tmp/cvm-e2e-clean/docs/e2e/venue-discovery-e2e.mp4 (1532392 bytes)
+[e2e] wrote docs/e2e/venue-discovery-e2e.json
+=== E2E RESULT ===
+[e2e] PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed
+[e2e] PASS live     e2e/dashboard-discovery.mjs — live discovery on https://cvm.orangesync.tech (xvfb)
+[e2e] PASS live     e2e/live_deploy_check.mjs — deployed menus on https://cvm.orangesync.tech
+=== E2E SUMMARY ===
+  PASS hermetic e2e/catalog_render_e2e.mjs — served fixture, real browser
+  PASS hermetic e2e/venue_deep_link_e2e.py — provisioned dashboard, headed
+  PASS live     e2e/dashboard-discovery.mjs — live discovery on https://cvm.orangesync.tech (xvfb)
+  PASS live     e2e/live_deploy_check.mjs — deployed menus on https://cvm.orangesync.tech
+  4 passed, 0 failed, 0 skipped
+  verdict: PASS — every leg ran and passed
+### npm run e2e exit=0
+### changed paths after the run: 4
+### VERDICT: GREEN (exit 0)

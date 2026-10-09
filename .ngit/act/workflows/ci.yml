@@ -46,4 +46,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run e2e
+      # The two offline legs are the gate. They need no relay, no collector and
+      # no live origin: the runner provisions site/catalog.json from the
+      # committed capture and serves site/ on loopback.
+      - run: npm run e2e:hermetic
+      # The two live legs need the public internet, which a CI container may not
+      # have. E2E_ALLOW_SKIP=1 turns an unreachable origin into a LOUD skip — a
+      # banner plus SKIP rows plus an explicit "INCOMPLETE — not a pass" verdict
+      # line in the log — instead of a red gate nobody inside CI can fix. It is
+      # never a silent pass: without the flag the same situation exits 3 and
+      # fails the job.
+      - run: npm run e2e:live
+        env:
+          E2E_ALLOW_SKIP: "1"
