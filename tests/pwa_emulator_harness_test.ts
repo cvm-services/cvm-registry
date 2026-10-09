@@ -35,5 +35,19 @@ Deno.test("deploy ships the files the app actually fetches", () => {
   const dep = Deno.readTextFileSync("deploy/deploy-pwa.sh");
   assertStringIncludes(dep, "menu.json", "ships menu.json at the path app.js fetches");
   assertStringIncludes(dep, "service-inputs.json", "ships the declared-inputs register");
-  assertStringIncludes(dep, "cady".replace("cady", "caddy"), "validates caddy before reload");
+  assertStringIncludes(dep, "caddy validate", "validates caddy before reload");
+});
+
+Deno.test("deploy makes the tree readable by the caddy user", () => {
+  // Files present but unreadable by user 'caddy' => every request 403s while the
+  // deploy reports success. Observed on the first cvm-pwa deploy.
+  const dep = Deno.readTextFileSync("deploy/deploy-pwa.sh");
+  assertStringIncludes(dep, "chmod 755", "dirs are traversable");
+  assertStringIncludes(dep, "chmod 644", "files are readable");
+});
+
+Deno.test("harness can validate a real deployment, not just a local tree", () => {
+  const run = Deno.readTextFileSync("tools/pwa-emulator-test/run-pwa-emulator-test.sh");
+  assertStringIncludes(run, "--external-url", "external URL mode exists");
+  assertStringIncludes(run, "TARGET_URL", "the driven URL is resolved from that mode");
 });
