@@ -24,6 +24,17 @@ when the venues cannot be reached, `--skip-venue-pages` keeps every dashboard an
 deep-link assertion (the href is read from the rendered DOM) and says out loud
 that the click-through was NOT verified.
 
+Two things this script will NOT do, both learned from real runs:
+
+- It will not call a Cloudflare interstitial a verified venue page. A challenge
+  answers HTTP 200 at the venue's own URL with the title "Just a moment..."; that
+  is recorded as `challenged: true` and printed as NOT VERIFIED, because a leg
+  that reports PASS while the venue's page never loaded is worse than a loud fail.
+- It will not fail the run because an mp4 could not be muxed. The mp4 is a
+  convenience for a human reader, and Playwright's bundled ffmpeg is a trimmed
+  build that rejects `-movflags` (this killed the `e2e` job in ngit CI at
+  34209ac). The transcode is best-effort and degrades with a warning.
+
 Run:  e2e/venue_deep_link_e2e.py [--headless|--headed] [--skip-venue-pages] [--catalog PATH]
 Env:  E2E_BASE_URL (default http://127.0.0.1:8099)
 """
@@ -33,6 +44,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -99,6 +111,35 @@ def video_kwargs(video_dir: pathlib.Path) -> dict:
     log("WARN: no Playwright ffmpeg — running WITHOUT video recording; "
         "every dashboard and deep-link assertion still runs in full")
     return {}
+
+
+def transcode_mp4(webm: pathlib.Path, mp4: pathlib.Path) -> bool:
+    """Best-effort webm -> mp4 for human playback. NEVER fatal.
+
+    The system ffmpeg is preferred; Playwright's bundled `ffmpeg-linux` is a
+    trimmed build. Asking that build for `-movflags +faststart` makes it exit 8
+    ("Unrecognized option 'movflags'") — observed in ngit CI at commit 34209ac,
+    where an evidence convenience killed the whole leg and turned the `e2e` job
+    red. Try the full command, then the trimmed-build-safe one, and report False
+    instead of raising: a missing mp4 is a degraded artifact, not a failure.
+    """
+    ffmpegs: list[str] = []
+    system = shutil.which("ffmpeg")
+    if system:
+        ffmpegs.append(system)
+    ffmpegs += [str(p) for p in sorted(pathlib.Path.home().glob(".cache/ms-playwright/ffmpeg-*/ffmpeg-linux"))]
+    base = ["-y", "-loglevel", "error", "-i", str(webm), "-c:v", "libx264", "-pix_fmt", "yuv420p"]
+    for ffmpeg in ffmpegs:
+        for extra in (["-movflags", "+faststart"], []):
+            if mp4.exists():
+                mp4.unlink()
+            r = subprocess.run([ffmpeg, *base, *extra, str(mp4)], capture_output=True, text=True)
+            if r.returncode == 0 and mp4.exists() and mp4.stat().st_size > 0:
+                return True
+            tail = (r.stderr or "").strip().splitlines()
+            log(f"WARN: mp4 transcode failed with {ffmpeg}{' (+faststart)' if extra else ' (basic)'}: "
+                f"{tail[-1] if tail else 'exit ' + str(r.returncode)}")
+    return False
 
 
 def main() -> int:
@@ -289,10 +330,28 @@ def main() -> int:
             body = (venue_page.inner_text("body") or "")[:4000]
             log(f"venue page: title={title!r} url={final_url}")
             venue_page.screenshot(path=str(OUT / f"0{idx}b-venue-page-{slug}.png"), full_page=False)
+            # A Cloudflare interstitial answers HTTP 200 with the venue's URL and
+            # the title "Just a moment...". Recording that as a verified venue page
+            # is exactly the silent green this suite exists to prevent, so it is
+            # recorded as CHALLENGED and printed as NOT VERIFIED.
+            if re.search(r"just a moment|attention required|checking your browser|cf-chl", f"{title}\n{body}", re.I):
+                log(f"NOT VERIFIED {slug}: the venue's own page was NOT reached — a bot "
+                    f"challenge answered instead (title={title!r}); the announced deep-link "
+                    f"itself was verified in the dashboard DOM above")
+                results["venue_pages"][slug] = {
+                    "announced_url": url,
+                    "final_url": final_url,
+                    "title": title,
+                    "challenged": True,
+                    "note": "bot challenge (Cloudflare interstitial) — the venue's own page was NOT reached",
+                }
+                venue_page.close()
+                continue
             results["venue_pages"][slug] = {
                 "announced_url": url,
                 "final_url": final_url,
                 "title": title,
+                "challenged": False,
                 "body_head": body[:600],
             }
             venue_page.close()
@@ -340,31 +399,37 @@ def main() -> int:
     }
 
     mp4 = OUT / "venue-discovery-e2e.mp4"
-    ffmpeg = shutil.which("ffmpeg")
-    if not ffmpeg:
-        cand = sorted(pathlib.Path.home().glob(".cache/ms-playwright/ffmpeg-*/ffmpeg-linux"))
-        if cand:
-            ffmpeg = str(cand[-1])
-    if ffmpeg:
-        subprocess.run(
-            [ffmpeg, "-y", "-loglevel", "error", "-i", str(final_webm),
-             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(mp4)],
-            check=True,
-        )
+    if transcode_mp4(final_webm, mp4):
         log(f"mp4: {mp4} ({mp4.stat().st_size} bytes)")
+        results["video"]["mp4"] = {"mp4": repo_rel(mp4), "bytes": mp4.stat().st_size}
     else:
-        log("WARN: no ffmpeg found — leaving the .webm only")
+        # The mp4 is a convenience for a human reader; the webm is the evidence.
+        # CI has no system ffmpeg, and Playwright's trimmed build cannot mux mp4,
+        # so on CI this branch is the normal one and must not fail the leg.
+        results["video"]["mp4_note"] = (
+            "not produced: no ffmpeg on this host could mux mp4 (Playwright's bundled "
+            "build is trimmed). The .webm next to this file is the recorded evidence."
+        )
+        log("WARN: no mp4 produced (see mp4_note in the evidence) — the .webm is the evidence")
 
     (OUT / "venue-discovery-e2e.json").write_text(json.dumps(results, indent=2) + "\n")
     log("wrote docs/e2e/venue-discovery-e2e.json")
     print("\n=== E2E RESULT ===")
     for slug, v in results["venue_pages"].items():
         if v.get("skipped"):
-            print(f"{slug}: {v['announced_url']} -> SKIPPED ({v['skipped']}) — the deep-link was verified in the DOM")
+            print(f"{slug}: {v['announced_url']} -> SKIPPED ({v['skipped']}) — the deep-link was "
+                  f"verified in the DOM; the venue's own page was NOT opened")
+        elif v.get("challenged"):
+            print(f"{slug}: {v['announced_url']} -> CHALLENGED (title={v['title']!r}) — the venue's "
+                  f"own page was NOT reached")
         else:
             print(f"{slug}: {v['announced_url']} -> HTTP final {v['final_url']} | title={v['title']!r}")
+    challenged = [s for s, v in results["venue_pages"].items() if v.get("challenged")]
     if results["venue_pages_skipped"]:
         print("NOTE: the venue click-through was SKIPPED — this run does NOT prove the venues' own pages open.")
+    elif challenged:
+        print(f"NOTE: {' and '.join(challenged)} answered with a bot challenge — this run does NOT "
+              f"prove that venue's own page opens. The deep-links themselves WERE verified in the DOM.")
     return 0
 
 

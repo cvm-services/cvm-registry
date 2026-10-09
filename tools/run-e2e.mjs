@@ -25,6 +25,8 @@
 //
 // Env:
 //   E2E_ALLOW_SKIP=1     downgrade skips from exit 3 to a loud non-fatal warning
+//   E2E_VENUE_PAGES=1    attempt the click-through to the venues' own pages even
+//                        without a headed browser (both are Cloudflare-gated)
 //   E2E_LIVE_URL         live dashboard origin (default https://cvm.orangesync.tech)
 //   E2E_LOCAL_PORT       loopback port for the provisioned dashboard (default 8099)
 //   E2E_CHROMIUM         explicit Chromium binary (honoured by the child scripts)
@@ -274,29 +276,60 @@ async function main() {
 
   if (hermetic && server) {
     const py = browserOk ? resolvePython() : null;
-    const venueSafe = (spawnSync("curl", ["--fail", "--silent", "--max-time", "10", "-o", "/dev/null", VENUE_URLS[0]], { stdio: "ignore" }).status === 0) ? true : false;
+    // Headed Chrome under xvfb is the Cloudflare-safe path the capture used; it
+    // needs BOTH a display and the system Chrome. Otherwise run headless.
+    const headed = Boolean(xvfbRun && systemChrome);
+
+    // `curl` reaching a page is NOT the same as that page being testable: both
+    // venue sites sit behind Cloudflare, which answers a bot with HTTP 200 and an
+    // interstitial ("Just a moment..."). The headless shell is challenged where
+    // headed Chrome is not, so a click-through run under it fails for a reason
+    // that has nothing to do with this repo — and CI's own log showed the runner
+    // recording pizza's page as `title='Just a moment...'` while calling the leg
+    // a PASS. That is the shape of failure this suite exists to kill.
+    //
+    // So: probe EVERY venue (one clear venue says nothing about the other) and
+    // attempt the click-through only when the pages answer cleanly AND we have a
+    // browser that can read them — or when E2E_VENUE_PAGES=1 explicitly says to
+    // try anyway. The honest default is to verify the deep-link in the rendered
+    // DOM and say plainly, and loudly, that the venue's own page was not opened.
+    const challenge = /just a moment|attention required|checking your browser|cf-chl/i;
+    const probes = VENUE_URLS.map((url) => {
+      const reached = spawnSync("curl", ["--fail", "--silent", "--max-time", "10", "-o", "/dev/null", url], { stdio: "ignore" }).status === 0;
+      if (!reached) return "unreachable";
+      const html = spawnSync("curl", ["--silent", "--max-time", "10", "-L", url], { encoding: "utf8", maxBuffer: 2_000_000 });
+      return challenge.test(html.stdout ?? "") ? "challenged" : "clear";
+    });
+    const wantVenue = process.env.E2E_VENUE_PAGES === "1";
+    const pagesClean = probes.every((p) => p === "clear");
+    const venueSafe = pagesClean && (headed || wantVenue);
     if (!py) {
       record("e2e/venue_deep_link_e2e.py", "hermetic", "FAIL", "no Python with Playwright (declare it in requirements-e2e.txt)");
     } else {
       const args = ["e2e/venue_deep_link_e2e.py"];
-      // Headed Chrome under xvfb is the Cloudflare-safe path the capture used; it
-      // needs BOTH a display and the system Chrome. Otherwise run headless.
-      const headed = Boolean(xvfbRun && systemChrome);
       if (headed) args.push("--headed");
       if (!venueSafe) {
         args.push("--skip-venue-pages");
+        const why = !pagesClean
+          ? `the venue pages do not answer cleanly from this host (probe: ${probes.join("/")})`
+          : `this host has no headed browser (xvfb-run + system Chrome) and the headless shell is Cloudflare-challenged; set E2E_VENUE_PAGES=1 to attempt it anyway`;
         console.log("\n[e2e] ###############################################################");
-        console.log("[e2e] # SKIP — the venue pages are unreachable from this host.     #");
-        console.log("[e2e] # The dashboard + deep-link assertions still run; the        #");
-        console.log("[e2e] # click-through to the venue's own page is NOT verified.     #");
-        console.log("[e2e] ###############################################################\n");
+        console.log("[e2e] # NOT VERIFIED — the venue pages are not opened.            #");
+        console.log("[e2e] # The dashboard + the announced deep-link are asserted in   #");
+        console.log("[e2e] # the DOM; the click-through to the venue's own page is NOT.#");
+        console.log("[e2e] ###############################################################");
+        for (const [i, url] of VENUE_URLS.entries()) say(`venue page probe ${i + 1}/${VENUE_URLS.length}: ${probes[i]} — ${url}`);
+        say(`venue click-through not attempted: ${why}`);
       }
       const env = { ...process.env, E2E_BASE_URL: localBase };
       const cmd = headed ? xvfbRun : py.cmd;
       const argv = headed ? ["-a", py.cmd, ...args] : args;
       say(`python: ${py.note}; ${headed ? "headed Chrome under xvfb" : "headless"}; base ${localBase}`);
       const r = await run(cmd, argv, { cwd: ROOT, env });
-      const detail = r.status === 0 ? `provisioned dashboard, ${headed ? "headed" : "headless"}${venueSafe ? "" : ", venue pages skipped"}` : failNote(r);
+      const detail = r.status !== 0
+        ? failNote(r)
+        : `provisioned dashboard, ${headed ? "headed" : "headless"}` +
+          (venueSafe ? "" : `, venue click-through NOT verified (${pagesClean ? "no headed browser" : probes.join("/")})`);
       record("e2e/venue_deep_link_e2e.py", "hermetic", r.status === 0 ? "PASS" : "FAIL", detail);
     }
   }
@@ -342,9 +375,18 @@ function report() {
   const pass = results.filter((r) => r.status === "PASS").length;
   const fail = results.filter((r) => r.status === "FAIL");
   const skip = results.filter((r) => r.status === "SKIP");
+  // A leg can pass every assertion it ran while a NAMED sub-assertion was not
+  // verified (the venue click-through, when the third-party site is behind a bot
+  // wall). That is not a skip of the leg and it is not a failure, but it must be
+  // visible in the summary itself — otherwise the verdict reads "every leg ran and
+  // passed" while a reader who only sees the summary believes the venue pages were
+  // opened. Say it here, in the same block as the verdict.
+  const partial = results.filter((r) => r.status === "PASS" && /NOT verified/i.test(r.detail ?? ""));
   console.log("\n=== E2E SUMMARY ===");
   for (const r of results) console.log(`  ${r.status.padEnd(4)} ${r.phase.padEnd(8)} ${r.leg}${r.detail ? ` — ${r.detail}` : ""}`);
   console.log(`  ${pass} passed, ${fail.length} failed, ${skip.length} skipped`);
+  for (const r of partial) console.log(`  NOTE: ${r.leg} — a named sub-assertion was NOT verified: ${r.detail}`);
+  if (partial.length) console.log(`  NOTE: ${partial.length} leg(s) carried an un-verified sub-assertion; the verdict covers only what ran.`);
   if (fail.length === 0 && skip.length === 0) {
     console.log("  verdict: PASS — every leg ran and passed");
     process.exitCode = 0;

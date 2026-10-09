@@ -1,7 +1,7 @@
 {
   "catalog": "site/catalog.json",
   "base": "http://127.0.0.1:8099",
-  "venue_pages_skipped": false,
+  "venue_pages_skipped": true,
   "entries": {
     "pizza-e-pasta-ruedesheimerplatz": {
       "event_id": "7767889b1ac103537cade59a4376af5b14e3ceeab932b86050b831f613314cae",
@@ -53,15 +53,11 @@
   "venue_pages": {
     "doppelt-kaese-berlin": {
       "announced_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
-      "final_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
-      "title": "FoodAmigos - Order online",
-      "body_head": "Opens Today 00:00\n\nEnglish\nSign in\nSign up\n\nMenu\n\nStore Info\n\nHome\n\nPickup\n\nDelivery\n\nPickup at\n|\nUnavailable\nNo items available yet\n\nThis menu doesn\u2019t have anything to show right now. Please check back soon.\n\nAddress\n\nContact\n\nTerms of Use\n\nPrivacy Policy\n\nCookie Policy\n\nCookie Settings\n\nImpressum\n\n\u00a9 2026 All Rights Reserved\n\nMade with FoodAmigos\n\nBy using this website you agree to our Cookie Policy.\nAccept\nReject"
+      "skipped": "venue host unreachable from this host at run time"
     },
     "pizza-e-pasta-ruedesheimerplatz": {
       "announced_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
-      "final_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
-      "title": "Essen bestellen bei Pizza e Pasta in Berlin",
-      "body_head": "Speisekarte anzeigen\nRestaurant Info\nAnmeldung\nWillkommen in unserem neuen Shop!\n\nVielen Dank f\u00fcr deinen Besuch auf der neuen Website von unserem Restaurant Pizza e Pasta! Wir freuen uns darauf, dir k\u00f6stliche Speisen zu servieren.\n\nPizza e Pasta\nRu\u0308desheimer Str. 9, 14197 Berlin\nOffen f\u00fcr Abholung 12:00 - 23:00\nVorbereitungsdauer 20 min\nSpeisekarte anzeigen\n\u2764\ufe0f Die beliebtesten Produkte\nSalat / Vorspeisen\nPasta und Nudelgerichte\nSteinofenpizza\nVegane Pizza\nDessert\nAlkoholfreie Getr\u00e4nke\nAlkoholische Getr\u00e4nke | Bier\nAlkoholische Getr\u00e4nke | Wein\nAlkoholische Getr\u00e4nke | Flaschenweine\nProdukt suchen"
+      "skipped": "venue host unreachable from this host at run time"
     }
   },
   "browser": {
@@ -71,6 +67,10 @@
   },
   "video": {
     "webm": "docs/e2e/venue-discovery-e2e.webm",
-    "bytes": 5271663
+    "bytes": 490582,
+    "mp4": {
+      "mp4": "docs/e2e/venue-discovery-e2e.mp4",
+      "bytes": 403855
+    }
   }
 }
