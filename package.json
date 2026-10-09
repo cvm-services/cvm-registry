@@ -1,0 +1,13 @@
+{
+  "name": "cvm-registry-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Browser end-to-end checks for cvm-registry",
+  "scripts": {
+    "e2e": "node tools/run-e2e.mjs"
+  },
+  "type": "module",
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

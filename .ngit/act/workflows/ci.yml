@@ -34,3 +34,16 @@ jobs:
       # cache. --allow-net is needed only for the loopback Deno.serve in
       # tests/link_check_test.ts — no external network is touched.
       - run: deno test --allow-read --allow-net --allow-env tests/
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@1e60f620b9541dca9e8b1d7a5c8c4b8e4d4f7f1d # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run e2e
