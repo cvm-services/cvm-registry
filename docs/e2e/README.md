@@ -38,6 +38,15 @@ Relay read-back after publish: exactly 2 events, kind 11317, distinct pubkeys
 Collector: `raw=2 deduped=2 kept=2 dropped=0`.
 Dashboard: `2 allow-listed announcement(s) from 3 curator(s), 2 shown after filters`.
 
+Re-running the suite **rewrites** the committed `venue-discovery-e2e.*` here: the
+`.webm`/`.mp4` byte counts change with every recording (measured: 1061464 → 901975
+bytes for the same 2-venue capture) and the two dashboard PNGs differ by a few
+hundred bytes. That churn is expected, not drift — the committed artifacts are
+from a real run of the code at `39e0959`, and a `git status` after a local run is
+normally non-empty for exactly these five paths. Don't "fix" it by ignoring the
+files: they are tracked on purpose, because this card exists to put the evidence
+in history rather than in an attachment.
+
 ## Video
 
 [`venue-discovery-e2e.mp4`](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/venue-discovery-e2e.mp4)
