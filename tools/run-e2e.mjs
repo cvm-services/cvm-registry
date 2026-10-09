@@ -41,7 +41,7 @@ if (live) {
     console.log("[e2e] Python Playwright is missing; installing the pinned package");
     run("pip install", python, ["-m", "pip", "install", "--user", "--break-system-packages", "--requirement", "requirements-e2e.txt"]);
   }
-  run("venue_deep_link_e2e.py", python, ["e2e/venue_deep_link_e2e.py", "--headless"]);
+  run("venue_deep_link_e2e.py", python, ["e2e/venue_deep_link_e2e.py"]);
 } else {
   skipLive("venue_deep_link_e2e.py", "live dashboard is unreachable");
 }
