@@ -75,8 +75,13 @@ Base before this run: `34209ac`. Branch head: `39e0959`.
   over. On a host where both venues answer cleanly with a headed browser, the
   click-through runs; the last green full run that exercised it was the
   full-fidelity capture whose stills are committed.
-- **The ngit CI run at the final head is not yet concluded** at the time of
-  writing; `791f5a4a` is green and the delta since is docs plus two code files.
+- **CI is green at `39e09593`, not at the literal branch tip.** `ngit ci status
+  39e09593` → `conclusion: success`, jobs `deno` + `e2e` success. Every commit
+  after that one (`254a090` and any later docs commit, including the one that
+  wrote this line) touches no code: Markdown only. So the code state CI measured
+  IS the branch's code state; the tip differs from it only in prose. Quoted this
+  way on purpose — a run at an earlier SHA is evidence about that SHA, and the
+  honest phrasing is "green at X, docs-only after X", not "green at HEAD".
 - **Review Q3/Q4 unanswered**: is a skip ever a pass (exit-code accounting), and
   does the CI gate/observational split hide anything a maintainer would want red?
   The reviewer ran out of completion budget. Recorded as the first item in
