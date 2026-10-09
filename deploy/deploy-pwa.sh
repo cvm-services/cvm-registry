@@ -31,6 +31,12 @@ echo "== ship to $HOST:$DEST"
 tar -C "$BUNDLE" -cf - . | ssh "${SSH_OPTS[@]}" "$HOST" \
   "sudo mkdir -p $DEST && sudo tar -C $DEST -xf - && sudo chown -R root:root $DEST"
 
+# Caddy runs as user 'caddy' and must be able to traverse and read the tree.
+# Without this every request 403s and the deploy LOOKS fine (files are present)
+# - observed 2026-10-09 on the first cvm-pwa deploy.
+ssh "${SSH_OPTS[@]}" "$HOST" \
+  "sudo find $DEST -type d -exec chmod 755 {} + && sudo find $DEST -type f -exec chmod 644 {} +"
+
 echo "== caddy site block for $DOMAIN"
 ssh "${SSH_OPTS[@]}" "$HOST" "sudo bash -s" <<REMOTE
 set -euo pipefail

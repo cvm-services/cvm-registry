@@ -17,6 +17,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$HERE/../.." && pwd)"
 EMU_HOST="${EMU_HOST:-}"
+EXTERNAL_URL="${EXTERNAL_URL:-}"
 AVD="${AVD:-wa-dev}"
 PORT="${PORT:-8099}"
 URL_HOST="${URL_HOST:-}"
@@ -30,6 +31,7 @@ while [ $# -gt 0 ]; do
     --port) PORT="$2"; shift ;;
     --url-host) URL_HOST="$2"; shift ;;
     --out) OUT="$2"; shift ;;
+    --external-url) EXTERNAL_URL="$2"; shift ;;
     --keep) KEEP=1 ;;
     -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
@@ -41,12 +43,17 @@ done
 
 SSH_OPTS=(-o BatchMode=yes -o ConnectTimeout=10)
 
+if [ -n "$EXTERNAL_URL" ]; then
+  echo "== 1/6 external URL mode: driving $EXTERNAL_URL (no local serve)"
+else
 echo "== 1/6 serve the PWA ($REPO_ROOT) on 0.0.0.0:$PORT"
 ( cd "$REPO_ROOT" && python3 -m http.server "$PORT" --bind 0.0.0.0 >/tmp/pwa-emulator-http.log 2>&1 & echo $! >/tmp/pwa-emulator-http.pid )
 sleep 2
 cleanup() { [ "$KEEP" = 1 ] || kill "$(cat /tmp/pwa-emulator-http.pid 2>/dev/null)" 2>/dev/null || true; }
 trap cleanup EXIT
 curl -fsS -o /dev/null "http://127.0.0.1:$PORT/site/order/" && echo "   serving OK"
+fi
+TARGET_URL="${EXTERNAL_URL:-http://$URL_HOST:$PORT/site/order/}"
 
 echo "== 2/6 ensure uiautomator2 on $EMU_HOST"
 ssh "${SSH_OPTS[@]}" "$EMU_HOST" 'python3 -c "import uiautomator2" 2>/dev/null || pip3 install --user --break-system-packages -q uiautomator2'
@@ -57,7 +64,7 @@ ssh "${SSH_OPTS[@]}" "$EMU_HOST" "bash /tmp/emu_boot_and_wait.sh $AVD"
 
 echo "== 5/6 drive the PWA"
 mkdir -p "$OUT"
-ssh "${SSH_OPTS[@]}" "$EMU_HOST" "rm -rf /tmp/pwa-shots && python3 /tmp/drive_pwa.py --url http://$URL_HOST:$PORT/site/order/ --out /tmp/pwa-shots"
+ssh "${SSH_OPTS[@]}" "$EMU_HOST" "rm -rf /tmp/pwa-shots && python3 /tmp/drive_pwa.py --url $TARGET_URL --out /tmp/pwa-shots"
 
 echo "== 6/6 collect screenshots -> $OUT"
 scp -q "${SSH_OPTS[@]}" "$EMU_HOST:/tmp/pwa-shots/*.png" "$OUT/" 2>/dev/null || echo "   WARN: no screenshots collected"
