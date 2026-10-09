@@ -67,10 +67,10 @@
   },
   "video": {
     "webm": "docs/e2e/venue-discovery-e2e.webm",
-    "bytes": 490582,
+    "bytes": 1061464,
     "mp4": {
       "mp4": "docs/e2e/venue-discovery-e2e.mp4",
-      "bytes": 403855
+      "bytes": 567811
     }
   }
 }

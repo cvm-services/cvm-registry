@@ -326,10 +326,32 @@ async function main() {
       const argv = headed ? ["-a", py.cmd, ...args] : args;
       say(`python: ${py.note}; ${headed ? "headed Chrome under xvfb" : "headless"}; base ${localBase}`);
       const r = await run(cmd, argv, { cwd: ROOT, env });
+      // Our probe decides whether to ATTEMPT the click-through; the leg's own
+      // evidence decides whether it actually happened. Trust the second one: a
+      // venue page can answer curl `clear` from this host and still be challenged
+      // in the real browser (Cloudflare fingerprints the client, not the bytes),
+      // and that is exactly the silent green this suite exists to catch. Without
+      // this read-back the leg's own `NOT VERIFIED`/`CHALLENGED` lines go to the
+      // child's stdout — which is inherited, so the summary never saw them and
+      // reported a clean PASS for a page that never loaded.
+      let unverified = venueSafe
+        ? null
+        : (pagesClean ? "no headed browser" : probes.join("/"));
+      if (venueSafe) {
+        try {
+          const evidence = JSON.parse(readFileSync(join(ROOT, "docs", "e2e", "venue-discovery-e2e.json"), "utf8"));
+          const bad = Object.entries(evidence?.venue_pages ?? {})
+            .filter(([, v]) => v?.challenged || v?.skipped)
+            .map(([slug, v]) => `${slug} (${v?.challenged ? "challenged" : "skipped"})`);
+          if (bad.length) unverified = `the leg itself reports ${bad.join(", ")}`;
+        } catch {
+          // No evidence file: the leg already failed on its own; failNote says why.
+        }
+      }
       const detail = r.status !== 0
         ? failNote(r)
         : `provisioned dashboard, ${headed ? "headed" : "headless"}` +
-          (venueSafe ? "" : `, venue click-through NOT verified (${pagesClean ? "no headed browser" : probes.join("/")})`);
+          (unverified === null ? "" : `, venue click-through NOT verified (${unverified})`);
       record("e2e/venue_deep_link_e2e.py", "hermetic", r.status === 0 ? "PASS" : "FAIL", detail);
     }
   }

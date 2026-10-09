@@ -126,6 +126,16 @@ A literal clean-clone run — `git clone` into an empty directory, `npm ci`,
 [`clean-clone-transcript.txt`](clean-clone-transcript.txt): exit 0, 4 passed,
 0 failed, 0 skipped, with the browser fallback shown rather than assumed.
 
+There is also a fast check with no browser, no relay and no network:
+
+```bash
+python3 e2e/transcode_mp4_selftest.py    # 4/4 — evidence transcoding is never fatal
+```
+
+It pins the contract that a missing `ffmpeg` degrades the evidence and never the
+run — the bug that made the `e2e` job red in CI. Case 2 reproduces that failure
+exactly (Playwright's bundled build rejects `-movflags +faststart` with exit 8).
+
 ### One sub-assertion can be NOT verified inside a passing leg
 
 The click-through to the venues' **own** pages is the one thing this suite cannot

@@ -133,7 +133,14 @@ def transcode_mp4(webm: pathlib.Path, mp4: pathlib.Path) -> bool:
         for extra in (["-movflags", "+faststart"], []):
             if mp4.exists():
                 mp4.unlink()
-            r = subprocess.run([ffmpeg, *base, *extra, str(mp4)], capture_output=True, text=True)
+            try:
+                r = subprocess.run([ffmpeg, *base, *extra, str(mp4)], capture_output=True, text=True)
+            except OSError as exc:
+                # `which` said it exists and the exec still failed (races, no-exec
+                # mount, ENOMEM). This is the same class of accident as a missing
+                # binary, and it must not be the one thing that fails the leg.
+                log(f"WARN: mp4 transcode could not run {ffmpeg}: {exc.__class__.__name__}: {exc}")
+                continue
             if r.returncode == 0 and mp4.exists() and mp4.stat().st_size > 0:
                 return True
             tail = (r.stderr or "").strip().splitlines()

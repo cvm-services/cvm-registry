@@ -77,9 +77,25 @@ one commit behind (`cc4cb78`).
 
 ## REMAINING
 
-1. Cold cross-family review of the branch diff, findings answered or fixed.
+1. Second cold-review round (budget-sufficient): the unanswered questions are
+   exit-code accounting (is a skip ever a pass?) and whether the CI gate /
+   observational split hides anything a maintainer would want red. Round 1 and
+   what it found are written up in `docs/e2e/cold-review.md`.
 2. Publish the review verdict + the evidence links on the PR, then merge
    `wt/cvm-e2e-runnable` -> `main`.
 3. Out of scope for this card (different repo): dual-publish `pr/s5c-playwright-e2e`
    (cb1b12f, NOSMS repo) to ngit. The card premise is already corrected by the
    `ls-remote` evidence above, and the proof now also lives in this repo (`37eda21`).
+
+## Round 1 findings, answered (no un-pushed work)
+
+- Reviewer (`kimi-k3:cloud` requested, `deepseek-flash` served) found a real
+  silent-green: the harness decided the summary's NOT-VERIFIED note from its own
+  probe, while the leg decided what the browser actually saw — and the leg's
+  stdout is inherited, so the summary never saw it. A page can answer curl
+  `clear` and still be challenged in Chrome. Fixed by reading the leg's own
+  evidence back (`docs/e2e/venue-discovery-e2e.json`) and proven differentially:
+  probe-clear + leg-challenged -> NOTE appears; leg-verified -> no NOTE.
+- Reading it for Q2 found an unguarded `subprocess.run` in `transcode_mp4` (a
+  which()-found binary that the OS refuses to exec would still fail the leg).
+  Wrapped; `e2e/transcode_mp4_selftest.py` now pins all four cases, 4/4.
