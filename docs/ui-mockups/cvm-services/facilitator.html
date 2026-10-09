@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facilitator — running ContextVMs (mockup)</title>
+<style>
+  :root{--bg:#f6f5f2;--card:#fff;--ink:#1c1b18;--dim:#6f6b62;--line:#e7e4dd;
+        --accent:#7c3aed;--accentbg:#f3edff;--ok:#15803d;--okbg:#ecfdf3;--off:#9a958a;--offbg:#f1efea;
+        --warn:#b45309;--warnbg:#fffbeb}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .screen{display:none;width:1280px;min-height:800px;grid-template-columns:210px 1fr 340px}
+  .screen.on{display:grid}
+  aside{background:#fff;border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+  .brand{font-weight:700;font-size:15px;letter-spacing:-.01em;padding:2px 8px 14px}
+  .brand small{display:block;font-weight:400;color:var(--off);font-size:11px;margin-top:2px}
+  .nv{padding:9px 10px;border-radius:10px;font-size:13.5px;color:#4a463f;display:flex;gap:9px;align-items:center}
+  .nv.on{background:var(--accentbg);color:#5b21b6;font-weight:600}
+  .nv .b{flex:1}
+  main{padding:20px 22px;overflow:hidden}
+  h1{font-size:20px;letter-spacing:-.02em}
+  .sub{font-size:12.5px;color:var(--dim);margin-top:3px}
+  .bar{display:flex;gap:10px;align-items:center;margin:14px 0 12px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#fff}
+  .seg i{padding:8px 13px;font-size:12.5px;font-style:normal;color:var(--dim)}
+  .seg i.on{background:var(--accent);color:#fff;font-weight:600}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+  .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--off)}
+  .kpi .v{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-top:5px}
+  .kpi .v.fiat{font-size:12px;color:var(--off);font-weight:400;margin-top:1px}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--off);padding:10px 12px;border-bottom:1px solid var(--line);font-weight:600}
+  td{padding:12px;border-bottom:1px solid #f2f0ec;font-size:13px;vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  tr.sel td{background:var(--accentbg)}
+  .chip{font-size:11px;border-radius:99px;padding:3px 9px;border:1px solid var(--line);color:var(--dim);background:#fff;white-space:nowrap}
+  .chip.ok{color:var(--ok);background:var(--okbg);border-color:#cdeed9}
+  .chip.warn{color:var(--warn);background:var(--warnbg);border-color:#fde68a}
+  .chip.off{color:var(--off);background:var(--offbg)}
+  .sat{font-weight:700}.fiat{color:var(--off);font-size:12px}
+  .aside-pane{background:#fbfaf8;border-left:1px solid var(--line);padding:18px 16px;display:flex;flex-direction:column;gap:12px}
+  .pane-h{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--off)}
+  .box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .box h3{font-size:14px;letter-spacing:-.01em}
+  .box p{font-size:12.5px;color:var(--dim);margin-top:4px;line-height:1.45}
+  .btn{border:0;border-radius:12px;padding:12px;font-size:13.5px;font-weight:650;background:var(--accent);color:#fff;width:100%}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:8px 12px;width:auto;font-size:12.5px}
+  .ext{border:1px dashed #d8d4cb;border-radius:10px;padding:10px;font-size:12px;color:var(--dim);background:#fff}
+  .ext b{color:var(--ink)}
+  .kv{display:grid;grid-template-columns:112px 1fr;gap:6px 10px;font-size:12px}
+  .kv dt{color:var(--off)}
+  .kv dd{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;word-break:break-all}
+  .money{display:grid;gap:10px}
+  .mline{display:flex;align-items:baseline;gap:8px;padding:11px 0;border-bottom:1px solid #f2f0ec;font-size:13.5px}
+  .mline:last-child{border-bottom:0}
+  .mline .lbl{flex:1;color:#4a463f}
+  .refund{background:var(--warnbg);border:1px solid #fde68a;border-radius:12px;padding:12px}
+  .refund .v{font-size:17px;font-weight:700;color:var(--warn)}
+</style>
+</head>
+<body><div id="app"></div>
+<script>
+const RATE = {sat_per_eur:1000, label:"1 € ≈ 1 000 sats"};
+const SERVICES = [
+  {id:"sms", name:"SMS via nosms", class:"sms", status:"live", ann:"announced 4m ago",
+   sats:500, calls24:118, rev24:59000, rail:"JMP/Cheogram (own line)", cap:"cap:tool:sms.send:500:sats",
+   note:"Best-effort carrier rail: no delivery receipts. Postage is refunded when the rail refuses."},
+  {id:"wa",  name:"WhatsApp via nosms", class:"whatsapp", status:"off", ann:"not announced",
+   sats:900, calls24:0, rev24:0, rail:"Android emulator (unregistered)", cap:"cap:tool:wa.send:900:sats",
+   note:"Blocked: no registered WhatsApp account on the device. Not announced — a rail we cannot build we must not describe."},
+  {id:"charge", name:"EV charging", class:"charging", status:"live", ann:"announced 11m ago",
+   sats:1200, calls24:41, rev24:49200, rail:"venue API (facilitator relays)", cap:"cap:tool:charge.start:1200:sats",
+   note:"Facilitator starts the session by hand in the venue's own portal, then the code path marks it done."}
+];
+const QUEUE = [
+  {id:"nq3f8xk", svc:"SMS via nosms", who:"customer npub1k9…", ago:"2 min", sla:"ok", sats:500,
+   state:"awaiting run", what:"+49 ••• •••123 · “Package is at the door.”"},
+  {id:"nq3f7bp", svc:"EV charging", who:"customer npub17d…", ago:"14 min", sla:"warn", sats:1200,
+   state:"needs you", what:"Berlin-Mitte point 4412 · 4 kWh · start it in the venue portal"},
+  {id:"nq3f6aa", svc:"SMS via nosms", who:"customer npub1z2…", ago:"31 min", sla:"warn", sats:500,
+   state:"refund owed", what:"Rail refused the number (landline). 500 sats refund pending."},
+  {id:"nq3f51q", svc:"EV charging", who:"customer npub1qq…", ago:"1 h", sla:"late", sats:1200,
+   state:"settled", what:"Session ended, fiat paid at the venue: 2,40 €"}
+];
+const S = () => parseInt(new URLSearchParams(location.search).get("s")||"1",10);
+const nav = on => `<aside>
+  <div class="brand">CVM Console<small>facilitator · 3 services</small></div>
+  ${[["Queue","▤","1"],["Money","◎","2"],["Services","▦","3"]].map(([n,i,s]) =>
+    `<div class="nv${on===s?" on":""}" onclick="location='?s=${s}'"><span>${i}</span><span class="b">${n}</span></div>`).join("")}
+  <div class="grow"></div>
+  <div class="nv"><span>◍</span><span class="b">Wallet 84 200 sats</span></div>
+</aside>`;
+
+function s1(){
+  return `${nav("1")}<main>
+    <h1>Queue</h1><div class="sub">Everything you owe a customer, oldest first.</div>
+    <div class="bar"><div class="seg"><i class="on">Needs you (2)</i><i>Running</i><i>Settled</i></div>
+      <span class="chip warn">1 refund owed</span><span class="chip">4 today</span></div>
+    <table><thead><tr><th>Request</th><th>Service</th><th>Customer</th><th>Age</th><th>Value</th></tr></thead>
+    <tbody>${QUEUE.map((q,i) => `<tr class="${i===1?"sel":""}">
+      <td><b>${q.id}</b><div class="fiat" style="margin-top:3px">${q.what}</div></td>
+      <td>${q.svc}<div style="margin-top:5px"><span class="chip ${q.state==="refund owed"?"warn":q.state==="settled"?"ok":"off"}">${q.state}</span></div></td>
+      <td class="fiat">${q.who}</td>
+      <td><span class="chip ${q.sla==="ok"?"":q.sla==="warn"?"warn":"off"}">${q.ago}</span></td>
+      <td><span class="sat">${q.sats} sats</span><div class="fiat">${(q.sats/1000).toFixed(2).replace('.',',')} €</div></td></tr>`).join("")}
+    </tbody></table></main>
+    ${pane1()}`;
+}
+function pane1(){
+  return `<div class="aside-pane">
+    <div class="pane-h">Selected</div>
+    <div class="box"><h3>nq3f7bp · EV charging</h3>
+      <p>Paid 1 200 sats. Start the session in the venue's own portal, then mark it done.</p>
+      <dl class="kv" style="margin-top:10px"><dt>point</dt><dd>4412 Berlin-Mitte</dd>
+        <dt>budget</dt><dd>4 kWh</dd><dt>paid</dt><dd>1 200 sats · 1,20 €</dd></dl></div>
+    <div class="box"><h3>Do it where it actually happens</h3>
+      <div class="ext"><b>venue portal →</b> chargepoint-berlin.de/session/4412
+        <div style="margin-top:6px">opens in a new tab; the console does not pretend to drive it</div></div></div>
+    <div class="grow"></div>
+    <button class="btn">Mark done &amp; settle 1 200 sats</button>
+    <button class="btn ghost">Refund the customer</button></div>`;
+}
+function s2(){
+  return `${nav("2")}<main>
+    <h1>Money</h1><div class="sub">Last 24 h · sats first, fiat underneath.</div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Postage collected</div><div class="v">113 200 sats</div><div class="v fiat">113,20 €</div></div>
+      <div class="kpi"><div class="k">Fees kept</div><div class="v">11 320 sats</div><div class="v fiat">11,32 € · 10%</div></div>
+      <div class="kpi"><div class="k">Fiat you spent</div><div class="v">38,40 €</div><div class="v fiat">38 400 sats equivalent</div></div>
+      <div class="kpi"><div class="k">Refunds owed</div><div class="v" style="color:#b45309">1 000 sats</div><div class="v fiat">1,00 € · 2 requests</div></div>
+    </div>
+    <table><thead><tr><th>Service</th><th>Calls 24 h</th><th>Postage</th><th>Your cost</th><th>Margin</th></tr></thead>
+    <tbody>
+      <tr><td>SMS via nosms</td><td>118</td><td><span class="sat">59 000 sats</span></td><td class="fiat">5,90 € (JMP plan)</td><td><span class="chip ok">+5 300 sats</span></td></tr>
+      <tr><td>EV charging</td><td>41</td><td><span class="sat">49 200 sats</span></td><td class="fiat">32,50 € (venue)</td><td><span class="chip ok">+6 020 sats</span></td></tr>
+      <tr><td>WhatsApp via nosms</td><td>0</td><td><span class="sat">0 sats</span></td><td class="fiat">—</td><td><span class="chip off">not announced</span></td></tr>
+    </tbody></table></main>
+    <div class="aside-pane"><div class="pane-h">Refunds</div>
+      <div class="refund"><div class="v">2 owed · 1 000 sats</div>
+        <p style="font-size:12px;color:#7c4a02;margin-top:6px">A refund is a state, not an error: the rail
+          refused or the run failed. Pay it from the wallet in one tap.</p></div>
+      <div class="box"><h3>nq3f6aa</h3><p>Landline number — the rail refused it. 500 sats.</p>
+        <button class="btn sm" style="margin-top:9px">Refund 500 sats</button></div>
+      <div class="box"><h3>nq3f2ke</h3><p>Customer cancelled before the run. 500 sats.</p>
+        <button class="btn sm" style="margin-top:9px">Refund 500 sats</button></div>
+      <div class="grow"></div><div class="pane-h">Rate</div>
+      <div class="box" style="font-size:12px;color:var(--dim)">${RATE.label} — display only.
+        The venue's fiat number stays the source of truth.</div></div>`;
+}
+function s3(){
+  return `${nav("3")}<main>
+    <h1>Services</h1><div class="sub">What you offer, what it costs, and whether it is actually reachable.</div>
+    <div class="bar"><span class="chip ok">2 announced</span><span class="chip off">1 not announced</span>
+      <span class="chip">relays: contextvm.org · relay2 · primal</span></div>
+    <table><thead><tr><th>Service</th><th>Rail</th><th>Announcement</th><th>Price</th><th>24 h</th><th></th></tr></thead>
+    <tbody>${SERVICES.map(s => `<tr>
+      <td><b>${s.name}</b><div class="fiat" style="margin-top:3px">t=cvm:service:${s.class}</div></td>
+      <td>${s.rail}<div style="margin-top:5px"><span class="chip ${s.status==="live"?"ok":"off"}">${s.status==="live"?"live":"unavailable"}</span></div></td>
+      <td class="fiat">${s.ann}</td>
+      <td><span class="sat">${s.sats} sats</span><div class="fiat">${(s.sats/1000).toFixed(2).replace('.',',')} €</div></td>
+      <td>${s.calls24}<div class="fiat">${s.rev24} sats</div></td>
+      <td>${s.status==="live"?`<button class="btn sm ghost">Pause</button>`:`<button class="btn sm ghost" disabled>Paused</button>`}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="box" style="margin-top:14px"><h3>${SERVICES[1].note}</h3></div></main>
+    <div class="aside-pane"><div class="pane-h">Capabilities you publish</div>
+      <div class="box"><p>These are the honest flags a customer sees before paying. They are not marketing.</p>
+        <dl class="kv" style="margin-top:10px"><dt>SMS</dt><dd>delivery_receipts=false</dd>
+          <dt>WhatsApp</dt><dd>available=false</dd><dt>Charging</dt><dd>delivery_receipts=true</dd>
+          <dt>countries</dt><dd>US, CA, DE</dd><dt>settlement</dt><dd>Cashu (bitcoin-cashu)</dd></dl></div>
+      <div class="box"><h3>Announce command</h3><p>Publishes the CEP-6 tag set. The registry
+        renders it on cvm.orangesync.tech only if your npub is allow-listed.</p>
+        <button class="btn sm" style="margin-top:9px">Announce now</button></div>
+      <div class="grow"></div>
+      <div class="box"><h3>npub allow-list</h3><p class="fiat" style="font-family:ui-monospace,Menlo,monospace">
+        npub1al953lfy…nxsd9q6lw3w9</p></div></div>`;
+}
+document.getElementById("app").innerHTML = [s1,s2,s3][Math.max(0,Math.min(2,S()-1))]();
+document.title = "Facilitator — running ContextVMs (s" + S() + ")";
+</script></body></html>
