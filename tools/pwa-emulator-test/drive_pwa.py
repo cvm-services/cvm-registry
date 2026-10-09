@@ -90,6 +90,15 @@ def main() -> int:
     d.settings["wait_timeout"] = 8.0
     print(f"[drive] device={d.info.get('productName')} size={d.window_size()}")
 
+    # A cold guest + a stale Chrome process ANRs Chrome on the first launch
+    # ("Chrome isn't responding", nothing rendered). Force-stop and let the
+    # device settle first; measured 2026-10-09 against the deployed site.
+    try:
+        d.shell(["am", "force-stop", "com.android.chrome"])
+    except Exception as exc:
+        print(f"[drive] force-stop failed: {exc}")
+    time.sleep(10)
+
     d.shell(["am", "start", "-a", "android.intent.action.VIEW", "-d", args.url])
     clear_dialogs(d)
     # launch again now the dialogs are gone - the first launch was eaten by them
