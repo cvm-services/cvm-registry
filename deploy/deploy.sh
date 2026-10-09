@@ -15,8 +15,6 @@ RELAYS="${RELAYS:-wss://relay.damus.io,wss://relay2.orangesync.tech}"
 BUNDLE=$(mktemp -d /tmp/cvm-bundle-XXXX)
 mkdir -p "$BUNDLE/site/render" "$BUNDLE/collector" "$BUNDLE/vocab" "$BUNDLE/deploy"
 cp "$REPO"/site/index.html "$REPO"/site/app.js "$REPO"/site/style.css "$BUNDLE/site/"
-mkdir -p "$BUNDLE/site/console"
-cp "$REPO"/site/console.html "$BUNDLE/site/console/index.html"
 # The catalog-constrained renderer (ADR-0005). app.js pulls these in with a
 # dynamic import(), so forgetting them does not break the build — the page just
 # 404s them and every service view silently refuses. Ship them explicitly.
