@@ -56,6 +56,10 @@ import {
   indexAttestations,
   type Attestation,
 } from "./attestations.ts";
+import {
+  ACCESS_REQUEST_KIND,
+  dedupeAccessRequests,
+} from "./access_requests.ts";
 
 interface Args {
   relays: string[];
@@ -181,7 +185,7 @@ async function main() {
     relayStatus.push({ relay: `file:${args.input}`, ok: true, events: events.length, error: null });
   } else {
     const results = await Promise.all(
-      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND, ATTESTATION_KIND], args.limit, args.timeoutMs)),
+      args.relays.map((r) => fetchRelay(r, [...KINDS, REVIEW_KIND, ZAP_RECEIPT_KIND, ATTESTATION_KIND, ACCESS_REQUEST_KIND], args.limit, args.timeoutMs)),
     );
     for (const r of results) {
       events = events.concat(r.events);
@@ -207,6 +211,8 @@ async function main() {
   const reviewEvents = ingestable.filter((e) => e.kind === REVIEW_KIND);
   const zapEvents = ingestable.filter((e) => e.kind === ZAP_RECEIPT_KIND);
   const attestationEvents = ingestable.filter((e) => e.kind === ATTESTATION_KIND);
+  const requestEvents = ingestable.filter((e) => e.kind === ACCESS_REQUEST_KIND);
+  const requests = dedupeAccessRequests(requestEvents);
 
   const deduped = dedupe(serviceEvents);
   const { kept, dropped } = applyAllowList(deduped, allow.hex);
@@ -364,6 +370,9 @@ async function main() {
     entries: entriesWithReviews,
     // The same data grouped into services — what the page renders, one card each.
     services,
+    // Requests are curator-only review material. They are never allow-listed,
+    // grouped as services, attached to payments, or rendered on the public list.
+    requests: requests.slice(0, 100),
 
   };
 
