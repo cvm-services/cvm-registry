@@ -1,0 +1,169 @@
+{
+  "started_at": "2026-10-10T06:51:45.294Z",
+  "acts": [
+    {
+      "act": 1,
+      "name": "sign-in",
+      "at": "2026-10-10T06:52:01.570Z",
+      "screen": "queue",
+      "signed_events": 1,
+      "kind": 27235,
+      "tags": [
+        "u",
+        "method",
+        "payload"
+      ]
+    },
+    {
+      "act": 2,
+      "name": "queue",
+      "at": "2026-10-10T06:52:02.518Z",
+      "orders_in_queue": 2,
+      "sla_visible": true,
+      "pending_order_blocked": true,
+      "pending_gate_reason": "sats payment is \"pending\", not settled",
+      "place_button_enabled_for_pending": false
+    },
+    {
+      "act": 3,
+      "name": "placing",
+      "at": "2026-10-10T06:52:04.920Z",
+      "service_state": "placing",
+      "handoff_url": "https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708",
+      "receipt_inputs": 4,
+      "card_fields": 0
+    },
+    {
+      "act": 4,
+      "name": "card-custody refusal",
+      "at": "2026-10-10T06:52:10.104Z",
+      "typed": "PAN-shaped value (Luhn-valid test number)",
+      "refused_at": "receipt:payment_reference",
+      "transition_requests_sent": 0,
+      "pan_shaped_values_on_the_wire": 0,
+      "pan_in_device_storage": false,
+      "field_after_refusal": "empty",
+      "whole_form_cleared_by_refusal": true
+    },
+    {
+      "act": 5,
+      "name": "placed",
+      "at": "2026-10-10T06:52:13.022Z",
+      "service_state": "placed",
+      "venue_reference": "#4471",
+      "ready_at": "18:25",
+      "paid_with": "card at the venue terminal",
+      "payment_reference": "pi_3Qk9Zx2eZvKYlo2C",
+      "server_persisted_receipt": false,
+      "console_wording": "venue receipt captured on this device; the order service dropped the receipt field (persistence gap)"
+    },
+    {
+      "act": 6,
+      "name": "ready",
+      "at": "2026-10-10T06:52:15.095Z",
+      "service_state": "ready"
+    },
+    {
+      "act": 7,
+      "name": "settlements",
+      "at": "2026-10-10T06:52:17.108Z",
+      "receipt_visible": true,
+      "defect_observed": true,
+      "defect": "the receipt row and the 'fiat recorded as spent' / 'fees kept' sums join state.receipts against state.queue, which is paid-only; once an order leaves `paid` the venue name and the fee/fiat totals render as '—' / 0.00 € although the receipt was captured"
+    },
+    {
+      "act": 8,
+      "name": "closing frame",
+      "at": "2026-10-10T06:52:23.296Z",
+      "repo": "cvm-services/cvm-registry",
+      "console_sha": "1d53cac",
+      "harness_sha": "uncommitted",
+      "orders_sha": "e5a8a5c7d6b6fbe6ba10973fca1873046e80f8c0"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "ux-observation",
+      "where": "site/console/app.js — placing view",
+      "observed": "the card-custody refusal banner from the first attempt is still rendered after the corrected receipt saves successfully",
+      "impact": "cosmetic: the operator sees a stale refusal next to a successful save",
+      "evidence": "refusing card data at receipt:payment_reference (PAN-shaped value): this console never handles PAN/CVV (ADR-0013)"
+    },
+    {
+      "where": "site/console/app.js settlementsView()",
+      "what": "the receipt row and the 'fiat recorded as spent' / 'fees kept' sums join state.receipts against state.queue, which is paid-only; once an order leaves `paid` the venue name and the fee/fiat totals render as '—' / 0.00 € although the receipt was captured",
+      "observed": true,
+      "rendered_excerpt": "Facilitator console facilitated sats orders · CVM Queue 1 Settlements Sats settled before fiat, always (ADR-0008/0013) Card data stays on this device Signed in as 1f2e3d4c5b6a… Settlements Fees kept, fiat spent, refunds owed — recorded on this device 630 sats fees in open queue 0.00 € fiat recorded as spent 1 orders st"
+    }
+  ],
+  "service": {
+    "port": 8791,
+    "facilitatorNpub": "1f2e3d4c5b6a7988071625344352617a8b9c0d1e2f30415263748596a7b8c9d0",
+    "settled_order": "8f31a2c4d5e6f708",
+    "pending_order": "9b27d4e6f8091a2b",
+    "settled_checkout_url": "https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708",
+    "orders_dir": "/home/c03rad0r/repos/cvm-orders",
+    "orders_sha": "e5a8a5c7d6b6fbe6ba10973fca1873046e80f8c0",
+    "console_dir": "/home/c03rad0r/worktrees/t_4726349b/site/console"
+  },
+  "receipt_typed_before_click": {
+    "venue_reference": "#4471",
+    "ready_at": "18:25",
+    "paid_with": "card at the venue terminal",
+    "payment_reference": "pi_3Qk9Zx2eZvKYlo2C"
+  },
+  "finished_at": "2026-10-10T06:52:23.297Z",
+  "console_errors": [],
+  "webm": "/home/c03rad0r/worktrees/t_4726349b/evidence/t_4726349b/console-happy-path.webm",
+  "ledger": {
+    "nip98_events": 8,
+    "pan_shaped_bodies": 0,
+    "post_bodies": 3,
+    "posts": [
+      "GET /api/health -> 200",
+      "GET /api/auth/challenge -> 200",
+      "GET /api/orders/queue -> 200",
+      "POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200",
+      "POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+      "GET /api/orders/queue -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200",
+      "POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+      "GET /api/orders/queue -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200",
+      "GET /api/orders/8f31a2c4d5e6f708 -> 200"
+    ]
+  },
+  "stub_log": [
+    "[stub] seeded 8f31a2c4d5e6f708: {\"id\":\"8f31a2c4d5e6f708\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"doppelt-kaese-berlin\",\"venue_name\":\"Doppelt Käse Laubacher Straße\",\"items\":[{\"name\":\"Käseplatte groß\",\"qty\":1,\"options\":\"mit Brotkorb\",\"unit_fiat\":18.5,\"unit_sats\":30150},{\"name\":\"Apfelschorle\",\"qty\":2,\"options\":\"0,5 l\",\"unit_fiat\":3.4,\"unit_sats\":5550},{\"name\":\"Basilikum-Tomate (Stück)\",\"qty\":1,\"unit_fiat\":3.5,\"unit_sats\":5700}],\"total_fiat\":28.8,\"total_sats\":46950,\"fee_sats\":1410},\"customer\":{\"phone\":\"+49 151 5555 0142\"},\"venue\":{\"rail\":\"FoodAmigos\",\"checkout_url\":\"https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708\"},\"settlement\":{\"status\":\"settled\",\"method\":\"bolt11\",\"payment_hash\":\"9d1c4f7a2b8e6053d1a0c5f2e83b47a6d9c04e1f5826b7a3c908d4e2f1a6b7c3\",\"amount_sats\":46950,\"settled_at\":\"2026-10-10T06:50:17.384Z\"}},\"updatedAt\":\"2026-10-10T06:51:47.470Z\"}",
+    "[stub] seeded 9b27d4e6f8091a2b: {\"id\":\"9b27d4e6f8091a2b\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"pizza-e-pasta-ruedesheimerplatz\",\"venue_name\":\"Pizza e Pasta Rüdesheimer Platz\",\"items\":[{\"name\":\"Margherita\",\"qty\":1,\"unit_fiat\":9.9,\"unit_sats\":16100},{\"name\":\"Coca-Cola\",\"qty\":1,\"unit_fiat\":2.9,\"unit_sats\":4730}],\"total_fiat\":12.8,\"total_sats\":20830,\"fee_sats\":630},\"customer\":{\"phone\":\"+49 176 2222 8877\"},\"venue\":{\"rail\":\"FoodAmigos\"},\"settlement\":{\"status\":\"pending\",\"method\":\"bolt11\",\"amount_sats\":20830}},\"updatedAt\":\"2026-10-10T06:51:47.507Z\"}",
+    "[stub] GET /api/health -> 200",
+    "[stub] GET / -> 200 (1102b)",
+    "[stub] GET /style.css -> 200 (5566b)",
+    "[stub] GET /app.js -> 200 (29146b)",
+    "[stub] GET /favicon.ico -> 404",
+    "[stub] GET /api/auth/challenge -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/queue: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] GET /api/orders/queue -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/8f31a2c4d5e6f708/transition: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/8f31a2c4d5e6f708/transition: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/queue: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] GET /api/orders/queue -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/8f31a2c4d5e6f708: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/8f31a2c4d5e6f708/transition: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] POST /api/orders/8f31a2c4d5e6f708/transition -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/queue: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] GET /api/orders/queue -> 200",
+    "[stub] NIP-98 authorization present on /api/orders/8f31a2c4d5e6f708: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200",
+    "[stub] GET /api/orders/8f31a2c4d5e6f708 -> 200"
+  ]
+}
