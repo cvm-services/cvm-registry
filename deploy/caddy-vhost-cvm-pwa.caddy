@@ -1,0 +1,46 @@
+# cvm-pwa.orangesync.tech — the customer ordering PWA (/order/) and the facilitator
+# console (/console/) on ONE origin, plus the /api surface both of them talk to.
+#
+# Source of truth: deploy/caddy-vhost-cvm-pwa.caddy in cvm-services/cvm-registry,
+# installed by deploy/deploy-pwa.sh (deploy/rewrite-caddy-vhost.py replaces any
+# older block for this domain, so re-running the deploy cannot leave the legacy
+# fallback-only vhost in place).
+#
+# /api/* is reverse-proxied to cvm-orders on 127.0.0.1:8788 (systemd unit
+# cvm-orders.service, env /etc/cvm-orders/config.env). The order store is IN
+# MEMORY today: restarting cvm-orders EMPTIES THE QUEUE BY DESIGN (cvm-orders
+# README — "this in-memory implementation is for the working demo only"), so a
+# restart is not data loss-by-bug.
+#
+# Why handle_errors: before 2026-10-10 /api/* fell through to the SPA fallback,
+# so a missing order service answered HTTP 200 + index.html. The customer PWA's
+# fetch() resolved ok and then failed parsing, which is what made the pay step
+# impossible to diagnose. A down service must now answer a real JSON error.
+cvm-pwa.orangesync.tech {
+	encode gzip
+	root * /opt/tollgate/cvm-pwa
+
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:8788
+	}
+
+	# Each app falls back to its OWN document: /console/ must never serve the
+	# customer ordering app, and /order/ must never serve the console.
+	handle /console/* {
+		try_files {path} /console/index.html
+		file_server
+	}
+
+	handle {
+		try_files {path} /order/index.html
+		file_server
+	}
+
+	header Cache-Control "no-store"
+
+	handle_errors {
+		@api path /api/*
+		header @api Content-Type "application/json"
+		respond @api `{"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties the queue, it does not lose committed data"}` 502
+	}
+}
