@@ -103,7 +103,12 @@ EOF
 (cd "$DEST" && "$DENO" cache main.ts >/dev/null)
 
 systemctl daemon-reload
-systemctl enable --now cvm-orders.service >/dev/null
+# `enable --now` is a NO-OP on a unit that is already running: the first run of
+# this script left the OLD code in memory and the deploy looked successful
+# (`Active: active ... 14h ago`, same PID, while $DEST/main.ts was new). A
+# redeploy only takes effect on an explicit restart.
+systemctl enable cvm-orders.service >/dev/null
+systemctl restart cvm-orders.service
 sleep 1
 systemctl --no-pager --lines=0 status cvm-orders.service | head -4
 echo "   listening:"
