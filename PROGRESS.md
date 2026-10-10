@@ -38,24 +38,49 @@ Baseline (unmodified main, those 3 files): 24 passed | 0 failed.
 - The vhost `header @pwa_manifest ...` sits BEFORE the handle blocks and only retypes matched
   paths; adding a second literal path cannot re-introduce text/html for unknown paths.
 # Task t_889735b3 — Order PWA happy path: real Playwright E2E (local stack + stub mint)
+# t_889735b3 — progress map
 
-Card: cvm-registry PR → main. Branch `worker-base/t_889735b3` from `origin/main` (53cf1a9).
+Task: give the customer order PWA (`/order/`) a real end-to-end Playwright happy
+path — venue -> basket -> invoice -> settled — against the real service, with the
+mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-registry`
+(branch `worker-base/t_889735b3`).
 
-## Plan
-1. infra: `package.json` (@playwright/test) + `playwright.config.mjs` (video on, 1280x720)
-2. spec RED (harness not wired yet) → quote the failure
-3. harness: real `cvm-orders` service + static site server (deploy-pwa.sh path map) + stub Cashu mint (deno, NUT-04/07)
-4. spec GREEN: 8 happy-path steps, idempotent poll
-5. live spec behind `E2E_LIVE=1` → run it, record the honest result
-6. evidence: video committed under docs/e2e/order-pwa/ + attached to the card
-7. REPORT.md with "what this does NOT prove"
+## Landed (all pushed)
 
-## Log
-- 2026-10-10 21:05 read the card; found the real surface (cvm-orders origin/main main.ts: POST /orders,
-  GET /orders/:id, GET /orders/:id/invoice; CashuRail = POST /v1/mint/quote/bolt11 + GET /v1/mint/quote/bolt11/{id}).
-- 2026-10-10 21:05 confirmed the PWA proxy contract: Caddy `handle_path /api/*` strips the prefix,
-  so the PWA's `/api/orders` reaches cvm-orders `/orders`; deploy-pwa.sh fixes the static path map
-  (/order/ → site/order/*, /menu.json → site/menu.json, /vocab/* → vocab/*).
-- 2026-10-10 21:06 found a likely REAL defect: site/order/app.js `status()` reads `o.status`, but the
-  service returns `state`. Live app.js has the same `o.status`. The timeline can therefore never show
-  "Ready for pickup". Card step 7 will fail until that is fixed.
+| commit | what |
+|--------|------|
+| `81459c3` | Playwright declared as a real dependency of the suite (package.json, lockfile, config) |
+| `78c7591` | RED — the spec, with no harness wired yet (fails: no such module) |
+| `848fc83` | the harness + the spec: real stack, stub mint, video, the two client defects caught |
+| `52da8e8` | fix(order): pay screen quoted 1000x sats ("9 774 000 sats") |
+| `b8678c2` | fix(order): status timeline read `o.status` (undefined) instead of `o.state`; "Paid" was hardcoded done |
+
+## Current state
+
+- Hermetic suite: **GREEN** (14.6s -> 10.9s after the journey refactor). Real
+  cvm-orders `main.ts` at `1ebe0dc`, real static site, stub mint only.
+- Live suite (`E2E_LIVE=1`): **FAILS in 3.5s, as expected** — the deployed service
+  answers 409 to every `POST /api/orders` (pre-hardening build). Evidence:
+  `docs/e2e/order-pwa/live-run.log`.
+- Two client defects found by the suite and fixed in `site/order/app.js`; both had
+  to be fixed for the journey to be assertable, both are money-facing.
+
+## Finding log (append-only)
+
+- 2026-10-10 → harness boots in ~8s, whole hermetic journey 11-15s → green
+- 2026-10-10 → `.pay h2` read "9 774 000 sats": service sats passed through the EUR
+  formatter → fixed (commit 52da8e8)
+- 2026-10-10 → status timeline read `o.status` (always undefined) → "Order placed
+  at venue" and "Ready for pickup" could never complete; "Paid" hardcoded done
+  against ADR-0008 → fixed (commit b8678c2)
+- 2026-10-10 → live run: deployed `POST /api/orders` = 409 "order already exists" →
+  recorded, not skipped
+- 2026-10-10 → `page.waitForResponse().text()` hung 5.8 min on that 409 → spec now
+  reads the failure off the page
+
+## Remaining
+
+1. Final hermetic run for the committed video, then commit the live spec, README,
+   journey module and evidence.
+2. REPORT.md + card comment (implementation complete, PR/merge left to the manager:
+   branch is pushed, no PR opened — the manager merges).

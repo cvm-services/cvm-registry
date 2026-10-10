@@ -26,36 +26,7 @@ import { test, expect } from "@playwright/test";
 import { decode as decodeBolt11 } from "light-bolt11-decoder";
 import { startStack } from "./harness/stack.mjs";
 import { evidenceDir, saveVideo } from "./harness/video.mjs";
-
-const VENUE_SLUG = "doppelt-kaese-berlin";
-const VENUE_NAME = "Doppelt Käse Laubacher Straße";
-/** Cheeseburger: 8.90 EUR pickup / 9.50 EUR delivery in the pinned site/menu.json. */
-const ITEM_SKU = "331227";
-/** A phone-shaped value that is never a PAN. `+` is the service's own exemption. */
-const PHONE = "+4915100000000";
-
-/**
- * Every number below is derived, not copied. The client displays EUR at
- * 1 EUR = 1000 sats (`sats = n => Math.round(n * 1000)`, site/order/app.js) and
- * prices Bacon at +0.15 EUR; the service (cvm-orders src/catalog.ts) uses the
- * same sats_per_eur and its own option_surcharges_sats table, and takes
- * floor(8% of the subtotal) as the fee. This spec asserts the two agree — if a
- * price table drifts on either side, the test fails rather than forgiving it.
- */
-const MONEY = {
-  unitPickup: 8900,
-  unitDelivery: 9500,
-  baconSats: 150,
-  cheeseSats: 120,
-  line: 9050, // (8900 + 150) * 1
-  subtotal: 9050,
-  fee: 724, // floor(9050 * 800 / 10000)
-  total: 9774, // subtotal + fee
-};
-
-/** The client's own display formatter, so assertions read like the screen does. */
-const SATS = (n) => `${n.toLocaleString("en-US").replaceAll(",", " ")} sats`;
-const section = (decoded, name) => decoded.sections.find((s) => s.name === name)?.value;
+import { ITEM_SKU, MONEY, PHONE, SATS, VENUE_NAME, VENUE_SLUG, section } from "./harness/journey.mjs";
 
 let stack;
 
