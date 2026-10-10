@@ -1,0 +1,127 @@
+{
+  "at": "2026-10-10T17:23:55.471Z",
+  "base": "http://127.0.0.1:35789",
+  "browser": {
+    "channel": "chrome"
+  },
+  "chrome": "151.0.7922.137",
+  "passed": 22,
+  "failed": 1,
+  "results": [
+    {
+      "name": "A. the order client renders its venue list",
+      "ok": true,
+      "detail": "2 venues, page errors: 0"
+    },
+    {
+      "name": "B. Chrome registers the worker",
+      "ok": true,
+      "detail": "script http://127.0.0.1:35789/order/sw.js state activated"
+    },
+    {
+      "name": "B. the worker's scope is exactly /order/",
+      "ok": true,
+      "detail": "http://127.0.0.1:35789/order/"
+    },
+    {
+      "name": "C. the worker controls /order/ after a reload",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. the shell cache exists",
+      "ok": true,
+      "detail": "cvm-order-shell-v1"
+    },
+    {
+      "name": "D. cached /order/",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/index.html",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/app.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/style.css",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/manifest.webmanifest",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/icon-192.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. cached /order/apple-touch-icon.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "D. nothing under /api/ is cached (origin sends no-store, the worker still must not keep an order)",
+      "ok": true,
+      "detail": "12 keys total"
+    },
+    {
+      "name": "E. offline, /order/ is served by the worker",
+      "ok": true,
+      "detail": "fromServiceWorker=true"
+    },
+    {
+      "name": "E. offline, the app module still executes",
+      "ok": true,
+      "detail": "navigator.onLine=false venues=2 catalog-error-shown=false"
+    },
+    {
+      "name": "E. the catalog is outside this worker's scope, so offline it stays honestly unavailable",
+      "ok": false,
+      "detail": "resolved 200"
+    },
+    {
+      "name": "F. offline, /api/ is NOT served from cache",
+      "ok": true,
+      "detail": "TypeError: Failed to fetch"
+    },
+    {
+      "name": "G. the order worker does NOT control /console/",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "H. the manifest is served as application/manifest+json",
+      "ok": true,
+      "detail": "application/manifest+json"
+    },
+    {
+      "name": "H. the manifest is valid JSON",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "H. start_url and scope are /order/",
+      "ok": true,
+      "detail": "start_url=/order/ scope=/order/"
+    },
+    {
+      "name": "H. display is standalone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "A. no uncaught page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
