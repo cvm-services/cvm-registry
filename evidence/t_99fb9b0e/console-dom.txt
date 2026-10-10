@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Facilitator console — facilitated sats orders</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!--
+    Facilitator console for facilitated sats orders (cvm-protocol PLAN-0007 T4).
+
+    CARD CUSTODY (ADR-0013, operator decision 2026-10-09): this console NEVER
+    receives, renders, stores, logs or transmits PAN/CVV. The fiat leg is
+    device-initiated: the console hands off to the venue's / PSP's own payment
+    page (or, when a PSP is chosen, to that PSP's hosted card fields). Our order
+    service receives only a reference and the outcome. There is deliberately no
+    card input in this document - see the card-custody guard in app.js and
+    tests/console_pwa_test.ts, which fail the build if one appears.
+  -->
+  <main id="app" aria-live="polite"><div class="signin"><h1>Facilitator console</h1>
+    <p>Sign in with the facilitator npub. The order service issues a challenge (GET /api/auth/challenge);
+    your signer signs it as a NIP-98 event, and the signed challenge is attached to every call as
+    <code>authorization: Nostr …</code>. No password, no session cookie.</p>
+    <button class="btn gold" data-signin="">Sign in with Nostr</button></div></main>
+  <script type="module" src="app.js"></script>
+
+
+</body></html>
