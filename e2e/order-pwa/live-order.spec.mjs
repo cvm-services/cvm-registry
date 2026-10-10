@@ -2,8 +2,10 @@
 //
 // The SAME journey against the DEPLOYED site (E2E_LIVE=1), asserting the same
 // money. Opt-in, because it creates an order on production, but never silently
-// skipped: when it runs it reports the deployed truth, and the failure message
-// says which layer is stale.
+// skipped: when it runs it reports the deployed truth, and its failure messages
+// name the LAYER that is stale. The two layers deploy independently — Caddy
+// serves site/ (the client), the order service runs beside it — so "the live run
+// is red" is not a diagnosis on its own, and the spec has to say which half.
 //
 // It stops at the pay screen. The production mint cannot be settled from here, so
 // there is no honest way to drive a deployment through "paid" and beyond — that
@@ -14,6 +16,8 @@ import { ITEM_SKU, MONEY, PHONE, SATS, VENUE_SLUG, section } from "./harness/jou
 
 const LIVE = process.env.E2E_LIVE === "1";
 const BASE = process.env.E2E_LIVE_BASE ?? "https://cvm-pwa.orangesync.tech";
+/** The pay screen's 1000x rendering — the shape of the stale-client failure. */
+const STALE_CLIENT_QUOTE = SATS(MONEY.total * 1000);
 
 /**
  * Step timing. A live journey is minutes of network away from the hermetic one,
@@ -79,14 +83,28 @@ test("live: a real order reaches a real invoice on the deployed site", async ({ 
   expect(
     status,
     `POST /api/orders answered ${status}; the customer was shown: ${JSON.stringify(seenByCustomer)}\n` +
-      'A 409 {"error":"order already exists"} means the deployed service is the ' +
+      'A 409 {"error":"order already exists"} means the deployed SERVICE is the ' +
       "pre-hardening build: every POST takes the same (undefined) order id, so the " +
-      "deployed money path cannot open an order at all.",
+      "deployed money path cannot open an order at all. (A 5xx or a 404 on /api is " +
+      "the proxy/Caddy half of the same story.)",
   ).toBe(201);
   await expect(page.locator("p.error")).toHaveCount(0);
 
   // ---------------------------------------------------------------- step 6
-  await expect(page.locator(".pay h2")).toHaveText(SATS(MONEY.total));
+  // The screen must quote the sats the invoice below it charges — and this
+  // assertion is also the client-layer detector. Until 52da8e8 `site/order/app.js`
+  // passed the SERVICE's integer sats (9774) through the formatter that scales the
+  // client's own EUR basket by 1000, so a deploy that is stale by that one client
+  // commit asks the customer for 1000x the amount of the invoice it is displaying
+  // at the same time:
+  const payAmount = page.locator(".pay h2");
+  await expect(
+    payAmount,
+    `the pay screen must quote ${SATS(MONEY.total)}, the amount the invoice beside it ` +
+      `charges. ${JSON.stringify(STALE_CLIENT_QUOTE)} means the deployed CLIENT is stale: ` +
+      "site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR " +
+      "(and before b8678c2 the status timeline read o.status, which the service never sends).",
+  ).toHaveText(SATS(MONEY.total));
   const qr = page.locator("img.qr");
   await expect(qr).toBeVisible();
   expect((await qr.getAttribute("src")).startsWith("data:image/svg+xml;base64,")).toBe(true);
@@ -98,8 +116,16 @@ test("live: a real order reaches a real invoice on the deployed site", async ({ 
   const bolt11 = (await page.locator("code.invoice").textContent())?.trim() ?? "";
   expect(bolt11.startsWith("lnbc")).toBe(true);
   const decoded = decodeBolt11(bolt11);
-  expect(section(decoded, "amount").value).toBe(String(MONEY.total * 1000));
-  expect(Number(section(decoded, "expiry"))).toBeGreaterThan(0);
+  // `section()` unwraps the section's value, and this decoder hands back the
+  // amount as a STRING of msat — so this is the whole assertion, not `.value`.
+  expect(section(decoded, "amount")).toBe(String(MONEY.total * 1000));
+  // The `x` tag is the number of SECONDS until expiry (a delta, not a timestamp),
+  // so "> 0" asserted nothing. Bound it to a real mint's range instead: present,
+  // a whole number of seconds, and no further out than a day.
+  const expirySeconds = Number(section(decoded, "expiry"));
+  expect(Number.isInteger(expirySeconds), `expiry tag must decode to a whole number of seconds, got ${section(decoded, "expiry")}`).toBe(true);
+  expect(expirySeconds).toBeGreaterThan(0);
+  expect(expirySeconds).toBeLessThanOrEqual(86_400);
   expect(decoded.paymentRequest).toBe(bolt11);
 
   stamp("invoice rendered and decoded", t0);
