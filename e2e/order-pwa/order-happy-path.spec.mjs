@@ -201,8 +201,10 @@ test("order PWA happy path: venue -> basket -> invoice -> settled", async ({ pag
   await page.locator("[data-paid]").click();
   await expect(page.locator(".status")).toBeVisible();
   await expect(page.locator("header.top h1")).toContainText(`Order #${order.id}`);
-  // Nothing has settled yet: only the first row is done.
-  await expect(page.locator(".tl").nth(0).locator(".dot")).toHaveClass(/\bdone\b/);
+  // Nothing has settled yet. ADR-0008 forbids the client claiming payment before
+  // the rail has verified it, so NOT ONE row is done here — not even "Paid".
+  await expect(page.locator(".tl").nth(0).locator(".dot")).not.toHaveClass(/\bdone\b/);
+  await expect(page.locator(".tl").nth(1).locator(".dot")).not.toHaveClass(/\bdone\b/);
   await expect(page.locator(".tl").nth(3).locator(".dot")).not.toHaveClass(/\bdone\b/);
 
   await stack.settle(quotes[0].quote);
@@ -211,8 +213,11 @@ test("order PWA happy path: venue -> basket -> invoice -> settled", async ({ pag
   expect(settled.body.state).toBe("paid");
   const settledUpdatedAt = settled.body.updatedAt;
 
-  // The customer sees the payment land.
+  // The customer sees the payment land — and only that: `paid` is not yet
+  // "the facilitator is placing your order".
   await expect(page.locator(".tl").nth(0).locator(".dot")).toHaveClass(/\bdone\b/);
+  await expect(page.locator(".tl").nth(1).locator(".dot")).not.toHaveClass(/\bdone\b/);
+  await expect(page.locator(".order-card")).toContainText("paid · pickup");
 
   // ---------------------------------------------------------------- step 8
   // Idempotency: a settled order is never re-transitioned, and the rail is not
