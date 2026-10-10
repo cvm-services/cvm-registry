@@ -5,5 +5,5 @@ node_modules/
 .scratch/
 docs/e2e/video/
 
-# python bytecode from the e2e leg
-e2e/__pycache__/
+# python bytecode from the e2e leg and tools
+__pycache__/

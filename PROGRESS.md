@@ -82,9 +82,37 @@ one commit behind (`cc4cb78`).
 - **ngit CI at `791f5a4a`**: workflow `ci.yml` `conclusion: success`, `job deno
   success`, `job e2e success`, integrity "commit present, workflow hash matches".
   The prior head `34209ac` failed the same job — that is the regression this fixes.
-- **ngit CI at the final head `39e09593`**: `conclusion: success`, `job deno
-  success`, `job e2e success`, same integrity line. The whole branch head is green.
+- **ngit CI at `39e09593`**: `conclusion: success`, `job deno success`, `job e2e
+  success`, same integrity line. This is a run at `39e09593`, NOT at the branch
+  head. The earlier claim here that "the whole branch head is green" was FALSE —
+  the merge `5997648` brought 20 non-doc paths in from `origin/main`. Corrected in
+  the rework round below; the workflow is now run at the head itself.
 - live origin `https://cvm.orangesync.tech/` -> http 200.
+
+## Rework round 2026-10-10 — review round 1 CHANGES_REQUESTED (run 266, head 5997648)
+
+- Corrected the false "every commit after 39e09593 is Markdown-only / the tip
+  differs only in prose" claim in `REPORT.md` and here. `git diff --name-only
+  39e0959..HEAD` lists 20 non-doc paths (`site/order/*`, `tests/order_pwa_test.ts`,
+  `tests/pwa_emulator_harness_test.ts`, `deploy/deploy-pwa.sh`,
+  `tools/pwa-emulator-test/*`) brought in by the merge `5997648` of `origin/main`.
+- Restored `docs/e2e/02b-venue-page-doppelt-kaese-berlin.png`: `34209ac` had
+  overwritten it with a near-uniform blank frame (17602 B, mean 0.996, zero OCR
+  text) while `docs/e2e/README.md` called it the venue's page. Re-shot through the
+  repo — byte-identical to the committed file and to the `69a0819` full-fidelity
+  still (368501 B, sha256 `0f99aacd363b81bfa39e9c656103c128913ce229fcf002cdfc774a8732f53553`),
+  so the page did not move and the blank was a regression, not a stale capture.
+- New `tools/capture_venue_page.py` — refresh ONE venue's page still when the
+  suite's all-or-nothing click-through gate is closed by the other venue. It
+  refuses (exit 2, on-disk still unchanged) on a bot challenge or a URL that
+  differs from the announced deep-link. The leg's challenge pattern is hoisted to
+  `CHALLENGE_RE` in `e2e/venue_deep_link_e2e.py` so both share one definition.
+- `docs/e2e/README.md` embeds now use repo-relative paths (they pointed at
+  `raw/pr/s2b-dashboard-e2e/…`, i.e. at files that are not what the repo holds).
+- Verified: `npm run e2e` -> 4 passed, 0 failed, 0 skipped, exit 0, venue
+  click-through NOT verified (pizza is Cloudflare-blocked from this host).
+- CI: the workflow is run at the head; the conclusion is quoted on PR #22 and in
+  the kanban handoff.
 
 ## REMAINING
 

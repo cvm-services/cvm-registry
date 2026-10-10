@@ -49,9 +49,9 @@ in history rather than in an attachment.
 
 ## Video
 
-[`venue-discovery-e2e.mp4`](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/venue-discovery-e2e.mp4)
+[`venue-discovery-e2e.mp4`](venue-discovery-e2e.mp4)
 
-<video src="https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/venue-discovery-e2e.mp4" controls width="100%"></video>
+<video src="venue-discovery-e2e.mp4" controls width="100%"></video>
 
 The recording shows: dashboard load → both venue cards → the announcement's
 declared tier and input appetite → click the first card's ordering deep-link →
@@ -62,23 +62,52 @@ real ordering page**.
 
 Dashboard, both venues:
 
-![dashboard with both venue cards](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/01-dashboard-two-venues.png)
+![dashboard with both venue cards](01-dashboard-two-venues.png)
 
 The card, and the real page it opens:
 
-![doppelt-kaese-berlin card](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/02-card-doppelt-kaese-berlin.png)
-![doppelt-kaese-berlin real menu page](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/02b-venue-page-doppelt-kaese-berlin.png)
+![doppelt-kaese-berlin card](02-card-doppelt-kaese-berlin.png)
+![doppelt-kaese-berlin real menu page](02b-venue-page-doppelt-kaese-berlin.png)
 
-![pizza-e-pasta card](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/03-card-pizza-e-pasta-ruedesheimerplatz.png)
-![pizza-e-pasta real ordering page](https://github.com/cvm-services/cvm-registry/raw/pr/s2b-dashboard-e2e/docs/e2e/03b-venue-page-pizza-e-pasta-ruedesheimerplatz.png)
+![pizza-e-pasta card](03-card-pizza-e-pasta-ruedesheimerplatz.png)
+![pizza-e-pasta real ordering page](03b-venue-page-pizza-e-pasta-ruedesheimerplatz.png)
 
 Freshness: `01-dashboard-two-venues.png`, `03-card-…png` and
 `04-review-venue-confirmed.png` are re-shot by **every** run of `npm run e2e`
 (the suite rewrites the evidence in this directory — that is how they stay
-current). `02b-…png` and `03b-…png` are the two venue pages as captured by the
-full-fidelity run and are **not** re-shot on a host where the click-through
-cannot run: re-shooting them there would mean screenshotting a Cloudflare
-challenge and filing it as the venue's page.
+current). `02b-…png` and `03b-…png` are the two venue pages and are **not**
+rewritten by `npm run e2e`: the click-through gate is all-or-nothing (it opens
+the venue pages only when *every* venue answers its probe cleanly), and pizza is
+Cloudflare-blocked from this host, so the suite never opens either page here.
+
+`02b` was **re-shot through this repo's own tool** on 2026-10-10 by
+`tools/capture_venue_page.py` (below) — the exact path the leg writes, classified
+with the leg's own `CHALLENGE_RE`. The result is byte-identical to the committed
+file (368501 bytes, sha256
+`0f99aacd363b81bfa39e9c656103c128913ce229fcf002cdfc774a8732f53553`), so the
+doppelt still is current, not a stale carry-over. History note, because it is
+load-bearing: commit `34209ac` had overwritten this file with a nearly-uniform
+blank frame (17602 bytes, mean 0.996, zero OCR text) while this README went on
+calling it the venue's page; the real capture was restored here.
+
+`03b` is the pizza page from the full-fidelity capture and **cannot** be
+refreshed from this host: pizza answers `Attention Required` (Cloudflare) to any
+client here, so a re-shoot would file a bot challenge as the venue's page. It
+stays as captured until someone runs the capture on a host the venue answers.
+
+### Refreshing one venue's page still
+
+```bash
+# the Cloudflare-safe path: headed system Chrome under a display
+xvfb-run -a python3 tools/capture_venue_page.py doppelt-kaese-berlin --headed
+```
+
+The tool writes exactly the filename the leg writes for that venue, refuses to
+write anything (exit 2, on-disk still unchanged) when a bot challenge answers or
+the URL differs from the announced deep-link, and prints the title, the final URL,
+the browser it used and the sha256 of what it wrote. It is the supported way to
+refresh a single still when the all-or-nothing gate above is closed by the other
+venue.
 
 ## Reproducing
 

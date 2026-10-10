@@ -63,6 +63,15 @@ VENUES = {
     "pizza-e-pasta-ruedesheimerplatz": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
 }
 
+# A Cloudflare interstitial answers HTTP 200 at the venue's own URL with the title
+# "Just a moment...". ONE definition, imported by tools/capture_venue_page.py, so a
+# single-venue re-shoot classifies a page exactly as this leg does. (The JS runner
+# carries the same pattern for its curl probe; both are asserted by hand against
+# the same five titles documented in docs/e2e/README.md.)
+CHALLENGE_RE = re.compile(
+    r"just a moment|attention required|checking your browser|cf-chl", re.I
+)
+
 
 def log(msg: str) -> None:
     print(f"[e2e] {msg}", flush=True)
@@ -341,7 +350,7 @@ def main() -> int:
             # the title "Just a moment...". Recording that as a verified venue page
             # is exactly the silent green this suite exists to prevent, so it is
             # recorded as CHALLENGED and printed as NOT VERIFIED.
-            if re.search(r"just a moment|attention required|checking your browser|cf-chl", f"{title}\n{body}", re.I):
+            if CHALLENGE_RE.search(f"{title}\n{body}"):
                 log(f"NOT VERIFIED {slug}: the venue's own page was NOT reached — a bot "
                     f"challenge answered instead (title={title!r}); the announced deep-link "
                     f"itself was verified in the dashboard DOM above")
