@@ -1,0 +1,17 @@
+{
+  "name": "cvm-registry-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Browser end-to-end tests for the customer order PWA (/order/) in cvm-registry",
+  "type": "module",
+  "scripts": {
+    "test:e2e": "playwright test --project=hermetic",
+    "test:e2e:live": "playwright test --project=live",
+    "test:e2e:headed": "playwright test --project=hermetic --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "light-bolt11-decoder": "3.2.0",
+    "nostr-tools": "2.25.2"
+  }
+}
