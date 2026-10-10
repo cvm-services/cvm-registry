@@ -97,7 +97,24 @@ Base before this run: `34209ac`. Branch head: `39e0959`.
   `5997648`, which pulled `origin/main` (another card's ordering-PWA work) into
   this branch. None of them is an input to the `e2e` job, which is why that job
   still gates what it claims to gate; but the sentence was wrong, it is gone, and
-  the claim is now backed by a run at the head itself.
+  the claim is now backed by a run at the head itself. Measured with
+  `ngit ci trigger` (kind-9840 Manual Trigger) at
+  `195b4d4a6c7f33a87e9598e977d1dfbf4dc1312f`, the code+docs commit of this rework:
+
+  ```
+  CI for 195b4d4a6c7f33a87e9598e977d1dfbf4dc1312f (195b4d4a)
+    success    .ngit/act/workflows/ci.yml  [Maintainer-directed]  Requested by a maintainer
+      integrity: commit present, workflow hash matches
+      job deno success [Maintainer-directed]
+      job e2e success [Maintainer-directed]
+    concluded (success)
+  ```
+
+  The commits after it are Markdown-only, and that is now a *measured* statement
+  rather than an assumed one: `git diff --name-only 195b4d4a..HEAD` is checked
+  before this run is claimed, and it is also checked that the difference is
+  documentation — the failure mode of the previous version was asserting it.
+  The run at the tip itself is quoted on PR #22.
 - **Review Q3/Q4 unanswered**: is a skip ever a pass (exit-code accounting), and
   does the CI gate/observational split hide anything a maintainer would want red?
   The reviewer ran out of completion budget. Recorded as the first item in

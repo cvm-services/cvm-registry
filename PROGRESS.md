@@ -113,6 +113,23 @@ one commit behind (`cc4cb78`).
   click-through NOT verified (pizza is Cloudflare-blocked from this host).
 - CI: the workflow is run at the head; the conclusion is quoted on PR #22 and in
   the kanban handoff.
+- **ngit CI at this rework's code+docs head `195b4d4a`**: `conclusion: success`,
+  `job deno success`, `job e2e success`, integrity "commit present, workflow hash
+  matches", trigger `manual`, ref `refs/heads/ci/cvm-e2e-runnable`:
+
+  ```
+  CI for 195b4d4a6c7f33a87e9598e977d1dfbf4dc1312f (195b4d4a)
+    success    .ngit/act/workflows/ci.yml  [Maintainer-directed]  Requested by a maintainer
+      integrity: commit present, workflow hash matches
+      job deno success [Maintainer-directed]
+      job e2e success [Maintainer-directed]
+    concluded (success)
+  ```
+
+  The commit that writes this line is docs-only over `195b4d4a` — verifiable with
+  `git diff --name-only 195b4d4a..HEAD` — and the workflow is run at that commit
+  too, with its own conclusion quoted on PR #22. Checked, not assumed: the
+  previous version of this claim was false.
 
 ## REMAINING
 

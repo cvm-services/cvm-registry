@@ -153,6 +153,18 @@ CI for 791f5a4a (791f5a4a)
 The commit before the fix (`34209ac`) failed this same job on the evidence
 convenience, which is the bug this branch removes.
 
+Measured at the **branch head** of the rework round (`ngit ci trigger`, kind-9840
+Manual Trigger, not a claim about an earlier commit):
+
+```
+CI for 195b4d4a6c7f33a87e9598e977d1dfbf4dc1312f (195b4d4a)
+  success    .ngit/act/workflows/ci.yml  [Maintainer-directed]  Requested by a maintainer
+    integrity: commit present, workflow hash matches
+    job deno success [Maintainer-directed]
+    job e2e success [Maintainer-directed]
+  concluded (success)
+```
+
 Exit codes: `0` every leg ran and passed; `1` a leg failed; `3` a leg was
 SKIPPED — **a skip is never a pass**, and it prints a loud banner. Only
 `E2E_ALLOW_SKIP=1` downgrades that to a warning, and only an operator should set
