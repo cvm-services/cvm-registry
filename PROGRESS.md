@@ -26,8 +26,14 @@ Baseline before any change: 161 passed | 0 failed.
       rather than the 308. Fixed to `redir * /api/ 308` / `redir * /order/ 302`, and the suite
       now fails if any redir target sits in the matcher slot
       (probe: evidence/t_cdc4442b/caddy-adapt-redir-spellings.txt).
-- [ ] M5 REPORT.md + PR to main.
-- [ ] M6 host install on testserver2.fips + live before/after curl matrix.
+- [x] M5 REPORT.md + PR to main.
+- [x] M6 host install on testserver2.fips + live before/after curl matrix:
+      evidence/t_cdc4442b/live-{BEFORE,INSTALL,AFTER}.txt. Vhost replaced (backup
+      /etc/caddy/Caddyfile.vhostbak-20261010T203457Z), `caddy config: valid`, `caddy: active`.
+      NOTE: the live docroot was still the pre-PWA bundle (381b /order/, sw.js + manifest falling
+      through to the fallback), so the same documented deploy-path refreshed it.
+
+## Next worker: nothing to resume — branch pushed, PR open, host installed. Manager merges.
 
 ## Facts found (do not re-derive)
 - CI: `deno check collector/ tests/` then `deno test --allow-read --allow-net --allow-env tests/`.

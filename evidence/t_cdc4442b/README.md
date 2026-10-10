@@ -28,6 +28,17 @@ The branch vhost at the time of these runs: `deploy/caddy-vhost-cvm-pwa.caddy` s
 | `local-matrix-DOWN-new.txt` | branch with the service down: `/api` → 308 → `/api/` → **502 application/json** (the `handle_errors` block); `/style.css`, `/nope` → 404 |
 | `caddy-adapt-redir-spellings.txt` | `caddy adapt` for ten candidate spellings — the finding behind the final fix |
 
+## Live host (testserver2.fips, docroot /opt/tollgate/cvm-pwa)
+
+| file | what it is |
+|---|---|
+| `live-BEFORE.txt` | `https://cvm-pwa.orangesync.tech` before the install: `/api`, `/style.css`, `/app.js`, `/nope`, `/`, `/order/`, `/order/sw.js`, `/order/manifest.webmanifest` **all 200 text/html 381b = the order document** |
+| `live-INSTALL.txt` | `HOST=debian@testserver2.fips bash deploy/deploy-pwa.sh` — `replaced 1 block(s); backup /etc/caddy/Caddyfile.vhostbak-20261010T203457Z`, `caddy config: valid`, `caddy: active`, plus the deploy's own asset/proxy verifications |
+| `live-AFTER.txt` | after the install: `/api` 308 → `/api/`; `/style.css`, `/app.js`, `/nope` 404; `/` 302 → `/order/`; `/order/` 1851b order document; `sw.js` JavaScript; manifest `application/manifest+json`; `/console/` + `/console/app.js` unchanged; `curl -L /api` ends in the service's JSON 404 |
+
+The live docroot was still the pre-PWA bundle (381b `/order/`, no `sw.js`, manifest as text/html),
+so the same deploy also refreshed the bundle; the after-state is the repo's `site/order/*`.
+
 ## harness/
 
 The scripts that produced the above, so the manager can re-run them (`SC` paths point at the

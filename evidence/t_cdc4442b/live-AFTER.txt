@@ -1,0 +1,28 @@
+# LIVE cvm-pwa.orangesync.tech AFTER installing this branch's vhost (2026-10-10T20:36:00Z)
+PATH                               CODE  SIZE      CONTENT-TYPE                   LOCATION     BODY-IS-ORDER-DOC
+/api                               308   0b        –                            /api/        no
+/api/                              404   21b       application/json               –          no
+/api/orders                        404   21b       application/json               –          no
+/api/health                        200   11b       application/json               –          no
+/style.css                         404   0b        –                            –          no
+/app.js                            404   0b        –                            –          no
+/nope                              404   0b        –                            –          no
+/                                  302   0b        –                            /order/      no
+/order/                            200   1851b     text/html;                     –          ORDER-DOC
+/order/sw.js                       200   5505b     text/javascript;               –          no
+/order/manifest.webmanifest        200   1012b     application/manifest+json      –          no
+/menu.json                         200   57027b    application/json               –          no
+/vocab/service-inputs.json         200   6366b     application/json               –          no
+/console/                          200   1102b     text/html;                     –          no
+/console/app.js                    200   28538b    text/javascript;               –          no
+-- bare /api raw headers:
+   | HTTP/2 308 
+   | alt-svc: h3=":443"; ma=2592000
+   | cache-control: no-store
+   | location: /api/
+   | server: Caddy
+   | content-length: 0
+-- followed through: GET /api (curl -L):
+   final=404 ct=application/json redirects=1 size=21b body={"error":"not found"}
+-- followed through: POST /api (curl -L, method must survive the 308):
+   final=404 ct=application/json redirects=1 body={"error":"not found"}

@@ -1,0 +1,21 @@
+# LIVE cvm-pwa.orangesync.tech BEFORE the install (2026-10-10T20:34:04Z) — installed vhost = the shipped origin/main one
+PATH                               CODE  SIZE      CONTENT-TYPE                   LOCATION     BODY-IS-ORDER-DOC
+/api                               200   381b      text/html;                     –          ORDER-DOC
+/api/                              404   21b       application/json               –          no
+/api/orders                        404   21b       application/json               –          no
+/style.css                         200   381b      text/html;                     –          ORDER-DOC
+/app.js                            200   381b      text/html;                     –          ORDER-DOC
+/nope                              200   381b      text/html;                     –          ORDER-DOC
+/                                  200   381b      text/html;                     –          ORDER-DOC
+/order/                            200   381b      text/html;                     –          ORDER-DOC
+/order/sw.js                       200   381b      text/html;                     –          ORDER-DOC
+/order/manifest.webmanifest        200   381b      text/html;                     –          ORDER-DOC
+/menu.json                         200   57027b    application/json               –          no
+/vocab/service-inputs.json         200   6366b     application/json               –          no
+/console/                          200   1102b     text/html;                     –          no
+/console/app.js                    200   28538b    text/javascript;               –          no
+-- GET /api body:
+   | <!doctype html>
+   | <html lang="en">
+   | <head>
+   |   <meta charset="utf-8">
