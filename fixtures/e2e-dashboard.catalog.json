@@ -1,0 +1,334 @@
+{
+  "generated_at": 1791232403,
+  "generated_at_iso": "2026-10-05T20:33:23.000Z",
+  "collector": {
+    "version": 2,
+    "kinds": [
+      11316,
+      11317,
+      11318,
+      11319,
+      11320,
+      30316
+    ],
+    "review_kind": 30316,
+    "relays": [
+      "ws://127.0.0.1:7781"
+    ],
+    "relay_status": [
+      {
+        "relay": "ws://127.0.0.1:7781",
+        "ok": true,
+        "events": 11,
+        "error": null
+      }
+    ],
+    "offline_input": null
+  },
+  "allowlist": {
+    "source": "fixtures/curators.e2e.json",
+    "dashboard_host": "127.0.0.1 (hermetic e2e run only)",
+    "curators": [
+      {
+        "npub": "npub1ftjlarsn0k4g5wmxnjcae48u2nl20vfu2lf3rjdqrht89h9z0fhsah7hqu",
+        "role": "curator",
+        "note": "Registry #1 (unchanged from the public allow-list)."
+      },
+      {
+        "npub": "npub19a4rasj4dcvuwp27gdpgyr4m5kaqtr5psw050vegcw6y6xtt42mqefjksg",
+        "role": "service",
+        "note": "doppelt-kaese-berlin venue key \u2014 ROTATED 2026-10-05 after a private-key leak reached a public remote. E2E allow-list only."
+      },
+      {
+        "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",
+        "role": "service",
+        "note": "S4a venue service key \u2014 pizza-e-pasta-ruedesheimerplatz. E2E allow-list only."
+      },
+      {
+        "npub": "npub1fevhqwgrq0khc9a7r40jv44k5lkl3j5u96thj6ldj72khftc55xsgknehn",
+        "role": "reviewer",
+        "note": "R2 E2E reviewer A (authors doppelt-koese review). E2E allow-list only."
+      },
+      {
+        "npub": "npub1slp6y87snl5f8g30zz6qf4y48n5468y79l0dvnph6wk24djmstvs7dstqv",
+        "role": "reviewer",
+        "note": "R2 E2E reviewer B (pizza e pasta). E2E allow-list only."
+      }
+    ],
+    "pubkey_count": 5,
+    "errors": [],
+    "policy": {
+      "unknown_npub": "not rendered",
+      "empty_list": "renders nothing (fail closed)",
+      "change_process": "edit this file, commit, redeploy"
+    }
+  },
+  "policy": {
+    "_comment": "Freshness policy for the public cvm-registry dashboard. Single source of truth: the collector copies this object verbatim into site/catalog.json under 'policy', and the client reads it from there. Change the numbers here, rebuild, redeploy. ADR-0001 D6 is the rule this file implements.",
+    "version": 1,
+    "updated": "2026-10-05",
+    "dashboard_host": "cvm.orangesync.tech",
+    "freshness": {
+      "fresh_ttl_seconds": 900,
+      "max_age_seconds": 21600,
+      "clock_skew_seconds": 120
+    },
+    "semantics": {
+      "fresh": "age <= fresh_ttl_seconds: announcements may be presented as current",
+      "stale": "fresh_ttl_seconds < age <= max_age_seconds: entries are shown ONLY as an explicitly labelled cached snapshot; every live claim (freshness, refresh, 'current') is disabled",
+      "expired": "age > max_age_seconds: the catalog is DISABLED and no entry is rendered",
+      "invalid": "generated_at missing, unparseable, or future-dated beyond clock_skew_seconds: DISABLED (fail closed)",
+      "rule": "stale must disable, never silently show old state as live (ADR-0001 D6)"
+    }
+  },
+  "counts": {
+    "raw_events": 11,
+    "after_dedupe": 2,
+    "kept": 2,
+    "dropped_not_allowlisted": 0
+  },
+  "reviews": {
+    "raw_events": 3,
+    "parsed": 3,
+    "after_dedupe": 3,
+    "shown": 3,
+    "dropped_not_allowlisted": 0,
+    "attached": 3,
+    "orphaned_no_catalogue_entry": 0,
+    "rating_histogram": {
+      "2": 1,
+      "3": 1,
+      "4": 1
+    },
+    "scoring": "none:reviews-are-listed-newest-first",
+    "attestations": {
+      "parsed": 2,
+      "indexed": 1,
+      "confirmed_reviews": 1,
+      "rejected_wrong_author": 0,
+      "rejected_unknown_venue": 0,
+      "badge": "venue-confirmed",
+      "label": "the venue vouched for this reviewer; not proof the reviewer was present"
+    },
+    "zaps": {
+      "receipts": 4,
+      "reviews_with_zaps": 2,
+      "sats_total_known": 5021,
+      "receipts_amount_unknown": 0,
+      "label": "zaps are a spend signal, not a score"
+    }
+  },
+  "class_tally": {
+    "restaurant": 2
+  },
+  "entries": [
+    {
+      "event_id": "7767889b1ac103537cade59a4376af5b14e3ceeab932b86050b831f613314cae",
+      "kind": 11317,
+      "pubkey": "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891",
+      "npub": "npub192w3smvqchghf9cdtlfan872y6x3ka0lwmgfk3c86et9d3gvdzgsxeve09",
+      "d": "pizza-e-pasta-ruedesheimerplatz",
+      "created_at": 1791211791,
+      "classes": [
+        "restaurant"
+      ],
+      "name": null,
+      "about": null,
+      "website": null,
+      "links": [
+        "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"
+      ],
+      "geohashes": [
+        "u336",
+        "u336wb",
+        "u336wbrd"
+      ],
+      "caps": [
+        {
+          "tool": "order",
+          "amount": 0,
+          "unit": "sats"
+        }
+      ],
+      "tier": {
+        "declared": [
+          "fulfilment"
+        ],
+        "recomputed": "fulfilment",
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [
+          "contact.phone",
+          "ship.address"
+        ],
+        "optional": [
+          "contact.name",
+          "order.notes"
+        ],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": false
+      },
+      "reviews": [
+        {
+          "event_id": "50469e091a4f5e015c5b88bd60ac4506484f97529e59e1d7db548a7d35baf449",
+          "pubkey": "87c3a21fd09fe893a22f10b404d4953ce95d1c9e2fded64c37d3acaab65b82d9",
+          "npub": "npub1slp6y87snl5f8g30zz6qf4y48n5468y79l0dvnph6wk24djmstvs7dstqv",
+          "created_at": 1791224610,
+          "content": "Solid pizza, delivery was slow on a Friday night.",
+          "venue_slug": "pizza-e-pasta-ruedesheimerplatz",
+          "provider_pubkey": "2a9d186d80c5d174970d5fd3d99fca268d1b75ff76d09b4707d65656c50c6891",
+          "venue_url": "https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway",
+          "rating": 3,
+          "rating_source": "t",
+          "geohashes": [
+            "u336",
+            "u336wb",
+            "u336wbrd"
+          ],
+          "announcement_event_id": null,
+          "warnings": [],
+          "zaps": null,
+          "attestation": null
+        }
+      ]
+    },
+    {
+      "event_id": "7bc6e3d20abcbc4f468a8c4017d03d153d1a3effa65fa6c8a377d5e6d8a3c0fc",
+      "kind": 11317,
+      "pubkey": "2f6a3ec2556e19c7055e4342820ebba5ba058e81839f47b328c3b44d196baab6",
+      "npub": "npub19a4rasj4dcvuwp27gdpgyr4m5kaqtr5psw050vegcw6y6xtt42mqefjksg",
+      "d": "doppelt-kaese-berlin",
+      "created_at": 1791231860,
+      "classes": [
+        "restaurant"
+      ],
+      "name": null,
+      "about": null,
+      "website": null,
+      "links": [
+        "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+      ],
+      "geohashes": [
+        "u336",
+        "u336x0",
+        "u336x058"
+      ],
+      "caps": [
+        {
+          "tool": "order",
+          "amount": 0,
+          "unit": "sats"
+        }
+      ],
+      "tier": {
+        "declared": [
+          "fulfilment"
+        ],
+        "recomputed": "fulfilment",
+        "mismatch": false
+      },
+      "requirements": {
+        "required": [
+          "contact.phone",
+          "ship.address"
+        ],
+        "optional": [
+          "contact.name",
+          "order.notes"
+        ],
+        "unknown": [],
+        "none_sentinel": false,
+        "unclassified": false
+      },
+      "reviews": [
+        {
+          "event_id": "40e21cc51254ad62f09c6e297c1657215f6415fa878ab57f760d68506b6fcee1",
+          "pubkey": "4e5970390303ed7c17be1d5f2656b6a7edf8ca9c2e97796bed97956ba578a50d",
+          "npub": "npub1fevhqwgrq0khc9a7r40jv44k5lkl3j5u96thj6ldj72khftc55xsgknehn",
+          "created_at": 1791231994,
+          "content": "Kase and bread were excellent; the queue is real at lunch. Second visit held up.",
+          "venue_slug": "doppelt-kaese-berlin",
+          "provider_pubkey": "2f6a3ec2556e19c7055e4342820ebba5ba058e81839f47b328c3b44d196baab6",
+          "venue_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
+          "rating": 4,
+          "rating_source": "t",
+          "geohashes": [
+            "u336",
+            "u336x0",
+            "u336x058"
+          ],
+          "announcement_event_id": null,
+          "warnings": [],
+          "zaps": {
+            "count": 1,
+            "sats_known": 21,
+            "count_amount_unknown": 0,
+            "senders": [
+              "ceae5f42459410150b023894747e1e0aae23138336d6c1d58862dea4304db112"
+            ],
+            "receipts": [
+              "95b3a6ae00b39757efd356b45c1fe48ef05f5d67421e2ff0a6f123146c1addc0"
+            ],
+            "label": "zaps are a spend signal, not a score"
+          },
+          "attestation": {
+            "status": "venue-signed",
+            "attestation_id": "4336ea9bbfc688dce846695d561fb2d0f93e563634ab17389e7c5cf5119a705a",
+            "attestation_author": "2f6a3ec2556e19c7055e4342820ebba5ba058e81839f47b328c3b44d196baab6",
+            "claim": "This reviewer placed an order at this venue.",
+            "created_at": 1791232242,
+            "limit": "the venue vouched for this reviewer; it is not proof the reviewer was present"
+          }
+        },
+        {
+          "event_id": "fb5b1280ea5fa47b6bbb5e522647d69af48e3b3b482847ba3359ee955c579879",
+          "pubkey": "87c3a21fd09fe893a22f10b404d4953ce95d1c9e2fded64c37d3acaab65b82d9",
+          "npub": "npub1slp6y87snl5f8g30zz6qf4y48n5468y79l0dvnph6wk24djmstvs7dstqv",
+          "created_at": 1791224794,
+          "content": "Good product, long wait, staff seemed stretched.",
+          "venue_slug": "doppelt-kaese-berlin",
+          "provider_pubkey": "2f6a3ec2556e19c7055e4342820ebba5ba058e81839f47b328c3b44d196baab6",
+          "venue_url": "https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase",
+          "rating": 2,
+          "rating_source": "t",
+          "geohashes": [
+            "u336",
+            "u336x0",
+            "u336x058"
+          ],
+          "announcement_event_id": null,
+          "warnings": [],
+          "zaps": {
+            "count": 1,
+            "sats_known": 5000,
+            "count_amount_unknown": 0,
+            "senders": [
+              "ceae5f42459410150b023894747e1e0aae23138336d6c1d58862dea4304db112"
+            ],
+            "receipts": [
+              "15baa87a3266b4b04148531ab209d2f509cd7d557c46877458d5ea95d4ec2952"
+            ],
+            "label": "zaps are a spend signal, not a score"
+          },
+          "attestation": null
+        }
+      ]
+    }
+  ],
+  "_fixture_provenance": {
+    "kind": "capture",
+    "what": "The catalog the hermetic S4d end-to-end run produced (relay -> collector -> site/catalog.json), captured 2026-10-05T20:33:23Z.",
+    "why": "fixtures/ is captures, not invention: the browser e2e must be able to render the real dashboard offline, from a committed artifact, with no strfry relay and no live collector. The collector input (tools/emit-venue-announcement.ts + venues/) and the e2e strfry relay live in other repos/branches, so the capture is the replayable artifact.",
+    "contents_unmodified": true,
+    "generated_at_stamped_by_runner": "tools/run-e2e.mjs re-stamps generated_at/generated_at_iso to the run time before writing site/catalog.json, because policy.json freshness.max_age_seconds=21600 would otherwise render the cache EXPIRED and the dashboard would show zero cards (fail-closed). Contents, reviews and zaps are not modified.",
+    "source": "captured from /home/c03rad0r/repos/cvm-registry/site/catalog.json (the S4d hermetic run, task t_41cda873)",
+    "counts": {
+      "raw_events": 11,
+      "after_dedupe": 2,
+      "kept": 2,
+      "dropped_not_allowlisted": 0
+    }
+  }
+}

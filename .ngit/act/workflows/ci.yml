@@ -1,9 +1,10 @@
 name: ci
 
 # ngit CI (Nostr) runs .ngit/act/workflows/ ONLY; .github/workflows/ is never
-# executed by the coordinator. cvm-registry has no deno.json and no package.json,
-# so there is no `deno task` indirection — the commands below are the real ones
-# the repo is run with locally.
+# executed by the coordinator. The repo has no deno.json, so the `deno` job runs
+# no `deno task` indirection; the `e2e` job uses the package.json on this branch
+# (`npm ci` + `npm run e2e`). The commands below are the real ones the repo is
+# run with locally.
 
 on:
   push:
@@ -34,3 +35,36 @@ jobs:
       # cache. --allow-net is needed only for the loopback Deno.serve in
       # tests/link_check_test.ts — no external network is touched.
       - run: deno test --allow-read --allow-net --allow-env tests/
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The act image ships no browser, and Playwright's own Chromium is not in
+      # it either. `--with-deps` is the part that matters: it also installs the
+      # system libraries Chrome needs, without which even a downloaded browser
+      # cannot launch. The runner has a plain fallback, but it cannot apt.
+      - run: npx playwright install --with-deps chromium ffmpeg
+      # The two offline legs are the gate. They need no relay, no collector and
+      # no live origin: the runner provisions site/catalog.json from the
+      # committed capture and serves site/ on loopback.
+      - run: npm run e2e:hermetic
+      # The two live legs are OBSERVATIONAL in CI, never the gate. They need the
+      # public internet plus two third-party sites behind Cloudflare, so they can
+      # fail for reasons that have nothing to do with this repo — a red gate
+      # nobody in CI can fix, which is worse than an honest narrower check. The
+      # hermetic legs above are the gate and need only loopback. This is not
+      # `|| true`: the step still runs, still prints its PASS/FAIL/SKIP rows and
+      # its verdict line into the job log, and still exits non-zero locally. It
+      # is marked non-gating here, explicitly and in one place.
+      - run: npm run e2e:live
+        continue-on-error: true
+        env:
+          E2E_ALLOW_SKIP: "1"

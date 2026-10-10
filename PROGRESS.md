@@ -4,3 +4,154 @@
 - Status needs live progression → status endpoint polled every 5s after customer confirms payment.
 - Verified Deno full suite 123/123 → tests/order_pwa_test.ts plus site/order/app.js pass checks.
 - Mandatory live Playwright video remains → no Playwright config/live order endpoint exists in this repository; documented in REPORT.md.
+
+---
+
+# PROGRESS — t_e2a7400c (cvm-registry e2e: runnable from a clean clone + CI)
+
+Crash-recovery map. Newest last. Resume from the REMAINING list at the bottom.
+
+## Landed
+
+- `eb818fa` e2e/browser.mjs — one browser-resolution policy (E2E_CHROMIUM ->
+  Playwright's own chromium -> legacy chromium-1243 if present -> system chrome),
+  plus `fixtures/e2e-dashboard.catalog.json` (the replayable capture the runner
+  provisions `site/catalog.json` from).
+- `5aadc49` four real defects fixed in `tools/run-e2e.mjs`, found by RUNNING it:
+  1. `createReadStream` imported from node:http (does not export it) -> import died.
+  2. loopback server started with `spawnSync` children -> event loop blocked ->
+     the child's request to our own server timed out at 30s. Legs now spawn async.
+  3. `listen()` not awaited -> first run ERR_CONNECTION_REFUSED. Now waits for
+     'listening' and falls back to an ephemeral port when 8099 is busy.
+  4. evidence recorded a raw ephemeral port + an absolute home path. Normalised
+     (`base` is now the fixed 8099; `catalog` is repo-relative); the deep-link leg
+     records which browser it used.
+- Package/CI scaffolding was already on this branch from an earlier attempt:
+  `package.json` + `package-lock.json` (playwright pinned 1.56.1) and an `e2e`
+  job in `.ngit/act/workflows/ci.yml` (`npm ci` + `npm run e2e`).
+
+## Verified by running (not by reading)
+
+- `npm run e2e:hermetic` -> 2 passed, 0 failed, verdict PASS, exit 0.
+- `npm run e2e` -> 4 passed, 0 failed, 0 skipped, verdict PASS, exit 0
+  (hermetic: catalog_render + venue_deep_link; live: dashboard-discovery under
+  xvfb + live_deploy_check against https://cvm.orangesync.tech).
+
+## Finding that contradicts the card's premise
+
+The card says card `t_167558e7` (S5c) claimed a push that does not exist. Measured:
+
+```
+cd ~/worktrees/t_167558e7           # the NOSMS repo, not cvm-registry
+git ls-remote origin refs/heads/pr/s5c-playwright-e2e
+  -> cb1b12f13fa4afe021c481ee6f3fd23df1cf5465  refs/heads/pr/s5c-playwright-e2e
+```
+
+The proof commit IS on GitHub origin, and the 5 PNGs + webm ARE tracked at HEAD of
+that branch (`docs/e2e/s5c-nosms/`). The earlier "not published" measurement was
+taken in cvm-registry, where that commit does not (and should not) exist. ngit is
+one commit behind (`cc4cb78`).
+
+## Landed since (this run)
+
+- `37eda21` test(e2e): recovered the S5c nosms proof into **this** repo's history —
+  the 5 PNGs extracted from `cb1b12f13fa4afe021c481ee6f3fd23df1cf5465`
+  (`~/worktrees/t_167558e7`) + a `docs/e2e/s5c-nosms/README.md` naming the source
+  commit and sha256 of each still.
+- `791f5a4` fix(e2e): the CI e2e job failed on an evidence convenience, and a bot
+  challenge was recorded as a verified venue page. Two real defects:
+  1. `transcode_mp4` was fatal when ffmpeg was absent -> an evidence convenience
+     could fail CI. Now best-effort, never fatal (system ffmpeg, then Playwright's
+     bundled ffmpeg-linux, then SKIP).
+  2. the click-through recorded a Cloudflare interstitial ("Just a moment...") as a
+     verified venue page. Now the page is classified (`challenged: true`) and the
+     click-through is gated on `pagesClean` (every venue answered the probe) AND a
+     headed browser, or `E2E_VENUE_PAGES=1`. When it is not attempted the leg says
+     NOT VERIFIED, prints the per-venue probe, and the SUMMARY repeats it.
+- `docs/e2e/README.md` + `docs/e2e/clean-clone-transcript.txt` document the CI wiring,
+  the NOT-VERIFIED sub-assertion semantics, and which stills refresh per run.
+
+## Verified by running (not by reading) — this run
+
+- `npm run e2e:hermetic` x2 -> exit 0 (`/tmp/e2e-hermetic.log`, `/tmp/e2e-hermetic2.log`).
+- `node --check tools/run-e2e.mjs` + `ast.parse(e2e/venue_deep_link_e2e.py)` -> ok.
+- challenge matcher re-checked against 5 titles (CI's title + 2 real venue pages) -> correct.
+- **literal clean-clone**: `git clone` (working tree 0 changed, no node_modules, no
+  site/catalog.json) -> `npm ci` -> `npm run e2e` -> **4 passed, 0 failed, 0 skipped,
+  exit 0** (`docs/e2e/clean-clone-transcript.txt`).
+- **ngit CI at `791f5a4a`**: workflow `ci.yml` `conclusion: success`, `job deno
+  success`, `job e2e success`, integrity "commit present, workflow hash matches".
+  The prior head `34209ac` failed the same job — that is the regression this fixes.
+- **ngit CI at `39e09593`**: `conclusion: success`, `job deno success`, `job e2e
+  success`, same integrity line. This is a run at `39e09593`, NOT at the branch
+  head. The earlier claim here that "the whole branch head is green" was FALSE —
+  the merge `5997648` brought 20 non-doc paths in from `origin/main`. Corrected in
+  the rework round below; the workflow is now run at the head itself.
+- live origin `https://cvm.orangesync.tech/` -> http 200.
+
+## Rework round 2026-10-10 — review round 1 CHANGES_REQUESTED (run 266, head 5997648)
+
+- Corrected the false "every commit after 39e09593 is Markdown-only / the tip
+  differs only in prose" claim in `REPORT.md` and here. `git diff --name-only
+  39e0959..HEAD` lists 20 non-doc paths (`site/order/*`, `tests/order_pwa_test.ts`,
+  `tests/pwa_emulator_harness_test.ts`, `deploy/deploy-pwa.sh`,
+  `tools/pwa-emulator-test/*`) brought in by the merge `5997648` of `origin/main`.
+- Restored `docs/e2e/02b-venue-page-doppelt-kaese-berlin.png`: `34209ac` had
+  overwritten it with a near-uniform blank frame (17602 B, mean 0.996, zero OCR
+  text) while `docs/e2e/README.md` called it the venue's page. Re-shot through the
+  repo — byte-identical to the committed file and to the `69a0819` full-fidelity
+  still (368501 B, sha256 `0f99aacd363b81bfa39e9c656103c128913ce229fcf002cdfc774a8732f53553`),
+  so the page did not move and the blank was a regression, not a stale capture.
+- New `tools/capture_venue_page.py` — refresh ONE venue's page still when the
+  suite's all-or-nothing click-through gate is closed by the other venue. It
+  refuses (exit 2, on-disk still unchanged) on a bot challenge or a URL that
+  differs from the announced deep-link. The leg's challenge pattern is hoisted to
+  `CHALLENGE_RE` in `e2e/venue_deep_link_e2e.py` so both share one definition.
+- `docs/e2e/README.md` embeds now use repo-relative paths (they pointed at
+  `raw/pr/s2b-dashboard-e2e/…`, i.e. at files that are not what the repo holds).
+- Verified: `npm run e2e` -> 4 passed, 0 failed, 0 skipped, exit 0, venue
+  click-through NOT verified (pizza is Cloudflare-blocked from this host).
+- CI: the workflow is run at the head; the conclusion is quoted on PR #22 and in
+  the kanban handoff.
+- **ngit CI at this rework's code+docs head `195b4d4a`**: `conclusion: success`,
+  `job deno success`, `job e2e success`, integrity "commit present, workflow hash
+  matches", trigger `manual`, ref `refs/heads/ci/cvm-e2e-runnable`:
+
+  ```
+  CI for 195b4d4a6c7f33a87e9598e977d1dfbf4dc1312f (195b4d4a)
+    success    .ngit/act/workflows/ci.yml  [Maintainer-directed]  Requested by a maintainer
+      integrity: commit present, workflow hash matches
+      job deno success [Maintainer-directed]
+      job e2e success [Maintainer-directed]
+    concluded (success)
+  ```
+
+  The commit that writes this line is docs-only over `195b4d4a` — verifiable with
+  `git diff --name-only 195b4d4a..HEAD` — and the workflow is run at that commit
+  too, with its own conclusion quoted on PR #22. Checked, not assumed: the
+  previous version of this claim was false.
+
+## REMAINING
+
+1. Second cold-review round (budget-sufficient): the unanswered questions are
+   exit-code accounting (is a skip ever a pass?) and whether the CI gate /
+   observational split hides anything a maintainer would want red. Round 1 and
+   what it found are written up in `docs/e2e/cold-review.md`.
+2. Publish the review verdict + the evidence links on the PR, then merge
+   `wt/cvm-e2e-runnable` -> `main`.
+3. Out of scope for this card (different repo): dual-publish `pr/s5c-playwright-e2e`
+   (cb1b12f, NOSMS repo) to ngit. The card premise is already corrected by the
+   `ls-remote` evidence above, and the proof now also lives in this repo (`37eda21`).
+
+## Round 1 findings, answered (no un-pushed work)
+
+- Reviewer (`kimi-k3:cloud` requested, `deepseek-flash` served) found a real
+  silent-green: the harness decided the summary's NOT-VERIFIED note from its own
+  probe, while the leg decided what the browser actually saw — and the leg's
+  stdout is inherited, so the summary never saw it. A page can answer curl
+  `clear` and still be challenged in Chrome. Fixed by reading the leg's own
+  evidence back (`docs/e2e/venue-discovery-e2e.json`) and proven differentially:
+  probe-clear + leg-challenged -> NOTE appears; leg-verified -> no NOTE.
+- Reading it for Q2 found an unguarded `subprocess.run` in `transcode_mp4` (a
+  which()-found binary that the OS refuses to exec would still fail the leg).
+  Wrapped; `e2e/transcode_mp4_selftest.py` now pins all four cases, 4/4.

@@ -4,3 +4,6 @@ node_modules/
 .worktrees/
 .scratch/
 docs/e2e/video/
+
+# python bytecode from the e2e leg and tools
+__pycache__/

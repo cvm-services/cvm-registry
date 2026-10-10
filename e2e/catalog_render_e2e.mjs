@@ -24,7 +24,6 @@
 // Env: E2E_BASE_URL (use an already-running server instead of the built-in one),
 //      E2E_EVIDENCE (default docs/e2e/catalog-render-e2e.json)
 
-import { chromium } from "playwright";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { createReadStream, statSync } from "node:fs";
@@ -35,10 +34,7 @@ const ROOT = resolve(fileURLToPath(import.meta.url), "../..");
 const SITE = join(ROOT, "site");
 const SCRATCH = join(ROOT, ".scratch", "e2e-catalog-render");
 const EVIDENCE = process.env.E2E_EVIDENCE ?? join(ROOT, "docs", "e2e", "catalog-render-e2e.json");
-import { homedir } from "node:os";
-// Resolve from $HOME at run time: this file must not carry a literal home path
-// (the fleet home-path gate refuses new absolute paths, and they do not travel).
-const CHROMIUM_1243 = process.env.E2E_CHROMIUM ?? join(homedir(), ".cache", "ms-playwright", "chromium-1243", "chrome-linux64", "chrome");
+import { launchChromium } from "./browser.mjs";
 
 const fixture = JSON.parse(readFileSync(join(SITE, "fixtures", "doppelt.catalog.json"), "utf8"));
 const ITEMS = fixture.menu.items;
@@ -211,17 +207,30 @@ async function main() {
   let base = process.env.E2E_BASE_URL;
   if (!base) {
     server = serveDir(SCRATCH);
-    await new Promise((res) => server.listen(0, "127.0.0.1", res));
+    // A FIXED port by default, not port 0: this evidence is committed, and an
+    // OS-chosen random port would put a meaningless new URL in the diff on every
+    // run. Fall back to an ephemeral port only if the fixed one is taken.
+    const want = Number(process.env.E2E_LOCAL_PORT ?? 8099);
+    try {
+      await new Promise((res, rej) => {
+        server.once("error", rej);
+        server.listen(want, "127.0.0.1", res);
+      });
+    } catch (err) {
+      if (err.code !== "EADDRINUSE") throw err;
+      step("port-busy", { wanted: want, fallback: "ephemeral" });
+      await new Promise((res) => server.listen(0, "127.0.0.1", res));
+    }
     base = `http://127.0.0.1:${server.address().port}/`;
   }
   facts.base = base;
 
-  // Record the launch decision with $HOME normalised, so the committed evidence
-  // carries no literal home path (the fleet home-path gate refuses new ones).
-  const launch = existsSync(CHROMIUM_1243)
-    ? { headless: true, executablePath: CHROMIUM_1243.replace(homedir(), "$HOME") }
-    : { headless: true, channel: "chrome" };
-  const browser = await chromium.launch(launch.executablePath ? { headless: true, executablePath: CHROMIUM_1243 } : launch);
+  // e2e/browser.mjs resolves the browser (explicit, Playwright's own, legacy
+  // cache, system Chrome). The decision is recorded with $HOME normalised, so the
+  // committed evidence carries no literal home path.
+  const launched = await launchChromium({ headless: true });
+  const browser = launched.browser;
+  const launch = { headless: true, how: launched.how };
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
   const errors = [];
