@@ -373,7 +373,7 @@ Deno.test("sw.js: the fetch handler refuses /api/** before it can reach any cach
   assert(respond > -1, "the fetch handler must respondWith() the shell strategy");
   assert(guard < respond, "the /api/ refusal must come BEFORE respondWith(), or API responses would be cached");
   assert(
-    /if\s*\([^)]*isApiPath[^)]*\)\s*return/.test(fetchHandler),
+    /if\s*\([^;]*isApiPath[^;]*\)\s*return/.test(fetchHandler),
     "the /api/ guard must be an early return (network-only), not a branch that still caches",
   );
 });
