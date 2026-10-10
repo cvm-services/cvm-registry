@@ -13,11 +13,14 @@ Baseline before any change: 161 passed | 0 failed.
 ## Milestones
 - [x] M0 recon: vhost, deploy-pwa.sh, rewrite-caddy-vhost.py, existing tests, CI.
 - [x] M1 RED: 4 new assertions in tests/pwa_vhost_test.ts — FAILS on the shipped vhost
-      (6 passed | 4 failed). Output: /home/c03rad0r/scratch/RED-pwa_vhost.txt
-- [ ] M2 fix deploy/caddy-vhost-cvm-pwa.caddy (scoped fallbacks + exact `/api` + root alias).
-- [ ] M3 green suite.
+      (6 passed | 4 failed). Output: /home/c03rad0r/scratch/RED-pwa_vhost.txt (attempt 1)
+      and re-run by attempt 3 (this run) -> /home/c03rad0r/scratch/t_cdc4442b/RED-mine.txt
+- [x] M2 fix deploy/caddy-vhost-cvm-pwa.caddy (scoped /order/* fallback, exact `/api`,
+      explicit `/` alias, fallback-free catch-all).
+- [x] M3 green suite: 165 passed | 0 failed (161 baseline + 4 new).
 - [ ] M4 local Caddy 2.6.2 behavioural before/after matrix (real curl, not text assertions).
 - [ ] M5 REPORT.md + PR to main.
+- [ ] M6 host install on testserver2.fips + live before/after curl matrix.
 
 ## Facts found (do not re-derive)
 - CI: `deno check collector/ tests/` then `deno test --allow-read --allow-net --allow-env tests/`.
@@ -31,5 +34,9 @@ Baseline before any change: 161 passed | 0 failed.
   of scoping it) 404s the app's own data and hangs the page the same way.
 - Caddy `handle /api` (no `/*`) is an EXACT match — that is the whole defect: `/api` never
   matched `handle_path /api/*`. There is no caddy(1) in this repo's CI; local caddy 2.6.2 was
-  extracted from the Debian package for the behavioural check.
+  extracted from the Debian package for the behavioural check:
+  /home/c03rad0r/scratch/caddy2/root/usr/bin/caddy (no install needed, runs in place).
 - REPORT.md is overwritten per task (previous tasks did the same) — history is in git.
+- `/` also served the order document under the OLD unscoped catch-all, so the same
+  relative-asset trap applied at the root: scoping the fallback to /order/* without an
+  explicit `/` handler would turn the root into a 404. Hence `handle / -> 302 /order/`.
