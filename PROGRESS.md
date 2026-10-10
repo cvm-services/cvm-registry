@@ -22,3 +22,36 @@ Worktree `/home/c03rad0r/worktrees/t_324abc50`.
   no `/api` at all, so the customer PWA's pay step 404s too); (2) the T4 happy-path video evidence —
   Playwright + chromium 1228 and ffprobe ARE available on this node, the harness just did not fit this
   run's budget; (3) server-side NIP-98 verification and receipt persistence in cvm-orders.
+
+---
+
+# PROGRESS — t_99fb9b0e · deploy /console/ + close the missing /api proxy
+
+Worktree `/home/c03rad0r/worktrees/t_99fb9b0e` on the same branch (`pr/facilitator-console`),
+plus `/home/c03rad0r/worktrees/t_99fb9b0e-orders` for the cvm-orders change.
+
+- Recon -> confirmed the live defect first-hand: `/api/auth/challenge`, `/api/orders/queue`,
+  `/console/`, `/order/` and `/health` ALL answered `HTTP 200, 381 bytes, text/html` (the ordering
+  SPA fallback). `/order/app.js` and `/menu.json` are byte-identical to the repo (sha256 checked),
+  so the customer PWA itself was fine and only the surface was broken.
+- cvm-orders -> Deno `serve()` binds `0.0.0.0` by default and the store has no auth; added
+  `src/serve_options.ts` (loopback default, `BIND_ADDR` override, PORT validation), used by
+  `main.ts`. 3 new tests / 6 pass / `serve_options.ts` 100% line coverage. Branch
+  `pr/orders-bind-loopback` @ `0da283f`, pushed, PR https://github.com/cvm-services/cvm-orders/pull/2.
+- cvm-registry -> the vhost became a repo file (`deploy/caddy-vhost-cvm-pwa.caddy`) installed by
+  `deploy/rewrite-caddy-vhost.py`, which REPLACES an older block for the domain (the old
+  append-once logic could never ship the proxy). Added `deploy/orders-setup.sh` +
+  `deploy/cvm-orders-remote-setup.sh` (own systemd unit + `/etc/cvm-orders/config.env`), and
+  `tests/pwa_vhost_test.ts` (6 tests). Commit `026f2d0`, pushed to `origin/pr/facilitator-console`.
+- Deployed -> `cvm-orders.service` active on `127.0.0.1:8788` (`ss` + journal "Listening on
+  http://127.0.0.1:8788/"), then `deploy-pwa.sh`: vhost replaced (backup
+  `/etc/caddy/Caddyfile.vhostbak-20261010T054635Z`), caddy valid + reloaded, `/console/` = 1102b
+  console document + `app.js`/`style.css` 200s, `/api/*` = application/json.
+- Down-test -> stopping the service gives `HTTP 502 application/json` on `/api/*` and leaves
+  `/console/` + `/order/` at 200; starting it restores `HTTP 200 application/json`.
+- Evidence -> `console-signin.png` (2560x1728 live sign-in screen, captured from the deployed URL).
+- FINDING (not this card's REQUIRED, reported not fixed): `POST /api/orders` returns 201 with no
+  `id` (the PWA sends no id and no `payload` wrapper) and `GET /api/orders/:id/invoice` 404s, so the
+  customer pay step is still not completable end-to-end -> follow-up card `t_5198c7da`.
+- Remaining -> the T4 happy-path video (`t_4726349b`), the orders API contract fix (`t_5198c7da`),
+  and merging cvm-orders PR #2 (`pr/orders-bind-loopback`).
