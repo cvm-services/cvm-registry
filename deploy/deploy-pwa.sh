@@ -18,10 +18,15 @@ DOMAIN="${DOMAIN:-cvm-pwa.orangesync.tech}"
 SSH_OPTS=(-o BatchMode=yes)
 
 [ -f "$REPO/site/order/index.html" ] || { echo "ERROR: site/order/ missing" >&2; exit 1; }
+[ -f "$REPO/site/console/index.html" ] || { echo "ERROR: site/console/ missing" >&2; exit 1; }
 
 BUNDLE="$(mktemp -d /tmp/cvm-pwa-bundle-XXXX)"
-mkdir -p "$BUNDLE/order" "$BUNDLE/vocab"
+mkdir -p "$BUNDLE/order" "$BUNDLE/console" "$BUNDLE/vocab"
 cp "$REPO"/site/order/* "$BUNDLE/order/"
+# The facilitator console (PLAN-0007 T4). Same origin as the customer PWA so both UIs
+# talk to the same /api -> cvm-orders proxy; card data never leaves the facilitator's
+# device (ADR-0013), so nothing here is a payment form.
+cp "$REPO"/site/console/* "$BUNDLE/console/"
 cp "$REPO/site/menu.json" "$BUNDLE/menu.json"
 cp "$REPO/vocab/service-inputs.json" "$BUNDLE/vocab/service-inputs.json"
 [ -d "$REPO/site/fixtures" ] && cp -r "$REPO/site/fixtures" "$BUNDLE/fixtures"
@@ -66,8 +71,8 @@ echo "   caddy: \$(systemctl is-active caddy)"
 REMOTE
 
 echo "== verify"
-for p in /order/ /menu.json /vocab/service-inputs.json; do
+for p in /order/ /console/ /menu.json /vocab/service-inputs.json; do
   printf '   %-28s ' "$p"
   curl -s -o /dev/null -w '%{http_code}\n' -m 15 "https://$DOMAIN$p" || true
 done
-echo "done. open https://$DOMAIN/order/"
+echo "done. customer https://$DOMAIN/order/ · facilitator https://$DOMAIN/console/"
