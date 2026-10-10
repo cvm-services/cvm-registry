@@ -403,6 +403,10 @@ npm run test:e2e                    # hermetic, ~25s
 E2E_LIVE=1 npm run test:e2e:live    # against the deployed origin
 ```
 
+Verified from a clean clone of this branch (`2ee68a3`, cloned from GitHub rather
+than from the authoring worktree): `npm ci` → 0 vulnerabilities, then
+`npx playwright test --project=hermetic` → `1 passed (28.0s)`.
+
 1. **The suite needs `cvm-orders`.** It runs the real service. With no
    `CVM_ORDERS_DIR` set it clones `main` into `.cache/cvm-orders` (gitignored,
    shallow) and prints the commit it resolved, `[e2e] cvm-orders 1ebe0dc (clone

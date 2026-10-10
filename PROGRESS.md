@@ -88,6 +88,15 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
   spec re-run → same 409, 7.1s, appended to `live-run.log`
 - 2026-10-10 → repo is PUBLIC, so the evidence .webm is fetchable without auth:
   https://github.com/cvm-services/cvm-registry/raw/worker-base/t_889735b3/docs/e2e/order-pwa/order-pwa-happy-path-venue-basket-invoice-settled.webm
+- 2026-10-10 → clean-clone verification at `2ee68a3` (clone from GitHub, not from
+  this worktree): `npm ci` 0 vulnerabilities, `npx playwright test
+  --project=hermetic` → `1 passed (28.0s)`. This is the "runnable from a clean
+  clone" half of t_e2a7400c, verified independently of the author's tree.
+- 2026-10-10 → the video was attached to the card through the SHA-pinned raw URL,
+  and the fetched bytes hash-match the committed blob
+  (`e2ee74a5ab278a81b329b636f208c1cead047fbc6f01cdc38e80c43a6d13ab52`); the
+  branch-pinned raw URL served a stale 740 824-byte copy for minutes, so pin the
+  commit when you attach a GitHub artifact.
 
 ## Remaining
 
