@@ -196,3 +196,9 @@ rewrite of the API contract inside a deploy task.
   sd 0.055 (i.e. non-blank, dark-theme content) plus the DOM text from the live page.
 * No sign-in was COMPLETED: a NIP-98 signer is not available headless, and server-side verification
   does not exist yet (`t_d790103d`).
+
+## Close-out (t_99fb9b0e)
+
+Task closed. Final live re-check, DOM-text render evidence, honest screenshot provenance (vision lane 503 — no vision verdict claimed), card attachment ids and their sha256s, and the commit list are in
+[`evidence/t_99fb9b0e/CLOSEOUT.md`](evidence/t_99fb9b0e/CLOSEOUT.md). Card attachments: 77 `deploy-matrix.txt`, 78 `console-signin.png`, 81 `CLOSEOUT.md`.
+Follow-up (not in scope here): `t_5198c7da` — order-create contract + missing `GET /orders/:id/invoice`.
