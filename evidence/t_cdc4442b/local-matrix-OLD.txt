@@ -1,0 +1,30 @@
+### old  (/home/c03rad0r/scratch/t_cdc4442b/old.caddyfile)
+GET matrix (upstream cvm-orders UP unless noted):
+  PATH                             CODE SIZE    CONTENT-TYPE                 LOCATION     BODY-IS-ORDER-DOC
+  /api                             200  1851b   text/html;                   –          ORDER-DOC
+  /api/                            404  61b     application/json             –          no
+  /api/orders                      404  67b     application/json             –          no
+  /api/health                      200  64b     application/json             –          no
+  /style.css                       200  1851b   text/html;                   –          ORDER-DOC
+  /app.js                          200  1851b   text/html;                   –          ORDER-DOC
+  /nope                            200  1851b   text/html;                   –          ORDER-DOC
+  /                                200  1851b   text/html;                   –          ORDER-DOC
+  /order/                          200  1851b   text/html;                   –          ORDER-DOC
+  /order/index.html                200  1851b   text/html;                   –          ORDER-DOC
+  /order/style.css                 200  5942b   text/css;                    –          no
+  /order/nope-route                200  1851b   text/html;                   –          ORDER-DOC
+  /order/sw.js                     200  5505b   text/javascript;             –          no
+  /order/manifest.webmanifest      200  1012b   application/manifest+json    –          no
+  /menu.json                       200  57027b  application/json             –          no
+  /vocab/service-inputs.json       200  6366b   application/json             –          no
+  /console/                        200  1102b   text/html;                   –          no
+  /console/nope-route              200  1102b   text/html;                   –          no
+  /fixtures/doppelt.catalog.json   200  45779b  application/json             –          no
+  -- 308 must preserve the method: POST /api
+  /api                             200  1851b   text/html;                   –          ORDER-DOC
+  -- body of bare /api (first 120 bytes):
+     | <!doctype html>
+     | <html lang="en">
+     | <head>
+     |   <meta charset="utf-8">
+     |   <meta name="viewport" content="width=device-width,ini

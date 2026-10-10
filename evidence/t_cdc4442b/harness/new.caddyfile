@@ -1,0 +1,110 @@
+{
+	admin off
+	auto_https off
+}
+
+# cvm-pwa.orangesync.tech — the customer ordering PWA (/order/) and the facilitator
+# console (/console/) on ONE origin, plus the /api surface both of them talk to.
+#
+# Source of truth: deploy/caddy-vhost-cvm-pwa.caddy in cvm-services/cvm-registry,
+# installed by deploy/deploy-pwa.sh (deploy/rewrite-caddy-vhost.py replaces any
+# older block for this domain, so re-running the deploy cannot leave the legacy
+# fallback-only vhost in place).
+#
+# /api/* is reverse-proxied to cvm-orders on 127.0.0.1:8788 (systemd unit
+# cvm-orders.service, env /etc/cvm-orders/config.env). The order store is IN
+# MEMORY today: restarting cvm-orders EMPTIES THE QUEUE BY DESIGN (cvm-orders
+# README — "this in-memory implementation is for the working demo only"), so a
+# restart is not data-loss-by-bug.
+#
+# Why handle_errors: before 2026-10-10 /api/* fell through to the SPA fallback,
+# so a missing order service answered HTTP 200 + index.html. The customer PWA's
+# fetch() resolved ok and then failed parsing, which is what made the pay step
+# impossible to diagnose. A down service must now answer a real JSON error.
+#
+# Why the fallbacks are SCOPED (2026-10-10, second defect of the same class):
+# this file used to end with an UNSCOPED `handle { try_files {path} /order/index.html }`.
+# An unscoped fallback answers HTTP 200 + the order document for every path no
+# earlier handler claimed — and bare `/api` is never claimed, because Caddy's
+# `handle_path /api/*` needs the trailing slash. So GET /api answered the app's
+# document, the document loads its assets with RELATIVE urls (style.css, app.js),
+# the browser fetched /style.css and /app.js and got text/html for both, refused
+# to execute the module script, and left "Loading venues…" on screen forever with
+# NO console error and NO failed request: a 200 is undiagnosable.
+# Neither app has a URL router (the 6 screens are in-page state), so neither needs
+# a global SPA fallback: each app now falls back only inside its OWN subtree, and
+# a path nobody owns answers 404. The catch-all survives as a fallback-free
+# file_server because the order app fetches `../menu.json` and
+# `../../vocab/service-inputs.json` — paths OUTSIDE /order/ — and deleting it
+# instead of scoping it would 404 the app's own data and hang the page the same way.
+http://127.0.0.1:18080 {
+	encode gzip
+	root * /home/c03rad0r/scratch/t_cdc4442b/docroot
+
+	# PWA artifacts need their real media types. Chrome refuses the install prompt
+	# for a manifest that does not arrive as manifest JSON, and it only accepts a
+	# service worker script served as JavaScript. Caddy's mime table usually gets
+	# this right; "usually" is not good enough for the difference between an
+	# installable app and a page that merely looks like one, so it is stated here.
+	# (The worker sits at /order/sw.js on purpose: the script's own path fixes its
+	# scope to /order/, so it can never intercept /console/ or the /api surface.)
+	@pwa_manifest path /order/manifest.webmanifest
+	header @pwa_manifest Content-Type "application/manifest+json"
+
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:8788
+	}
+
+	# BARE /api (exact match, no wildcard). It must never be answered with a
+	# document. A 308 to /api/ is chosen over a hand-written JSON 404 because the
+	# two paths name the same resource and /api/ is the form the prefix-stripping
+	# proxy actually serves: the edge normalises the request and preserves the
+	# method (a POST to bare /api arrives as POST /api/ rather than being answered
+	# by the edge), and the answer the client gets is the service's OWN verdict —
+	# its JSON 404 while it is up, this file's JSON 502 while it is down. Both are
+	# JSON; neither is 200 + text/html.
+	#
+	# `redir * /api/ 308`, NOT `redir /api/ 308`: Caddy reads the FIRST argument of
+	# `redir` as an optional inline matcher, and a token starting with "/" IS a path
+	# matcher — so `redir /api/ 308` adapts to `match path /api/ -> 302 Location: 308`
+	# and bare /api answers 200 with an EMPTY body instead of redirecting. Observed
+	# on caddy 2.6.2 (see tests/pwa_vhost_test.ts and evidence/t_cdc4442b/).
+	handle /api {
+		redir * /api/ 308
+	}
+
+	# The bare origin is an alias for the customer app, not a second place the app
+	# is served from: a redirect keeps the entry point working while the app's
+	# relative asset urls still resolve against /order/ (which is the actual bug
+	# above). 302, not 308: this is a convenience landing alias, so a browser must
+	# not pin it forever if the root later grows its own document.
+	handle / {
+		redir * /order/ 302
+	}
+
+	# Each app falls back to its OWN document: /console/ must never serve the
+	# customer ordering app, and /order/ must never serve the console.
+	handle /console/* {
+		try_files {path} /console/index.html
+		file_server
+	}
+
+	handle /order/* {
+		try_files {path} /order/index.html
+		file_server
+	}
+
+	# Catch-all: REAL files from the docroot only (menu.json, vocab/…, fixtures/…).
+	# No try_files, so an unknown path is a 404 and can never be a document.
+	handle {
+		file_server
+	}
+
+	header Cache-Control "no-store"
+
+	handle_errors {
+		@api path /api/*
+		header @api Content-Type "application/json"
+		respond @api `{"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties the queue, it does not lose committed data"}` 502
+	}
+}

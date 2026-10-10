@@ -1,0 +1,10 @@
+a_redir_path_code      inner-match=[{"path": ["/api/"]}] status=302  headers={"Location": ["308"]}          body=""
+c_redir_quoted         inner-match=[{"path": ["/api/"]}] status=302  headers={"Location": ["308"]}          body=""
+d_redir_star           inner-match=[]                 status=308  headers={"Location": ["/api/"]}        body=""
+e_route_redir          inner-match=[{"path": ["/api/"]}] status=302  headers={"Location": ["308"]}          body=""
+f_respond_hdr          PARSE-ERROR Error: parsing caddyfile tokens for 'handle': /home/c03rad0r/scratch/t_cdc4442b/probe-f_respond_hdr.caddyfile:6 - Error during parsing: parsing caddyf
+h_redir_permanent      inner-match=[{"path": ["/api/"]}] status=302  headers={"Location": ["permanent"]}    body=""
+j_redir_code_first     PARSE-ERROR Error: parsing caddyfile tokens for 'handle': /home/c03rad0r/scratch/t_cdc4442b/probe-j_redir_code_first.caddyfile:4 - Error during parsing: parsing c
+k_respond_empty_hdr    PARSE-ERROR Error: parsing caddyfile tokens for 'handle': /home/c03rad0r/scratch/t_cdc4442b/probe-k_respond_empty_hdr.caddyfile:6 - Error during parsing: parsing 
+l_redir_full_url       inner-match=[]                 status=308  headers={"Location": ["https://{http.request.host}/api/"]} body=""
+m_redir_placeholder    inner-match=[]                 status=308  headers={"Location": ["{http.request.uri}/"]} body=""

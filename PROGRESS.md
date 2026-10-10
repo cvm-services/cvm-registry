@@ -18,7 +18,14 @@ Baseline before any change: 161 passed | 0 failed.
 - [x] M2 fix deploy/caddy-vhost-cvm-pwa.caddy (scoped /order/* fallback, exact `/api`,
       explicit `/` alias, fallback-free catch-all).
 - [x] M3 green suite: 165 passed | 0 failed (161 baseline + 4 new).
-- [ ] M4 local Caddy 2.6.2 behavioural before/after matrix (real curl, not text assertions).
+- [x] M4 local Caddy 2.6.2 behavioural before/after matrix (real curl, not text assertions):
+      evidence/t_cdc4442b/local-matrix-{OLD,NEW}.txt + follow-through + upstream-DOWN passes.
+      IT CAUGHT A REAL BUG the text assertions could not: Caddy reads the first arg of `redir`
+      as an optional inline matcher and a `/`-token IS a path matcher, so `redir /api/ 308`
+      adapted to `match path /api/ -> 302 Location: 308` and bare /api answered 200 + EMPTY
+      rather than the 308. Fixed to `redir * /api/ 308` / `redir * /order/ 302`, and the suite
+      now fails if any redir target sits in the matcher slot
+      (probe: evidence/t_cdc4442b/caddy-adapt-redir-spellings.txt).
 - [ ] M5 REPORT.md + PR to main.
 - [ ] M6 host install on testserver2.fips + live before/after curl matrix.
 

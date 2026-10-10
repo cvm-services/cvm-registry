@@ -1,0 +1,26 @@
+### new  (/home/c03rad0r/scratch/t_cdc4442b/new.caddyfile)
+GET matrix (upstream cvm-orders UP unless noted):
+  PATH                             CODE SIZE    CONTENT-TYPE                 LOCATION     BODY-IS-ORDER-DOC
+  /api                             308  0b      –                          /api/        no
+  /api/                            404  61b     application/json             –          no
+  /api/orders                      404  67b     application/json             –          no
+  /api/health                      200  64b     application/json             –          no
+  /style.css                       404  0b      –                          –          no
+  /app.js                          404  0b      –                          –          no
+  /nope                            404  0b      –                          –          no
+  /                                302  0b      –                          /order/      no
+  /order/                          200  1851b   text/html;                   –          ORDER-DOC
+  /order/index.html                200  1851b   text/html;                   –          ORDER-DOC
+  /order/style.css                 200  5942b   text/css;                    –          no
+  /order/nope-route                200  1851b   text/html;                   –          ORDER-DOC
+  /order/sw.js                     200  5505b   text/javascript;             –          no
+  /order/manifest.webmanifest      200  1012b   application/manifest+json    –          no
+  /menu.json                       200  57027b  application/json             –          no
+  /vocab/service-inputs.json       200  6366b   application/json             –          no
+  /console/                        200  1102b   text/html;                   –          no
+  /console/nope-route              200  1102b   text/html;                   –          no
+  /fixtures/doppelt.catalog.json   200  45779b  application/json             –          no
+  -- 308 must preserve the method: POST /api
+  /api                             308  0b      –                          /api/        no
+  -- body of bare /api (first 120 bytes):
+

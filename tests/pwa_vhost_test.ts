@@ -141,8 +141,13 @@ Deno.test("bare /api has its own handler and never reaches the order fallback", 
   }
   // Either an exact-match redirect to the proxy's own prefix (preserves the
   // method) or a JSON answer. What may NOT happen is a 200 + HTML.
-  if (!/redir\s+\/api\/\s+30[128]/.test(api.body) && !/respond[^\n]*`\{"/.test(api.body)) {
-    throw new Error("handle /api neither redirects to /api/ nor answers JSON");
+  //
+  // The matcher slot (`*`) is REQUIRED, not stylistic: Caddy reads `redir`'s first
+  // argument as an optional inline matcher, and a path-looking token IS a path
+  // matcher, so `redir /api/ 308` adapts to `match path /api/ -> 302 Location: 308`
+  // and answers 200 + empty body. See the dedicated test below.
+  if (!/redir\s+(\*|@[\w.-]+)\s+\/api\/\s+308/.test(api.body) && !/respond[^\n]*`\{"/.test(api.body)) {
+    throw new Error("handle /api neither redirects to /api/ with an explicit matcher slot nor answers JSON");
   }
 });
 
@@ -202,7 +207,36 @@ Deno.test("the origin root is an explicit alias, not a second copy of the app", 
   if (/try_files|file_server/.test(root.body)) {
     throw new Error("`/` serves a document directly: the app's relative asset urls would resolve against the wrong base");
   }
-  if (!/redir\s+\/order\/\s+30[128]/.test(root.body)) {
-    throw new Error("`/` must alias to /order/");
+  if (!/redir\s+(\*|@[\w.-]+)\s+\/order\/\s+302/.test(root.body)) {
+    throw new Error("`/` must alias to /order/ with an explicit matcher slot");
   }
+});
+
+// ---------------------------------------------------------------------------
+// The failure mode a TEXT assertion cannot see on its own.
+//
+// Caddy reads `redir`'s first argument as an optional inline matcher, and a token
+// beginning with "/" is a path matcher. So the obvious-looking spelling
+//     redir /api/ 308
+// does NOT mean "redirect to /api/ with 308". `caddy adapt` (2.6.2) turns it into
+//     match path /api/   ->   static_response status 302, headers {Location: 308}
+// and because the rewritten inner route only matches /api/ — never bare /api —
+// GET /api answered 200 with an EMPTY body. The directive silently stopped
+// redirecting; only a real request revealed it (see evidence/t_cdc4442b/).
+//
+// The rule this test enforces is therefore about the whole file, not one line:
+// no `redir` may put its TARGET in the matcher slot.
+// ---------------------------------------------------------------------------
+Deno.test("no redir target can be read as Caddy's inline matcher slot", () => {
+  VHOST.split("\n").forEach((line, i) => {
+    const m = /^\s*redir\s+(\S+)/.exec(line);
+    if (!m) return;
+    if (m[1].startsWith("/")) {
+      throw new Error(
+        `line ${i + 1}: \`redir ${m[1]} …\` — Caddy reads \`${m[1]}\` as an inline path ` +
+          "matcher, so the target moves into the code slot: the directive becomes a " +
+          "302 to the literal string and stops redirecting. Name the matcher (`redir * …`).",
+      );
+    }
+  });
 });

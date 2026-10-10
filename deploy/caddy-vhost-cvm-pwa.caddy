@@ -58,8 +58,14 @@ cvm-pwa.orangesync.tech {
 	# by the edge), and the answer the client gets is the service's OWN verdict —
 	# its JSON 404 while it is up, this file's JSON 502 while it is down. Both are
 	# JSON; neither is 200 + text/html.
+	#
+	# `redir * /api/ 308`, NOT `redir /api/ 308`: Caddy reads the FIRST argument of
+	# `redir` as an optional inline matcher, and a token starting with "/" IS a path
+	# matcher — so `redir /api/ 308` adapts to `match path /api/ -> 302 Location: 308`
+	# and bare /api answers 200 with an EMPTY body instead of redirecting. Observed
+	# on caddy 2.6.2 (see tests/pwa_vhost_test.ts and evidence/t_cdc4442b/).
 	handle /api {
-		redir /api/ 308
+		redir * /api/ 308
 	}
 
 	# The bare origin is an alias for the customer app, not a second place the app
@@ -68,7 +74,7 @@ cvm-pwa.orangesync.tech {
 	# above). 302, not 308: this is a convenience landing alias, so a browser must
 	# not pin it forever if the root later grows its own document.
 	handle / {
-		redir /order/ 302
+		redir * /order/ 302
 	}
 
 	# Each app falls back to its OWN document: /console/ must never serve the
