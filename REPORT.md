@@ -340,8 +340,10 @@ Artifacts, committed under `docs/e2e/order-pwa/`:
 ## The live run — the deploy gate, stated honestly
 
 `E2E_LIVE=1 npm run test:e2e:live` drives the same journey against
-`https://cvm-pwa.orangesync.tech` and asserts the same money. It is RED today,
-in 3.5 seconds, with the customer's own error text in the message:
+`https://cvm-pwa.orangesync.tech` and asserts the same money. It is RED, with the
+customer's own error text in the message — re-verified at the head of this
+branch (`cf1e70a`, and again after the final recording refresh), and both runs
+are in `docs/e2e/order-pwa/live-run.log`:
 
 ```
 Error: POST /api/orders answered 409; the customer was shown: "order service

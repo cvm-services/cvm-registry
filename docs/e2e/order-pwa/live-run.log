@@ -47,3 +47,60 @@ Running 1 test using 1 worker
 
   1 failed
     [live] › e2e/order-pwa/live-order.spec.mjs:35:1 › live: a real order reaches a real invoice on the deployed site
+
+
+=== RE-RUN at 2026-10-10T20:38:13Z (head cf1e70a) after the recording refresh ===
+# $ npm run test:e2e:live            # E2E_LIVE=1 npx playwright test --project=live
+# re-verified at head cf1e70a on 2026-10-10T20:37:26Z against https://cvm-pwa.orangesync.tech
+
+
+Running 1 test using 1 worker
+
+[live] +3.7s venue list
+[live] +4.3s menu priced
+[live] +4.7s item in basket
+[live] +5.7s basket totals
+[live] +5.7s clicking Pay (POST /api/orders follows)
+[live] +5.9s POST /api/orders answered 409
+  ✘  1 [live] › e2e/order-pwa/live-order.spec.mjs:30:1 › live: a real order reaches a real invoice on the deployed site (7.1s)
+
+
+  1) [live] › e2e/order-pwa/live-order.spec.mjs:30:1 › live: a real order reaches a real invoice on the deployed site 
+
+    Error: POST /api/orders answered 409; the customer was shown: "order service unavailable. No payment was created; try again."
+    A 409 {"error":"order already exists"} means the deployed service is the pre-hardening build: every POST takes the same (undefined) order id, so the deployed money path cannot open an order at all.
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 409
+
+      83 |       "pre-hardening build: every POST takes the same (undefined) order id, so the " +
+      84 |       "deployed money path cannot open an order at all.",
+    > 85 |   ).toBe(201);
+         |     ^
+      86 |   await expect(page.locator("p.error")).toHaveCount(0);
+      87 |
+      88 |   // ---------------------------------------------------------------- step 6
+        at /home/c03rad0r/worktrees/t_889735b3/e2e/order-pwa/live-order.spec.mjs:85:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [live] › e2e/order-pwa/live-order.spec.mjs:30:1 › live: a real order reaches a real invoice on the deployed site 

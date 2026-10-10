@@ -43,7 +43,7 @@ Baseline (unmodified main, those 3 files): 24 passed | 0 failed.
 Task: give the customer order PWA (`/order/`) a real end-to-end Playwright happy
 path — venue -> basket -> invoice -> settled — against the real service, with the
 mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-registry`
-(branch `worker-base/t_889735b3`).
+(branch `worker-base/t_889735b3`, PR #25, **not merged** — the manager merges).
 
 ## Landed (all pushed)
 
@@ -54,16 +54,22 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
 | `848fc83` | the harness + the spec: real stack, stub mint, video, the two client defects caught |
 | `52da8e8` | fix(order): pay screen quoted 1000x sats ("9 774 000 sats") |
 | `b8678c2` | fix(order): status timeline read `o.status` (undefined) instead of `o.state`; "Paid" was hardcoded done |
+| `fc38988` | the live spec + its recorded 409, the e2e README, the evidence |
+| `cf1e70a` | REPORT.md — what the suite proves, the two defects, the live 409 |
 
 ## Current state
 
-- Hermetic suite: **GREEN** (14.6s -> 10.9s after the journey refactor). Real
-  cvm-orders `main.ts` at `1ebe0dc`, real static site, stub mint only.
-- Live suite (`E2E_LIVE=1`): **FAILS in 3.5s, as expected** — the deployed service
-  answers 409 to every `POST /api/orders` (pre-hardening build). Evidence:
-  `docs/e2e/order-pwa/live-run.log`.
+- Hermetic suite: **GREEN**, re-run at `cf1e70a`: `1 passed (41.9s)`, against the
+  real cvm-orders `main.ts` at `1ebe0dc`, the real static site, stub mint only.
+- Live suite (`E2E_LIVE=1`): **RED on two separate runs at head** (3.5s, 7.1s) —
+  the deployed service answers 409 to every `POST /api/orders` (pre-hardening
+  build). `docs/e2e/order-pwa/live-run.log` carries both runs verbatim.
 - Two client defects found by the suite and fixed in `site/order/app.js`; both had
   to be fixed for the journey to be assertable, both are money-facing.
+- PR #25 is open on the branch head, `mergeable: MERGEABLE`, no CI checks
+  configured on the repo (rollup empty).
+- The green run rewrites its own committed recording (`docs/e2e/order-pwa/*.webm`),
+  so the refreshed .webm is committed from the run that was just verified.
 
 ## Finding log (append-only)
 
@@ -77,10 +83,14 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
   recorded, not skipped
 - 2026-10-10 → `page.waitForResponse().text()` hung 5.8 min on that 409 → spec now
   reads the failure off the page
+- 2026-10-10 → promotion run: hermetic re-run at `cf1e70a` green (41.9s) → the
+  committed recording was refreshed from that very run (902 341 bytes); live
+  spec re-run → same 409, 7.1s, appended to `live-run.log`
+- 2026-10-10 → repo is PUBLIC, so the evidence .webm is fetchable without auth:
+  https://github.com/cvm-services/cvm-registry/raw/worker-base/t_889735b3/docs/e2e/order-pwa/order-pwa-happy-path-venue-basket-invoice-settled.webm
 
 ## Remaining
 
-1. Final hermetic run for the committed video, then commit the live spec, README,
-   journey module and evidence.
-2. REPORT.md + card comment (implementation complete, PR/merge left to the manager:
-   branch is pushed, no PR opened — the manager merges).
+None for implementation. Left to the manager, by the card's instruction: review
+and merge PR #25 (`worker-base/t_889735b3` -> `main`). Expected conflict with
+#22 (`wt/cvm-e2e-runnable`) is documented in the PR body as a union resolution.

@@ -61,7 +61,8 @@ sats and the commit belongs next to the number it produced.
 journey and the same assertions. It is opt-in (it creates one order on
 production, unpaid and self-expiring) and never skipped silently.
 
-**Current result: FAIL, as expected, in 3.5 seconds** — see `live-run.log`:
+**Current result: FAIL, as expected** — 409 every time, on two separate runs at
+the head of this branch (3.5s and 7.1s, cold boot); see `live-run.log`:
 
 ```
 [live] +2.1s POST /api/orders answered 409
