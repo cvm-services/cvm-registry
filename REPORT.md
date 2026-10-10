@@ -1,4 +1,5 @@
 # REPORT — t_e3abf2ae: the facilitator console at /console/ is an installable PWA
+# REPORT — t_889735b3: the order PWA's happy path, in a real browser
 
 Task: `cvm-registry: make the facilitator console an installable PWA (manifest, icons, SW) + pin it with vhost tests`.
 Repo: `cvm-services/cvm-registry`. Base: `origin/main` = `76b2ef6`.
@@ -42,8 +43,83 @@ deno test --allow-read --allow-net tests/pwa_vhost_test.ts tests/order_pwa_insta
 ```
 
 Baseline on unmodified main for those three files: **24 passed | 0 failed** (11 vhost + 13 order).
+`e2e/order-pwa/` — a Playwright suite that drives the customer app at `/order/`
+through the card's eight steps in Chromium, against a real stack: the REAL
+`cvm-orders` service (`main.ts`, its own repo, its own pricing and state machine),
+the REAL static site from this repo, and a stub mint that is the only substituted
+component. Nothing is mocked at the HTTP boundary the browser talks to.
 
----
+| card step | what the spec asserts |
+| --- | --- |
+| 1 venue list | `/order/` renders the venues from `/menu.json`, no `.loading` left |
+| 2 menu prices | the picked venue's menu renders per-item prices for pickup, and the SAME item re-prices after `delivery` is selected (8 900 → 9 500 sats) |
+| 3 options sheet | sauce pills, extras, size, quantity = / − controls, and the live "Add to basket" total (+bacon +150, "Extra cheese" +120, removed again) |
+| 4 basket | line 9 050 sats, 8% facilitator fee 724 sats, grand total **9 774 sats / 9.77 €** |
+| 5 POST /api/orders | the service prices the same basket to the same sats (subtotal 9050, fee 724, total 9774), answers 201, state `awaiting_payment` — asserted on the wire AND read straight from the service |
+| 6 invoice | a real `lnbc…` string on screen, decoded with `light-bolt11-decoder` to 9 774 000 msat, plus a `data:image/svg+xml;base64,` QR image, and the pay screen quotes 9 774 sats |
+| 7 settle → ready | the stub mint's quote is settled, the client's refresh shows the rail's verdict, then the facilitator's `placing` → `placed` → `ready` transitions (NIP-98 signed, through the `/api` proxy) walk the four-row timeline to all-done |
+| 8 idempotency | after the order is `paid`, two more polls leave `state`, `updatedAt` AND the mint's query count unchanged — a second poll cannot re-transition, and does not even re-ask the rail |
+
+The state machine is driven the way the product is: every expected number is
+derived from the pinned `site/menu.json` at the rate both sides use (1 EUR =
+1000 sats, Bacon +150 sats, fee = floor(8% of subtotal)). A price drift between
+the PWA's menu and `cvm-orders`' catalog fails the suite loudly instead of
+quietly shipping a wrong total.
+
+Two projects:
+- `hermetic` (default, `npm run test:e2e`) — the whole stack locally. Green.
+- `live` (`E2E_LIVE=1 npm run test:e2e:live`) — the same journey against the
+  deployed origin. Currently RED, for a reason worth reading: see "The live run".
+
+## RED first
+
+The spec landed before the harness did, and it was red for a real reason
+(`78c7591`, quoted from that commit):
+
+```
+Error: Cannot find module
+  '/home/c03rad0r/worktrees/t_889735b3/e2e/order-pwa/harness/stack.mjs'
+  imported from .../e2e/order-pwa/order-happy-path.spec.mjs
+Error: No tests found
+```
+
+## The two defects the suite found in the shipped client
+
+Both are in `site/order/app.js`, both were found by this suite rather than by
+reading it, both have their own commit with the failing output quoted in it:
+
+**1. The pay screen quoted 1000x the price** (`52da8e8`). `state.order.total`
+from the service is integer SATS, but it was passed through `sats()`/`fiat()`,
+which exist to scale EUR by 1000. The customer, on the screen where they are
+asked to send money, was shown:
+
+```
+    - Expected string: "9 774 sats"
+    + Received string: "9 774 000 sats"
+```
+Fixed by formatting the service's value as sats directly (`satsNative`/
+`eurOfSats`) instead of round-tripping it through the EUR helpers.
+
+**2. The status timeline read a field the service never sends** (`b8678c2`).
+The timeline read `o.status`; the order payload has `state`. So "Order placed at
+venue" and "Ready for pickup" could never light up:
+
+```
+    - locator resolved to <span class="dot ">·</span>
+    - Expected pattern: /\bdone\b/
+```
+The same line made the second row ("Facilitator placing your order") light up
+whenever the state was anything other than the literal `"paid"`, i.e. always.
+While fixing it, the first row was made honest too: it was hardcoded `true`, so
+the timeline claimed "Paid — Payment received" before the rail had verified
+anything, which is exactly what ADR-0008 forbids. Every row is now derived from
+`state`, and the spec asserts the progression in that order (nothing done →
+`paid` → `placing`/`placed`/`ready`).
+
+If either fix is unwelcome in this PR, say so and they split out cleanly — the
+suite keeps failing without them, which is the point.
+
+## Evidence
 
 ## M1 — RED (captured BEFORE implementing)
 
@@ -241,3 +317,101 @@ REPORT.md, PROGRESS.md
 ```
 
 `site/order/` is byte-identical to `main` on this branch; the `/api` contract is unchanged.
+Commands run, and what they actually printed:
+
+| command | result |
+| --- | --- |
+| `npm run test:e2e` (in this worktree) | `1 passed` — hermetic journey, incl. the settlement |
+| fresh clone of this branch + `npm ci` + `npm run test:e2e` | `added 15 packages in 4s`, then `1 passed (24.8s)` — no undeclared prerequisites |
+| `deno test --allow-all --no-check tests/` | `161 passed \| 0 failed (7s)` — the existing suite, unbroken |
+| `E2E_LIVE=1 npm run test:e2e:live` | **fails in 3.5s** — see below |
+
+Artifacts, committed under `docs/e2e/order-pwa/`:
+- `order-pwa-happy-path-venue-basket-invoice-settled.webm` (740 KB) — the full
+  green journey, recorded by Playwright. This is the artifact to watch: it shows
+  the venue list, the prices, the options sheet, the basket maths, the QR + real
+  invoice, and the timeline walking to "Ready for pickup".
+- `live-run.log` — the deployed run, verbatim.
+- `README.md` — how to run it, what is real vs stubbed, and the pitfalls
+  (including one that cost this task two 5-minute timeouts: `response.text()` on
+  a response body Playwright cannot retrieve from the network stack blocks until
+  the test timeout, so the live spec reads the failure off the page instead).
+
+## The live run — the deploy gate, stated honestly
+
+`E2E_LIVE=1 npm run test:e2e:live` drives the same journey against
+`https://cvm-pwa.orangesync.tech` and asserts the same money. It is RED today,
+in 3.5 seconds, with the customer's own error text in the message:
+
+```
+Error: POST /api/orders answered 409; the customer was shown: "order service
+unavailable. No payment was created; try again."
+  Expected: 201
+  Received: 409
+  Body: {"error":"order already exists"}
+```
+
+That is the pre-hardening service described on the card: `store.create(undefined,
+…)`, so the first order ever created took the id `"undefined"` and every
+subsequent POST collides with it. Nothing is wrong with the client's call, and
+nothing in this suite caused it — `origin/main` of `cvm-orders` is the hardened
+build (`1ebe0dc`, which the hermetic run clones and passes against), so this is a
+**deploy** gap, not a code gap. The live spec is the canary that closes when the
+new build is deployed; do not read its red as this branch's failure.
+
+## Coverage
+
+Measured, not claimed:
+
+- `deno test --allow-all --no-check --coverage=/tmp/cov tests/` → **85.5% line /
+  66.4% branch / 76.8% function** repo-wide. `site/order/app.js` does **not**
+  appear in that report at all (`deno coverage --include='site/order'` →
+  "No covered files included"), i.e. the file this suite exists for has no deno
+  coverage. `site/console/app.js`, for contrast, shows 80.7%.
+- `npm run test:e2e` does not produce a coverage number. Playwright does not
+  instrument the app, so I am not quoting one: the honest statement is that the
+  browser suite is 1 test covering the money path end-to-end, and it is the only
+  thing in this repo that executes `site/order/app.js` at all.
+
+## What this does NOT prove
+
+- **Not a payment.** The mint is a stub (`e2e/order-pwa/harness/stub_mint.ts`): a
+  real, decodable BOLT11 invoice for the right amount, and a settle-on-command
+  endpoint. No Lightning node, no real liquidity, no real `payment_hash` that
+  any node would settle. The hermetic journey proves the app and the service
+  agree about amounts, states, and ids — not that money can move.
+- **Not the deployed build.** The hermetic run exercises `origin/main` of
+  `cvm-orders` and *this* `site/order/`, not what is on the box. The live run is
+  the one that touches production, and it stops at the pay screen: it cannot
+  settle an invoice it does not control, and it does not assert the timeline.
+- **Not the facilitator console.** `/console/` has its own suite.
+- **Not happy-path-only correctness.** Deliberately absent: expired quotes,
+  refunds, the `409 order_not_priced` invoice path, double-submit, network loss
+  mid-invoice, the delivery-fee edge, and the `contact.phone` validation the
+  service does not enforce. The suite is one happy path plus the idempotency
+  assertion; the unhappy paths are still unproven.
+- **Not a11y, layout, or another browser.** Chromium only, no viewport matrix.
+
+## How to run, and the two things a reviewer should know
+
+```
+npm ci
+npx playwright install chromium     # once per machine
+npm run test:e2e                    # hermetic, ~25s
+E2E_LIVE=1 npm run test:e2e:live    # against the deployed origin
+```
+
+1. **The suite needs `cvm-orders`.** It runs the real service. With no
+   `CVM_ORDERS_DIR` set it clones `main` into `.cache/cvm-orders` (gitignored,
+   shallow) and prints the commit it resolved, `[e2e] cvm-orders 1ebe0dc (clone
+   of main)`. Point `CVM_ORDERS_DIR` at a checkout to iterate on the service
+   without cloning. This is the one prerequisite worth arguing about: the
+   alternative — importing the service into this repo — is exactly the coupling
+   the two-repo split exists to prevent.
+2. **A green hermetic run rewrites its own committed recording.** Playwright
+   finalises video at context close, so the file in `docs/e2e/order-pwa/` is
+   replaced on every green run and the tree goes dirty. Re-commit it when the
+   journey changes; the size is ~740 KB.
+
+`REPORT.md` at the root is rolled per task in this repo (this file replaces the
+`t_324abc50` console report, as `5f5f207` replaced the `t_99fb9b0e` one before it).
