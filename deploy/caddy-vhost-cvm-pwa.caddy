@@ -20,6 +20,16 @@ cvm-pwa.orangesync.tech {
 	encode gzip
 	root * /opt/tollgate/cvm-pwa
 
+	# PWA artifacts need their real media types. Chrome refuses the install prompt
+	# for a manifest that does not arrive as manifest JSON, and it only accepts a
+	# service worker script served as JavaScript. Caddy's mime table usually gets
+	# this right; "usually" is not good enough for the difference between an
+	# installable app and a page that merely looks like one, so it is stated here.
+	# (The worker sits at /order/sw.js on purpose: the script's own path fixes its
+	# scope to /order/, so it can never intercept /console/ or the /api surface.)
+	@pwa_manifest path /order/manifest.webmanifest
+	header @pwa_manifest Content-Type "application/manifest+json"
+
 	handle_path /api/* {
 		reverse_proxy 127.0.0.1:8788
 	}

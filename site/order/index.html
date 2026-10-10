@@ -4,10 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Order food, pay in sats</title>
+  <!--
+    Installable (Android/Chrome install prompt + iOS Add to Home Screen).
+    manifest.webmanifest pins start_url and scope to the absolute /order/ path:
+    this client must never claim /console/ or the rest of the origin.
+  -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f59e0b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Order sats">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main id="app" aria-live="polite"><p class="loading">Loading venues…</p></main>
   <script type="module" src="app.js"></script>
+  <script>
+    // Offline shell. Registration is best-effort and strictly additive: on a
+    // browser without service workers, in an insecure context, or on any
+    // registration error, the ordering UI must keep working untouched. The
+    // relative script path resolves to /order/sw.js, which is what makes the
+    // explicit scope "/order/" legal (and safe: never "/").
+    if ("serviceWorker" in navigator && window.isSecureContext) {
+      window.addEventListener("load", function () {
+        try {
+          navigator.serviceWorker.register("sw.js", { scope: "/order/" }).catch(function (err) {
+            console.warn("order: service worker not registered", err);
+          });
+        } catch (err) {
+          console.warn("order: service worker registration threw", err);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
