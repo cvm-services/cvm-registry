@@ -1,0 +1,68 @@
+# t_99fb9b0e — cvm-pwa.orangesync.tech before/after the /api proxy + /console/ deploy
+
+Host: testserver2.fips (Caddy, docroot /opt/tollgate/cvm-pwa)
+Measured: 2026-10-10 05:52:34Z from CobradorWave
+Repo state at measurement: cvm-registry 4f62056c4a605cb97be3287312f805a4ca9438c4 (pr/facilitator-console)
+
+## BEFORE (captured 2026-10-10 05:41Z, before any change)
+
+Every path answered the ordering SPA fallback: no /api proxy existed at all.
+
+/api/auth/challenge      HTTP 200  381b  text/html; charset=utf-8
+/api/orders/queue        HTTP 200  381b  text/html; charset=utf-8
+/console/                HTTP 200  381b  text/html; charset=utf-8   <- ordering app, not the console
+/order/                  HTTP 200  381b  text/html; charset=utf-8
+/health                  HTTP 200  381b  text/html; charset=utf-8
+
+$ curl -s https://cvm-pwa.orangesync.tech/api/auth/challenge | head -c 60
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+## AFTER (service up: cvm-orders.service on 127.0.0.1:8788)
+
+/api/auth/challenge        HTTP 200  213b  application/json
+                           {"nonce":"be8e1570-dac5-46b8-8056-96789f688497","facilitatorNpub":"npub1c03rad0r6q833vh57kyd3ndu2jry30nkr0wepqfpsm05vq7he25slryrnw","expiresIn":300,"s
+/api/orders/queue          HTTP 200  13b  application/json
+                           {"orders":[]}
+/api/health                HTTP 200  11b  application/json
+                           {"ok":true}
+/console/                  HTTP 200  1102b  text/html; charset=utf-8
+                           <!doctype html> <html lang="en"> <head>   <meta charset="utf-8">   <meta name="viewport" content="width=device-width,initial-scale=1">   <meta name="r
+/console/app.js            HTTP 200  28538b  text/javascript; charset=utf-8
+                           // Facilitator console for facilitated sats orders — PLAN-0007 T4. // // Order payload contract this console reads (produced by the paid leg, T2): // 
+/console/style.css         HTTP 200  5566b  text/css; charset=utf-8
+                           :root{--bg:#101214;--pane:#171a1d;--card:#1e2226;--ink:#eceae4;--dim:#8b9096;--line:#2a2f34;--accent:#f59e0b;--ok:#34d399;--warn:#fbbf24;--bad:#f87171
+/order/                    HTTP 200  381b  text/html; charset=utf-8
+                           <!doctype html> <html lang="en"> <head>   <meta charset="utf-8">   <meta name="viewport" content="width=device-width,initial-scale=1">   <title>Order 
+/order/app.js              HTTP 200  11708b  text/javascript; charset=utf-8
+                           const state = {   screen: 1, venue: null, method: "pickup", item: null, qty: 1,   options: { sauce: "House", extras: ["Bacon"], size: "Single" },   ba
+/menu.json                 HTTP 200  57027b  application/json
+                           {  "venues": [   {    "venue_slug": "doppelt-kaese-berlin",    "name": "Doppelt Käse Laubacher Straße",    "currency": "EUR",    "item_count": 76,    
+
+/console/ body == site/console/index.html (cmp -s, asserted inside deploy-pwa.sh)
+cache-control: no-store
+
+## DOWN (systemctl stop cvm-orders — measured, then started again)
+
+/api/auth/challenge        HTTP 502  192b  application/json
+                           {"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties th
+/api/orders/queue          HTTP 502  192b  application/json
+                           {"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties th
+/console/                  HTTP 200  1102b  text/html; charset=utf-8
+                           <!doctype html> <html lang="en"> <head>   <meta charset="utf-8">   <meta name="viewport" content="width=device-width,initial-scale=1">   <meta name="r
+/order/                    HTTP 200  381b  text/html; charset=utf-8
+                           <!doctype html> <html lang="en"> <head>   <meta charset="utf-8">   <meta name="viewport" content="width=device-width,initial-scale=1">   <title>Order 
+
+## RECOVERED (systemctl start cvm-orders)
+
+/api/auth/challenge        HTTP 200  213b  application/json
+                           {"nonce":"b4daef70-99c9-4ed6-84a5-673e87fe0395","facilitatorNpub":"npub1c03rad0r6q833vh57kyd3ndu2jry30nkr0wepqfpsm05vq7he25slryrnw","expiresIn":300,"s
+
+## Server-side proof of the loopback bind
+
+$ sudo ss -ltnp | grep 8788
+LISTEN 0  511  127.0.0.1:8788  0.0.0.0:*  users:(("deno",pid=878609,fd=20))
+$ journalctl -u cvm-orders -n 1 --no-pager
+... deno[878609]: Listening on http://127.0.0.1:8788/
