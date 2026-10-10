@@ -61,28 +61,55 @@ sats and the commit belongs next to the number it produced.
 journey and the same assertions. It is opt-in (it creates one order on
 production, unpaid and self-expiring) and never skipped silently.
 
-**Current result: FAIL, as expected** — 409 every time, on two separate runs at
-the head of this branch (3.5s and 7.1s, cold boot); see `live-run.log`:
+**Current result: FAIL at step 6 — and the stale layer is the CLIENT, not the
+service.** Two runs at the head of this branch (2026-10-10T21:28:40Z, 25.1s and
+21:29:27Z, 22.1s) both get a **201** from `POST /api/orders`, then die on the pay
+screen, which asks the customer for a thousand times what the invoice beside it
+charges:
 
 ```
-[live] +2.1s POST /api/orders answered 409
-  Error: POST /api/orders answered 409; the customer was shown:
-         "order service unavailable. No payment was created; try again."
+[live] +4.5s POST /api/orders answered 201
+  Error: the pay screen must quote 9 774 sats, the amount the invoice beside it
+         charges. "9 774 000 sats" means the deployed CLIENT is stale ...
+  Locator:  locator('.pay h2')
+  Expected: "9 774 sats"
+  Received: "9 774 000 sats"
 ```
 
-The deployed service is the pre-hardening build: it answers 409
-`{"error":"order already exists"}` to every `POST /api/orders` because each order
-takes the same (undefined) id, so the deployed money path cannot open an order at
-all. The client does the right thing on that failure — no payment is created and
-the customer is told so — and that is what the spec asserts. This test is the
-gate that goes green when the hardened build is deployed.
+That is `site/order/app.js` before `52da8e8` (the 1000x pay-screen fix in this
+PR) still being served — checkable without a browser: the deployed
+`/order/app.js` contains no `satsNative` symbol and still renders
+`sats(state.order?.total || total()*1.08)`, and its timeline still reads
+`o.status` (`b8678c2`). So the fix for this red is a **deploy**
+(`deploy/deploy-pwa.sh` publishes `site/`), not a code change.
+
+The two earlier 409 runs are kept in the same log: they are what this spec
+recorded when the SERVICE was the stale layer (pre-hardening build, every POST
+colliding on the same undefined order id). Same spec, same assertion, two
+different layers — which is why its failure messages name the layer.
+
+### Running the live spec against something other than the deploy
+
+`E2E_LIVE_BASE` points the spec anywhere, which is how its post-Pay assertions
+are shown to be executable code rather than dead code (see the `LOCAL-BASE RUNS`
+and `MUTATION CHECK` sections of `live-run.log`):
+
+```
+node e2e/order-pwa/harness/stack-server.mjs   # boots the hermetic stack, prints its site URL
+E2E_LIVE=1 E2E_LIVE_BASE=http://127.0.0.1:<port> npx playwright test --project=live
+```
+
+Against a local stack of this branch that is `1 passed`; with the pre-review
+assertion form restored it fails with `Expected: "9774000" / Received: undefined`
+— the round-1 review finding, reproduced on a real invoice.
+
 
 ## Evidence
 
 | file | what it is |
 |------|-----------|
-| `order-pwa-happy-path-venue-basket-invoice-settled.webm` | the passing hermetic run, 1280x720, committed by the green run |
-| `live-run.log` | the deployed run's verdict |
+| `order-pwa-happy-path-venue-basket-invoice-settled.webm` | the passing hermetic run, 1280x720, 902 341 bytes, committed by the green run |
+| `live-run.log` | every live-lane run verbatim: the two 409 runs (stale SERVICE), the two runs after the service was redeployed (stale CLIENT), and the `LOCAL-BASE RUNS` + `MUTATION CHECK` that show the spec's own post-Pay assertions execute |
 
 The `.webm` is rewritten by every green `npm run test:e2e`, so a local run leaves
 the working tree dirty by one file. That is deliberate: the video is the artifact
@@ -97,3 +124,8 @@ a reviewer watches instead of running deno themselves.
   Read the failure off the page instead; that is what the customer sees anyway.
 - The suite needs deno 2.x on `PATH` (the service and the stub mint are deno) and
   network access on first run (the cvm-orders clone, `npm:qrcode`).
+- `npx playwright install chromium` is a real prerequisite, not a formality. With
+  an empty `~/.cache/ms-playwright` the run dies in 9ms —
+  `browserType.launch: Executable doesn't exist at .../chromium_headless_shell-1248/...`
+  — which looks like a spec failure in a log and is not one: no browser, no order,
+  no evidence. Install first, then read the log.

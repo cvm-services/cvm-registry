@@ -104,3 +104,242 @@ Running 1 test using 1 worker
 
   1 failed
     [live] › e2e/order-pwa/live-order.spec.mjs:30:1 › live: a real order reaches a real invoice on the deployed site 
+
+=== RE-RUN 2026-10-10T21:28:40Z and 2026-10-10T21:29:27Z — the failing LAYER moved ===
+# $ npm run test:e2e:live            # E2E_LIVE=1 npx playwright test --project=live
+# tree: a552acc (rework of review-round-1 findings 1-2), against
+#       https://cvm-pwa.orangesync.tech
+# why re-run: after the two 409 runs above, the order service on the box was
+#   hardened and redeployed (card t_c9a94df7), so POST /api/orders now answers 201
+#   and the journey gets one step further — to the pay screen, where the DEPLOYED
+#   CLIENT still quotes the old 1000x amount. The red is the stale client now, not
+#   the service: the origin's /order/app.js contains no `satsNative` symbol at all
+#   and still renders `sats(state.order?.total || total()*1.08)`
+#   (sha256 of the served file 438e36e3…, of this branch's site/order/app.js
+#   0da9d70b…). The 409 runs above are kept: they are what this same spec recorded
+#   when the SERVICE was the stale layer.
+# Each run below is verbatim and created ONE unpaid, self-expiring order (the
+#   spec's documented opt-in behaviour).
+# (A first invocation on this host died at browserType.launch: ~/.cache/ms-playwright
+#   had been emptied, so `npx playwright install chromium` was needed first. That
+#   attempt produced no order and is not part of the record.)
+2026-10-10T21:28:40Z
+
+Running 1 test using 1 worker
+
+[live] +1.9s venue list
+[live] +3.3s menu priced
+[live] +3.8s item in basket
+[live] +4.2s basket totals
+[live] +4.2s clicking Pay (POST /api/orders follows)
+[live] +4.5s POST /api/orders answered 201
+  ✘  1 [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site (25.1s)
+
+
+  1) [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+
+    Error: the pay screen must quote 9 774 sats, the amount the invoice beside it charges. "9 774 000 sats" means the deployed CLIENT is stale: site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR (and before b8678c2 the status timeline read o.status, which the service never sends).
+
+    expect(locator).toHaveText(expected) failed
+
+    Locator:  locator('.pay h2')
+    Expected: "9 774 sats"
+    Received: "9 774 000 sats"
+    Timeout:  15000ms
+
+    Call log:
+      - the pay screen must quote 9 774 sats, the amount the invoice beside it charges. "9 774 000 sats" means the deployed CLIENT is stale: site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR (and before b8678c2 the status timeline read o.status, which the service never sends). locator('.pay h2') with timeout 15000ms
+      - waiting for locator('.pay h2')
+        28 × locator resolved to <h2>9 774 000 sats</h2>
+           - unexpected value "9 774 000 sats"
+
+
+      105 |       "site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR " +
+      106 |       "(and before b8678c2 the status timeline read o.status, which the service never sends).",
+    > 107 |   ).toHaveText(SATS(MONEY.total));
+          |     ^
+      108 |   const qr = page.locator("img.qr");
+      109 |   await expect(qr).toBeVisible();
+      110 |   expect((await qr.getAttribute("src")).startsWith("data:image/svg+xml;base64,")).toBe(true);
+        at /home/c03rad0r/worktrees/t_889735b3/e2e/order-pwa/live-order.spec.mjs:107:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+2026-10-10T21:29:27Z
+
+Running 1 test using 1 worker
+
+[live] +3.4s venue list
+[live] +3.6s menu priced
+[live] +4.1s item in basket
+[live] +4.2s basket totals
+[live] +4.2s clicking Pay (POST /api/orders follows)
+[live] +4.5s POST /api/orders answered 201
+  ✘  1 [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site (22.1s)
+
+
+  1) [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+
+    Error: the pay screen must quote 9 774 sats, the amount the invoice beside it charges. "9 774 000 sats" means the deployed CLIENT is stale: site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR (and before b8678c2 the status timeline read o.status, which the service never sends).
+
+    expect(locator).toHaveText(expected) failed
+
+    Locator:  locator('.pay h2')
+    Expected: "9 774 sats"
+    Received: "9 774 000 sats"
+    Timeout:  15000ms
+
+    Call log:
+      - the pay screen must quote 9 774 sats, the amount the invoice beside it charges. "9 774 000 sats" means the deployed CLIENT is stale: site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR (and before b8678c2 the status timeline read o.status, which the service never sends). locator('.pay h2') with timeout 15000ms
+      - waiting for locator('.pay h2')
+        28 × locator resolved to <h2>9 774 000 sats</h2>
+           - unexpected value "9 774 000 sats"
+
+
+      105 |       "site/order/app.js before 52da8e8 formatted the service's sats as if they were EUR " +
+      106 |       "(and before b8678c2 the status timeline read o.status, which the service never sends).",
+    > 107 |   ).toHaveText(SATS(MONEY.total));
+          |     ^
+      108 |   const qr = page.locator("img.qr");
+      109 |   await expect(qr).toBeVisible();
+      110 |   expect((await qr.getAttribute("src")).startsWith("data:image/svg+xml;base64,")).toBe(true);
+        at /home/c03rad0r/worktrees/t_889735b3/e2e/order-pwa/live-order.spec.mjs:107:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+
+=== LOCAL-BASE RUNS of the same live project, 2026-10-10T21:31:00Z (E2E_LIVE_BASE=<the harness's own site server>) ===
+# $ E2E_LIVE=1 E2E_LIVE_BASE=http://127.0.0.1:44227 npx playwright test --project=live
+# Not a deploy: the base is the harness's local stack (this branch's site/, the real
+# cvm-orders main.ts at 1ebe0dc, the stub mint). It exists to prove the LIVE spec's
+# own assertions are executable code, at the fix commit a552acc — the round-1
+# finding was that the amount assertion below had never been reached by any
+# passing run on any deploy, so nothing would have caught it shipping.
+2026-10-10T21:31:00Z
+
+Running 1 test using 1 worker
+
+[live] +1.0s venue list
+[live] +1.4s menu priced
+[live] +1.7s item in basket
+[live] +2.0s basket totals
+[live] +2.0s clicking Pay (POST /api/orders follows)
+[live] +2.3s POST /api/orders answered 201
+[live] +4.0s invoice rendered and decoded
+  ✓  1 [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site (5.5s)
+
+  1 passed (13.7s)
+
+=== MUTATION CHECK, same local base, immediately after: the PRE-REVIEW assertion form restored ===
+# Why: a passing run proves the new form works; it does not prove the old form was
+# broken. This is the old form, `section(decoded,"amount").value`, on a real
+# invoice from the real service — the whole of review finding 1, reproduced. The
+# edit was a two-line throwaway and was reverted before the commit (a552acc
+# contains the fixed form only; `git diff` there is empty).
+
+Running 1 test using 1 worker
+
+[live] +0.9s venue list
+[live] +1.3s menu priced
+[live] +1.9s item in basket
+[live] +2.8s basket totals
+[live] +2.8s clicking Pay (POST /api/orders follows)
+[live] +5.6s POST /api/orders answered 201
+  ✘  1 [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site (7.3s)
+
+
+  1) [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "9774000"
+    Received: undefined
+
+      119 |   // `section()` unwraps the section's value, and this decoder hands back the
+      120 |   // amount as a STRING of msat — so this is the whole assertion, not `.value`.
+    > 121 |   expect(section(decoded, "amount").value).toBe(String(MONEY.total * 1000)); // MUTATION: the pre-review form
+          |                                            ^
+      122 |   // The `x` tag is the number of SECONDS until expiry (a delta, not a timestamp),
+      123 |   // so "> 0" asserted nothing. Bound it to a real mint's range instead: present,
+      124 |   // a whole number of seconds, and no further out than a day.
+        at /home/c03rad0r/worktrees/t_889735b3/e2e/order-pwa/live-order.spec.mjs:121:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/order-pwa/live-order-live-a-real-ord-a8a59-nvoice-on-the-deployed-site-live/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site 
+
+=== LOCAL-BASE RUN through the committed entry point, 2026-10-10T21:38:30Z ===
+# $ node e2e/order-pwa/harness/stack-server.mjs
+#     [stack] site=http://127.0.0.1:44245 orders=http://127.0.0.1:45261 mint=http://127.0.0.1:35617 cvm-orders=1ebe0dc (clone of main)
+# $ E2E_LIVE=1 E2E_LIVE_BASE=http://127.0.0.1:44245 npx playwright test --project=live
+# Same pass, but through the harness file that ships in this branch, so the
+# procedure in README §"Running the live spec against something other than the
+# deploy" is reproducible from a clean clone. (An earlier run of this exact
+# combination, before stack-server.mjs was committed, was `1 passed (31.3s)`.)
+2026-10-10T21:38:30Z
+
+Running 1 test using 1 worker
+
+[live] +0.6s venue list
+[live] +0.9s menu priced
+[live] +1.2s item in basket
+[live] +3.5s basket totals
+[live] +3.5s clicking Pay (POST /api/orders follows)
+[live] +4.7s POST /api/orders answered 201
+[live] +5.0s invoice rendered and decoded
+  ✓  1 [live] › e2e/order-pwa/live-order.spec.mjs:34:1 › live: a real order reaches a real invoice on the deployed site (6.2s)
+
+  1 passed (10.4s)

@@ -56,20 +56,34 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
 | `b8678c2` | fix(order): status timeline read `o.status` (undefined) instead of `o.state`; "Paid" was hardcoded done |
 | `fc38988` | the live spec + its recorded 409, the e2e README, the evidence |
 | `cf1e70a` | REPORT.md — what the suite proves, the two defects, the live 409 |
+| `2ee68a3` | live-run.log re-verified at head (same 409); the recording re-committed |
+| `54c0a73` | clean-clone verification recorded (round 1) |
+| `a552acc` | **round 1 rework** — live spec: amount assertion fixed (was dead code), expiry bound, failure messages name the stale layer |
+| next | docs for the rework (README live section, REPORT round-1 section, live-run.log four new sections) + `harness/stack-server.mjs` |
 
 ## Current state
 
-- Hermetic suite: **GREEN**, re-run at `cf1e70a`: `1 passed (41.9s)`, against the
-  real cvm-orders `main.ts` at `1ebe0dc`, the real static site, stub mint only.
-- Live suite (`E2E_LIVE=1`): **RED on two separate runs at head** (3.5s, 7.1s) —
-  the deployed service answers 409 to every `POST /api/orders` (pre-hardening
-  build). `docs/e2e/order-pwa/live-run.log` carries both runs verbatim.
+- Hermetic suite: **GREEN** — `1 passed (30.2s)` at `a552acc`
+  (`[e2e] cvm-orders 1ebe0dc (clone of main)`).
+- Live suite (`E2E_LIVE=1`, production): **RED at step 6**, and the stale layer
+  MOVED since round 1 — the service is now hardened (201), the deployed CLIENT is
+  stale (`/order/app.js` without `satsNative`), quoting 9 774 000 sats next to an
+  invoice for 9 774. Runs at 21:28:40Z (25.1s) and 21:29:27Z (22.1s) are in
+  `docs/e2e/order-pwa/live-run.log`.
+- Live spec against a **local stack** (`E2E_LIVE_BASE` + `harness/stack-server.mjs`):
+  **GREEN** — `1 passed (13.7s)`, then `1 passed (10.4s)` through the committed
+  entry point. This is the evidence that the live spec's post-Pay assertions are
+  executable code, which round 1 showed they were not.
 - Two client defects found by the suite and fixed in `site/order/app.js`; both had
   to be fixed for the journey to be assertable, both are money-facing.
 - PR #25 is open on the branch head, `mergeable: MERGEABLE`, no CI checks
   configured on the repo (rollup empty).
-- The green run rewrites its own committed recording (`docs/e2e/order-pwa/*.webm`),
-  so the refreshed .webm is committed from the run that was just verified.
+- The green run rewrites its own committed recording
+  (`docs/e2e/order-pwa/*.webm`). In this round that rewrite was **reverted** on
+  purpose, so the committed blob stays byte-identical to attachment 93
+  (`sha256 e2ee74a5ab278a81b329b636f208c1cead047fbc6f01cdc38e80c43a6d13ab52`) —
+  the journey is unchanged, so freshness buys nothing and drift costs the
+  attachment↔blob identity the reviewer checked.
 
 ## Finding log (append-only)
 
@@ -97,9 +111,29 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
   (`e2ee74a5ab278a81b329b636f208c1cead047fbc6f01cdc38e80c43a6d13ab52`); the
   branch-pinned raw URL served a stale 740 824-byte copy for minutes, so pin the
   commit when you attach a GitHub artifact.
+- 2026-10-10 → **round 1 review: changes requested** (two required, both in the live
+  lane) → rework in `a552acc`
+- 2026-10-10 → finding 1 confirmed first-hand with a node probe on
+  `light-bolt11-decoder@3.2.0`: `section(decoded,"amount")` is the STRING
+  `"250000000"` for the BOLT11 vector, so `.value` is `undefined` for every
+  invoice ever decoded; `section(decoded,"expiry")` is the number 60 (a delta).
+  The old assertion could never pass, on any deploy.
+- 2026-10-10 → finding 2 confirmed first-hand without a browser: the deployed
+  `/order/app.js` (11 708 bytes, sha256 `438e36e3…`) has **0** occurrences of
+  `satsNative`, still one `sats(state.order?.total || total()*1.08)` and four
+  `o.status`; this branch's `site/order/app.js` sha256 `0da9d70b…`
+- 2026-10-10 → ~/.cache/ms-playwright had been emptied on this host: the first
+  live invocation died in 9ms at `browserType.launch` (no browser, no order, no
+  evidence). `npx playwright install chromium` fixed it; added to README pitfalls.
+- 2026-10-10 → hermetic run at this head rewrote the committed .webm → reverted
+  with `git checkout`, identity with attachment 93 kept (see "Current state")
+- 2026-10-10 → live project run against the harness's own stack (`E2E_LIVE_BASE`)
+  passes; with the pre-review assertion form restored it fails
+  `Expected: "9774000" / Received: undefined` → the fix verified, not argued
+  (the mutation was reverted; `a552acc` contains the fixed form only)
 
 ## Remaining
 
-None for implementation. Left to the manager, by the card's instruction: review
+Implementation: none. Left to the manager, by the card's instruction: re-review
 and merge PR #25 (`worker-base/t_889735b3` -> `main`). Expected conflict with
 #22 (`wt/cvm-e2e-runnable`) is documented in the PR body as a union resolution.
