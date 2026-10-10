@@ -1,0 +1,27 @@
+== 1. the repo file is valid Caddy config (caddy adapt, on the host, over ssh) ==
+  PASS  shipped repo file to host
+  PASS  caddy adapt parses the repo file (rc=0)
+== 2. the LIVE block == the repo file (byte-compare of the deployed region) ==
+  repo code lines: 21 | live code lines: 21
+  PASS  live block code == repo file code
+  PASS  block comparison ran
+== 3. the live origin routes the way the file declares ==
+  PASS  /api/health is JSON 200 (proxied, not the SPA) (200)
+  PASS    ...and its content-type is application/json (application/json)
+     /console/ title: Facilitator console — facilitated sats orders
+     /order/   title: Order food, pay in sats
+  PASS  /console/ is the console's own document
+  PASS  /order/ does not serve the console document
+  PASS  /console/ is a different document from /order/ (different)
+  PASS  /console/app.js is served (200)
+  PASS  /console/style.css is served (200)
+  PASS  /order/ is served (200)
+  -- stopping cvm-orders to exercise handle_errors --
+     down /api -> 502 application/json : {"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is i
+  PASS  down /api/* answers 502 (not 200) (502)
+  PASS  down /api/* answers JSON, not text/html (application/json)
+  PASS  down body is the declared JSON error
+  PASS  the static PWA still serves while /api is down (200)
+  PASS  /api/health recovers after restart (200)
+
+==== ad-hoc verification: 16 passed, 0 failed ====
