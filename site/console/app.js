@@ -54,9 +54,17 @@ export function looksLikePan(value) {
   return sum % 10 === 0;
 }
 
+// An ISO-8601 timestamp is never card material, but stripping its separators leaves a
+// 17-digit run that passes the Luhn check above for ~1 in 10 of all timestamps. The
+// receipt this console builds on `placed` carries `captured_at` (new Date().toISOString()),
+// so without this exemption the guard refused the console's OWN receipt and `placed`
+// failed at random — found by the T4 happy-path run (t_4726349b), 10/100 sampled seconds.
+const ISO_TS = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/;
+
 function walk(value, where, path) {
   if (value === null || value === undefined) return;
   if (typeof value === "string") {
+    if (ISO_TS.test(value)) return; // our own captured_at, not a card
     if (looksLikePan(value)) throw new CardDataRefused(`${where}:${path} (PAN-shaped value)`);
     if (/^\d{3,4}$/.test(value) && /cvv|cvc|cvn|csc|code/i.test(path)) throw new CardDataRefused(`${where}:${path} (CVV-shaped value)`);
     return;

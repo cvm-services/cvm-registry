@@ -123,3 +123,21 @@ Deno.test("the console is fail-closed against a broken or lying service", () => 
   assertEquals(mod.RECEIPT_KEY, "cvm-console-receipts-v1");
   assertEquals(mod.SLA_MS, 5 * 60 * 1000);
 });
+
+Deno.test("CARD CUSTODY (ADR-0013): the guard does not refuse the console's own timestamp", () => {
+  // Regression found by the T4 happy-path run (t_4726349b): `recordPlaced()` builds the
+  // receipt with `captured_at: new Date().toISOString()`, then guards it. Stripping an ISO
+  // timestamp's separators leaves a 17-digit run, which is inside looksLikePan()'s 13..19
+  // window and passes its Luhn check for ~10% of all timestamps — so the console used to
+  // refuse its OWN receipt and `placed` failed at random. Before the ISO exemption the
+  // happy-path video run died here, which is how the defect was found.
+  const stamps = [...Array(600).keys()].map((s) => new Date(Date.UTC(2026, 0, 1, 0, 0, s)).toISOString());
+  const trap = stamps.find((s) => mod.looksLikePan(s));
+  assert(trap, "at least one sampled timestamp still looks like a PAN to the narrow check");
+  // …and the guard nevertheless lets it through, while a real PAN is still refused.
+  const receipt = { venue_reference: "#4471", ready_at: "18:25", paid_with: "card at the venue terminal", captured_at: trap };
+  assertEquals(mod.assertNoCardData(receipt, "receipt"), receipt);
+  assertThrows(() => mod.assertNoCardData({ ...receipt, payment_reference: "4242 4242 4242 4242" }, "receipt"), mod.CardDataRefused);
+  // The exemption is the ISO shape only — a bare digit run in that window is still card data.
+  assertThrows(() => mod.assertNoCardData({ payment_reference: "4242424242424242" }), mod.CardDataRefused);
+});
