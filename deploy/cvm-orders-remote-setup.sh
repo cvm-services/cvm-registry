@@ -44,6 +44,27 @@ else
   echo "       Re-run with: FACILITATOR_NPUB=<npub1...> bash deploy/orders-setup.sh" >&2
   exit 1
 fi
+
+# CASHU_MINT_URL is a deploy-time override of the committed config/mint.json
+# selection (src/mints.ts: env wins, config is the fallback). It is a PUBLIC mint
+# URL, so it belongs in this file; it is also the only thing that makes
+# GET /orders/:id/invoice answer with a real BOLT11 — with neither a rail is
+# configured, that endpoint is a 503 by design and no order can ever be paid.
+# Written only when passed, so a re-run without it keeps the installed value and
+# does not silently drop the rail the running service is already using.
+if [ -n "${CASHU_MINT_URL:-}" ]; then
+  CASHU_MINT_URL="${CASHU_MINT_URL%/}"
+  if grep -q '^CASHU_MINT_URL=' "$ENV_DIR/config.env" 2>/dev/null; then
+    sed -i "s|^CASHU_MINT_URL=.*|CASHU_MINT_URL=$CASHU_MINT_URL|" "$ENV_DIR/config.env"
+  else
+    printf 'CASHU_MINT_URL=%s\n' "$CASHU_MINT_URL" >> "$ENV_DIR/config.env"
+  fi
+  echo "   rail: CASHU_MINT_URL=$CASHU_MINT_URL"
+elif grep -q '^CASHU_MINT_URL=' "$ENV_DIR/config.env" 2>/dev/null; then
+  echo "   rail: kept installed $(grep '^CASHU_MINT_URL=' "$ENV_DIR/config.env")"
+else
+  echo "   rail: none in config.env — falling back to $DEST/config/mint.json (resolveMintUrl)"
+fi
 chmod 0644 "$ENV_DIR/config.env"
 
 cat > /etc/systemd/system/cvm-orders.service <<EOF
@@ -57,11 +78,16 @@ Wants=network-online.target
 Type=simple
 User=$SERVICE_USER
 WorkingDirectory=$DEST
-# config.env holds FACILITATOR_NPUB (public) and PORT. The order store is
-# IN MEMORY: a restart empties the queue by design, not by bug.
+# config.env holds FACILITATOR_NPUB (public), CASHU_MINT_URL (public) and PORT.
+# The order store is IN MEMORY: a restart empties the queue by design, not by bug.
 EnvironmentFile=$ENV_DIR/config.env
 Environment=BIND_ADDR=$BIND_ADDR
-ExecStart=$DENO run --allow-net --allow-env $DEST/main.ts
+# --allow-read is REQUIRED, not decorative: the service prices every basket from
+# $DEST/config/venues.json and falls back to $DEST/config/mint.json for the rail,
+# both through Deno.readTextFile. Without it the catalog load throws, is caught,
+# and POST /orders answers 503 catalog_unavailable — a "deployed" service whose
+# Pay button cannot create a single order.
+ExecStart=$DENO run --allow-net --allow-env --allow-read $DEST/main.ts
 Restart=always
 RestartSec=3
 StandardOutput=journal
