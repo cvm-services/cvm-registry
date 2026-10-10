@@ -1,7 +1,7 @@
 {
   "_comment": "Hardcoded allow-list of npubs whose CVM announcements the dashboard may render. Fork this repo and edit THIS FILE for your own deployment - curation is a claim, so it lives in your git history, not in a database. Unknown npub => not rendered. Empty list => nothing rendered (fail closed).",
   "version": 1,
-  "updated": "2026-10-06",
+  "updated": "2026-10-10",
   "dashboard_host": "cvm.orangesync.tech",
   "policy": {
     "unknown_npub": "not rendered",
@@ -38,6 +38,24 @@
     {
       "npub": "npub1aurs5hw24gmg6pwk5fyqgyv4a8em8z82xg72ps9p6uldgn33ag4sqfhz0g",
       "role": "provider"
+    },
+    {
+      "npub": "npub14l8cgx87w0jalch6727rxuffqfl22w3t2s0hn09pk55a02zew73qd8nl2a",
+      "role": "provider",
+      "derived_from": "secp256k1 key afcf8418 (Chandi Restaurant's own signing key, ~/.hermes/secrets/venues/chandi-berlin.nsec; npub re-derived with `nak encode npub` on 2026-10-10, matching the pubkey of the kind-11316 announcement 9dca19f5 d=chandi-berlin)",
+      "note": "Chandi Restaurant, Albrechtstrasse 52, 12167 Berlin-Steglitz. ADR-0007 class 1 (deep_link_human): announces menu + quote, submit=false/status=false, the order is placed by a person on the venue's own rail. Onboarded by card t_a640b7ca as config only."
+    },
+    {
+      "npub": "npub1x44u5k32zsy3lscvuw9zvm9z200quufv7aqa2xy0sl0h7xfhpkmqas8w9k",
+      "role": "provider",
+      "derived_from": "secp256k1 key 356bca5a (Doreedos Steakhaus's own signing key, ~/.hermes/secrets/venues/doreedos-steakhaus-berlin.nsec; npub re-derived with `nak encode npub` on 2026-10-10, matching the pubkey of the kind-11316 announcement 68245032 d=doreedos-steakhaus-berlin)",
+      "note": "Doreedos Steakhaus, Lepsiusstrasse 45, 12163 Berlin-Steglitz. ADR-0007 class 1 (deep_link_human): announces menu + quote, submit=false/status=false, the order is placed by a person on the venue's own rail. Onboarded by card t_a640b7ca as config only."
+    },
+    {
+      "npub": "npub1nlet55u0h2xvdskr0j833s0ek5m6mj0pz4ykf8fkrkhzx8v8uchqxnw0zd",
+      "role": "provider",
+      "derived_from": "secp256k1 key 9ff2ba53 (La Mama's own signing key, ~/.hermes/secrets/venues/la-mama-berlin.nsec; npub re-derived with `nak encode npub` on 2026-10-10, matching the pubkey of the kind-11316 announcement 2c319cf3 d=la-mama-berlin)",
+      "note": "La Mama, Albrechtstrasse 119, 12167 Berlin-Steglitz. ADR-0007 class 1 (deep_link_human): announces menu + quote, submit=false/status=false, the order is placed by a person on the venue's own rail. Onboarded by card t_a640b7ca as config only."
     }
   ]
 }
