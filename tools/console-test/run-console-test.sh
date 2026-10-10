@@ -53,5 +53,19 @@ printf 'video geometry  : %sx%s, %ss\n' "$w" "$h" "$dur"
 [ "$w" = "1280" ] && [ "$h" = "720" ] || { echo "FATAL: video is ${w}x${h}, not 1280x720" >&2; exit 4; }
 awk -v d="$dur" 'BEGIN{exit !(d > 5)}' || { echo "FATAL: video is only ${dur}s — too short to be the flow" >&2; exit 5; }
 
+# Frame count + brightness, as the card requires: a stub file, a black take or a frozen
+# frame cannot pass as a recording. 596 frames on the reference take; the guard is set
+# well below that only so a slow host is not punished, while still dwarfing a stub.
+read -r frames luma < <(ffprobe -v error -count_frames -select_streams v:0 \
+    -show_entries stream=nb_read_frames -of default=nw=1:nk=1 "$VERIFY" | head -1 | paste -sd' ' -)
+luma=$(ffmpeg -v error -i "$VERIFY" -vf "signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-" \
+    -f null - 2>/dev/null | sed -n 's/.*YAVG=\([0-9.]*\).*/\1/p' \
+  | awk '{s+=$1; n++} END{ if (n) printf "%.1f", s/n; else print 0 }')
+printf 'frames / mean luma: %s / %s (0=black, 255=white)\n' "$frames" "$luma"
+
+[ "${frames:-0}" -gt 100 ] || { echo "FATAL: only ${frames} frames — that is not a recording" >&2; exit 6; }
+awk -v l="$luma" 'BEGIN{exit !(l > 8 && l < 250)}' \
+  || { echo "FATAL: mean luma ${luma} — the video is blank/black, not a rendered flow" >&2; exit 7; }
+
 echo
 echo "T4 EVIDENCE OK — one test, one 1280x720 recording, against the real cvm-orders slice."
