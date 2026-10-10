@@ -1,10 +1,10 @@
 {
-  "started_at": "2026-10-10T06:56:17.802Z",
+  "started_at": "2026-10-10T07:02:44.366Z",
   "acts": [
     {
       "act": 1,
       "name": "sign-in",
-      "at": "2026-10-10T06:56:22.560Z",
+      "at": "2026-10-10T07:02:54.290Z",
       "screen": "queue",
       "signed_events": 1,
       "kind": 27235,
@@ -17,7 +17,7 @@
     {
       "act": 2,
       "name": "queue",
-      "at": "2026-10-10T06:56:23.435Z",
+      "at": "2026-10-10T07:02:55.200Z",
       "orders_in_queue": 2,
       "sla_visible": true,
       "pending_order_blocked": true,
@@ -27,7 +27,7 @@
     {
       "act": 3,
       "name": "placing",
-      "at": "2026-10-10T06:56:25.431Z",
+      "at": "2026-10-10T07:02:57.628Z",
       "service_state": "placing",
       "handoff_url": "https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708",
       "receipt_inputs": 4,
@@ -36,7 +36,7 @@
     {
       "act": 4,
       "name": "card-custody refusal",
-      "at": "2026-10-10T06:56:28.994Z",
+      "at": "2026-10-10T07:03:00.621Z",
       "typed": "PAN-shaped value (Luhn-valid test number)",
       "refused_at": "receipt:payment_reference",
       "transition_requests_sent": 0,
@@ -48,7 +48,7 @@
     {
       "act": 5,
       "name": "placed",
-      "at": "2026-10-10T06:56:33.065Z",
+      "at": "2026-10-10T07:03:03.270Z",
       "service_state": "placed",
       "venue_reference": "#4471",
       "ready_at": "18:25",
@@ -60,13 +60,13 @@
     {
       "act": 6,
       "name": "ready",
-      "at": "2026-10-10T06:56:35.124Z",
+      "at": "2026-10-10T07:03:05.483Z",
       "service_state": "ready"
     },
     {
       "act": 7,
       "name": "settlements",
-      "at": "2026-10-10T06:56:37.137Z",
+      "at": "2026-10-10T07:03:07.642Z",
       "receipt_visible": true,
       "defect_observed": true,
       "defect": "the receipt row and the 'fiat recorded as spent' / 'fees kept' sums join state.receipts against state.queue, which is paid-only; once an order leaves `paid` the venue name and the fee/fiat totals render as '—' / 0.00 € although the receipt was captured"
@@ -74,10 +74,10 @@
     {
       "act": 8,
       "name": "closing frame",
-      "at": "2026-10-10T06:56:43.496Z",
+      "at": "2026-10-10T07:03:13.699Z",
       "repo": "cvm-services/cvm-registry",
       "console_sha": "1d53cac",
-      "harness_sha": "ef9d49c",
+      "harness_sha": "831b1a1",
       "orders_sha": "e5a8a5c7d6b6fbe6ba10973fca1873046e80f8c0"
     }
   ],
@@ -112,7 +112,7 @@
     "paid_with": "card at the venue terminal",
     "payment_reference": "pi_3Qk9Zx2eZvKYlo2C"
   },
-  "finished_at": "2026-10-10T06:56:43.496Z",
+  "finished_at": "2026-10-10T07:03:13.702Z",
   "console_errors": [],
   "webm": "/home/c03rad0r/worktrees/t_4726349b/evidence/t_4726349b/console-happy-path.webm",
   "ledger": {
@@ -137,12 +137,12 @@
     ]
   },
   "stub_log": [
-    "[stub] seeded 8f31a2c4d5e6f708: {\"id\":\"8f31a2c4d5e6f708\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"doppelt-kaese-berlin\",\"venue_name\":\"Doppelt Käse Laubacher Straße\",\"items\":[{\"name\":\"Käseplatte groß\",\"qty\":1,\"options\":\"mit Brotkorb\",\"unit_fiat\":18.5,\"unit_sats\":30150},{\"name\":\"Apfelschorle\",\"qty\":2,\"options\":\"0,5 l\",\"unit_fiat\":3.4,\"unit_sats\":5550},{\"name\":\"Basilikum-Tomate (Stück)\",\"qty\":1,\"unit_fiat\":3.5,\"unit_sats\":5700}],\"total_fiat\":28.8,\"total_sats\":46950,\"fee_sats\":1410},\"customer\":{\"phone\":\"+49 151 5555 0142\"},\"venue\":{\"rail\":\"FoodAmigos\",\"checkout_url\":\"https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708\"},\"settlement\":{\"status\":\"settled\",\"method\":\"bolt11\",\"payment_hash\":\"9d1c4f7a2b8e6053d1a0c5f2e83b47a6d9c04e1f5826b7a3c908d4e2f1a6b7c3\",\"amount_sats\":46950,\"settled_at\":\"2026-10-10T06:54:47.895Z\"}},\"updatedAt\":\"2026-10-10T06:56:17.901Z\"}",
-    "[stub] seeded 9b27d4e6f8091a2b: {\"id\":\"9b27d4e6f8091a2b\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"pizza-e-pasta-ruedesheimerplatz\",\"venue_name\":\"Pizza e Pasta Rüdesheimer Platz\",\"items\":[{\"name\":\"Margherita\",\"qty\":1,\"unit_fiat\":9.9,\"unit_sats\":16100},{\"name\":\"Coca-Cola\",\"qty\":1,\"unit_fiat\":2.9,\"unit_sats\":4730}],\"total_fiat\":12.8,\"total_sats\":20830,\"fee_sats\":630},\"customer\":{\"phone\":\"+49 176 2222 8877\"},\"venue\":{\"rail\":\"FoodAmigos\"},\"settlement\":{\"status\":\"pending\",\"method\":\"bolt11\",\"amount_sats\":20830}},\"updatedAt\":\"2026-10-10T06:56:17.903Z\"}",
+    "[stub] seeded 8f31a2c4d5e6f708: {\"id\":\"8f31a2c4d5e6f708\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"doppelt-kaese-berlin\",\"venue_name\":\"Doppelt Käse Laubacher Straße\",\"items\":[{\"name\":\"Käseplatte groß\",\"qty\":1,\"options\":\"mit Brotkorb\",\"unit_fiat\":18.5,\"unit_sats\":30150},{\"name\":\"Apfelschorle\",\"qty\":2,\"options\":\"0,5 l\",\"unit_fiat\":3.4,\"unit_sats\":5550},{\"name\":\"Basilikum-Tomate (Stück)\",\"qty\":1,\"unit_fiat\":3.5,\"unit_sats\":5700}],\"total_fiat\":28.8,\"total_sats\":46950,\"fee_sats\":1410},\"customer\":{\"phone\":\"+49 151 5555 0142\"},\"venue\":{\"rail\":\"FoodAmigos\",\"checkout_url\":\"https://doppelt-kaese.example/checkout?ref=8f31a2c4d5e6f708\"},\"settlement\":{\"status\":\"settled\",\"method\":\"bolt11\",\"payment_hash\":\"9d1c4f7a2b8e6053d1a0c5f2e83b47a6d9c04e1f5826b7a3c908d4e2f1a6b7c3\",\"amount_sats\":46950,\"settled_at\":\"2026-10-10T07:01:14.882Z\"}},\"updatedAt\":\"2026-10-10T07:02:44.912Z\"}",
+    "[stub] seeded 9b27d4e6f8091a2b: {\"id\":\"9b27d4e6f8091a2b\",\"state\":\"paid\",\"payload\":{\"basket\":{\"venue_slug\":\"pizza-e-pasta-ruedesheimerplatz\",\"venue_name\":\"Pizza e Pasta Rüdesheimer Platz\",\"items\":[{\"name\":\"Margherita\",\"qty\":1,\"unit_fiat\":9.9,\"unit_sats\":16100},{\"name\":\"Coca-Cola\",\"qty\":1,\"unit_fiat\":2.9,\"unit_sats\":4730}],\"total_fiat\":12.8,\"total_sats\":20830,\"fee_sats\":630},\"customer\":{\"phone\":\"+49 176 2222 8877\"},\"venue\":{\"rail\":\"FoodAmigos\"},\"settlement\":{\"status\":\"pending\",\"method\":\"bolt11\",\"amount_sats\":20830}},\"updatedAt\":\"2026-10-10T07:02:44.934Z\"}",
     "[stub] GET /api/health -> 200",
     "[stub] GET / -> 200 (1102b)",
-    "[stub] GET /app.js -> 200 (29146b)",
     "[stub] GET /style.css -> 200 (5566b)",
+    "[stub] GET /app.js -> 200 (29146b)",
     "[stub] GET /favicon.ico -> 404",
     "[stub] GET /api/auth/challenge -> 200",
     "[stub] NIP-98 authorization present on /api/orders/queue: kind=27235 pubkey=1f2e3d4c5b6a7988… method=GET u=http://127.0.0.1:8791/api/auth/challenge",
