@@ -20,9 +20,34 @@ SSH_OPTS=(-o BatchMode=yes)
 [ -f "$REPO/site/order/index.html" ] || { echo "ERROR: site/order/ missing" >&2; exit 1; }
 [ -f "$REPO/site/console/index.html" ] || { echo "ERROR: site/console/ missing" >&2; exit 1; }
 
+# The order client is an installable PWA: the document alone renders, but only
+# with the manifest, the icons and the worker does it install. A missing one of
+# these ships a page that *looks* fine and can never be installed, so the deploy
+# refuses to run rather than publish a half-PWA.
+ORDER_PWA_ASSETS=(
+  manifest.webmanifest
+  sw.js
+  icon-192.png
+  icon-512.png
+  icon-maskable-192.png
+  icon-maskable-512.png
+  apple-touch-icon.png
+)
+for asset in "${ORDER_PWA_ASSETS[@]}"; do
+  [ -f "$REPO/site/order/$asset" ] || {
+    echo "ERROR: site/order/$asset missing — the order client would ship un-installable" >&2; exit 1; }
+done
+
 BUNDLE="$(mktemp -d /tmp/cvm-pwa-bundle-XXXX)"
 mkdir -p "$BUNDLE/order" "$BUNDLE/console" "$BUNDLE/vocab"
 cp "$REPO"/site/order/* "$BUNDLE/order/"
+# The glob above is what actually carries the PWA assets; assert it did, because
+# a bundle that silently lost them deploys a green-looking site (same class of
+# failure as the caddy-user 403 below).
+for asset in "${ORDER_PWA_ASSETS[@]}"; do
+  [ -f "$BUNDLE/order/$asset" ] || {
+    echo "ERROR: site/order/$asset did not reach the bundle — check the cp glob" >&2; exit 1; }
+done
 # The facilitator console (PLAN-0007 T4). Same origin as the customer PWA so both UIs
 # talk to the same /api -> cvm-orders proxy; card data never leaves the facilitator's
 # device (ADR-0013), so nothing here is a payment form.
@@ -83,6 +108,46 @@ fi
 for asset in app.js style.css; do
   printf '   %-28s ' "/console/$asset"
   curl -s -o /dev/null -w '%{http_code} %{size_download}b\n' -m 15 "https://$DOMAIN/console/$asset" || true
+done
+
+# Installability, checked against the live origin rather than assumed: the
+# manifest must arrive as manifest JSON and must scope the app to /order/, the
+# worker must be JavaScript and byte-identical to the file this repo ships, and
+# the icons must be PNG. A 200 is not enough for any of these — the SPA fallback
+# answers 200 + text/html for a path that does not exist, so a size check alone
+# would pass while the app is un-installable.
+printf '   %-28s ' "/order/manifest.webmanifest"
+MF_CT=$(curl -s -o /tmp/pwa-manifest-live.json -w '%{http_code} %{content_type}' -m 15 "https://$DOMAIN/order/manifest.webmanifest" || true)
+echo "$MF_CT"
+case "$MF_CT" in
+  *application/manifest+json*) ;;
+  *) echo "   ERROR: the manifest is not served as application/manifest+json — Chrome will refuse to install it" >&2; exit 1 ;;
+esac
+if grep -q '"scope": *"/order/"' /tmp/pwa-manifest-live.json && grep -q '"start_url": *"/order/"' /tmp/pwa-manifest-live.json; then
+  echo "   manifest: start_url and scope are /order/ (it cannot claim /console/)"
+else
+  echo "   ERROR: the live manifest does not scope the app to /order/" >&2; exit 1
+fi
+printf '   %-28s ' "/order/sw.js"
+SW_CT=$(curl -s -o /tmp/pwa-sw-live.js -w '%{http_code} %{content_type}' -m 15 "https://$DOMAIN/order/sw.js" || true)
+echo "$SW_CT"
+case "$SW_CT" in
+  *javascript*) ;;
+  *) echo "   ERROR: the service worker is not served as JavaScript" >&2; exit 1 ;;
+esac
+if cmp -s /tmp/pwa-sw-live.js "$REPO/site/order/sw.js"; then
+  echo "   sw.js: the live worker is byte-identical to site/order/sw.js"
+else
+  echo "   ERROR: /order/sw.js is not the worker this repo ships" >&2; exit 1
+fi
+for icon in icon-192.png icon-512.png icon-maskable-192.png icon-maskable-512.png apple-touch-icon.png; do
+  printf '   %-28s ' "/order/$icon"
+  ICON_CT=$(curl -s -o /dev/null -w '%{http_code} %{size_download}b %{content_type}' -m 15 "https://$DOMAIN/order/$icon" || true)
+  echo "$ICON_CT"
+  case "$ICON_CT" in
+    *image/png*) ;;
+    *) echo "   ERROR: $icon is not served as image/png — the install prompt needs raster PNGs" >&2; exit 1 ;;
+  esac
 done
 
 # /api/* must answer JSON — with a live cvm-orders and (see the vhost's

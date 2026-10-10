@@ -511,4 +511,12 @@ Deno.test("the vhost serves the manifest as application/manifest+json", () => {
     "a manifest served as text/html makes Chrome refuse the install prompt",
   );
   assert(/webmanifest/.test(vhost), "the vhost must name the .webmanifest extension it retypes");
+  // Scoped, not global: a bare Content-Type override would serve EVERY file on
+  // the origin — including /console/ — as manifest JSON.
+  const matcher = vhost.match(/@([A-Za-z0-9_]+)\s+path\s+\/order\/manifest\.webmanifest/);
+  assert(matcher, "the manifest content-type must sit behind a path matcher");
+  assert(
+    new RegExp(`header\\s+@${matcher[1]}\\s+Content-Type\\s+"application/manifest\\+json"`).test(vhost),
+    "the content-type must be applied through that path matcher",
+  );
 });
