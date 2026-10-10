@@ -479,9 +479,14 @@ E2E_LIVE=1 npm run test:e2e:live    # against the deployed origin
 node e2e/order-pwa/harness/stack-server.mjs   # optional: live spec vs a local stack
 ```
 
-Verified from a clean clone of this branch (`2ee68a3`, cloned from GitHub rather
-than from the authoring worktree): `npm ci` → 0 vulnerabilities, then
-`npx playwright test --project=hermetic` → `1 passed (28.0s)`.
+Verified from a clean clone of this branch, twice — round 1 at `2ee68a3` and this
+round at `f7a8f1b`, both cloned from GitHub rather than from the authoring
+worktree. At `f7a8f1b`: `npm ci` → `found 0 vulnerabilities`, then
+`npx playwright test --project=hermetic` → `1 passed (14.8s)`, and the committed
+entry point — `node e2e/order-pwa/harness/stack-server.mjs`, then `E2E_LIVE=1
+E2E_LIVE_BASE=<that url> npx playwright test --project=live` → `1 passed (8.4s)`.
+So the reworked live spec and the new harness file are runnable from a clean clone
+with no undeclared prerequisites.
 
 1. **The suite needs `cvm-orders`.** It runs the real service. With no
    `CVM_ORDERS_DIR` set it clones `main` into `.cache/cvm-orders` (gitignored,

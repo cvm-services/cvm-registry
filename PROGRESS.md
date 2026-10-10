@@ -59,7 +59,7 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
 | `2ee68a3` | live-run.log re-verified at head (same 409); the recording re-committed |
 | `54c0a73` | clean-clone verification recorded (round 1) |
 | `a552acc` | **round 1 rework** — live spec: amount assertion fixed (was dead code), expiry bound, failure messages name the stale layer |
-| next | docs for the rework (README live section, REPORT round-1 section, live-run.log four new sections) + `harness/stack-server.mjs` |
+| `f7a8f1b` | docs for the rework: README live section, REPORT round-1 section, `live-run.log` (two fresh deployed runs + local-base pass + mutation check) + `harness/stack-server.mjs` |
 
 ## Current state
 
@@ -127,6 +127,12 @@ mint stubbed, plus a live run against the deploy. Repo: `cvm-services/cvm-regist
   evidence). `npx playwright install chromium` fixed it; added to README pitfalls.
 - 2026-10-10 → hermetic run at this head rewrote the committed .webm → reverted
   with `git checkout`, identity with attachment 93 kept (see "Current state")
+- 2026-10-10 → round-1 rework verified from a clean clone at `f7a8f1b` (clone from
+  GitHub): `npm ci` → 0 vulnerabilities; `npx playwright test --project=hermetic`
+  → `1 passed (14.8s)`; `node e2e/order-pwa/harness/stack-server.mjs` +
+  `E2E_LIVE=1 E2E_LIVE_BASE=… npx playwright test --project=live` → `1 passed (8.4s)`.
+  The "runnable from a clean clone" half of t_e2a7400c holds for the reworked spec
+  and the new harness file too.
 - 2026-10-10 → live project run against the harness's own stack (`E2E_LIVE_BASE`)
   passes; with the pre-review assertion form restored it fails
   `Expected: "9774000" / Received: undefined` → the fix verified, not argued
