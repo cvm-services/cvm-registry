@@ -37,3 +37,25 @@ Baseline (unmodified main, those 3 files): 24 passed | 0 failed.
   must not adopt the ORDER app's identity). site/order/ itself is untouched.
 - The vhost `header @pwa_manifest ...` sits BEFORE the handle blocks and only retypes matched
   paths; adding a second literal path cannot re-introduce text/html for unknown paths.
+# Task t_889735b3 — Order PWA happy path: real Playwright E2E (local stack + stub mint)
+
+Card: cvm-registry PR → main. Branch `worker-base/t_889735b3` from `origin/main` (53cf1a9).
+
+## Plan
+1. infra: `package.json` (@playwright/test) + `playwright.config.mjs` (video on, 1280x720)
+2. spec RED (harness not wired yet) → quote the failure
+3. harness: real `cvm-orders` service + static site server (deploy-pwa.sh path map) + stub Cashu mint (deno, NUT-04/07)
+4. spec GREEN: 8 happy-path steps, idempotent poll
+5. live spec behind `E2E_LIVE=1` → run it, record the honest result
+6. evidence: video committed under docs/e2e/order-pwa/ + attached to the card
+7. REPORT.md with "what this does NOT prove"
+
+## Log
+- 2026-10-10 21:05 read the card; found the real surface (cvm-orders origin/main main.ts: POST /orders,
+  GET /orders/:id, GET /orders/:id/invoice; CashuRail = POST /v1/mint/quote/bolt11 + GET /v1/mint/quote/bolt11/{id}).
+- 2026-10-10 21:05 confirmed the PWA proxy contract: Caddy `handle_path /api/*` strips the prefix,
+  so the PWA's `/api/orders` reaches cvm-orders `/orders`; deploy-pwa.sh fixes the static path map
+  (/order/ → site/order/*, /menu.json → site/menu.json, /vocab/* → vocab/*).
+- 2026-10-10 21:06 found a likely REAL defect: site/order/app.js `status()` reads `o.status`, but the
+  service returns `state`. Live app.js has the same `o.status`. The timeline can therefore never show
+  "Ready for pickup". Card step 7 will fail until that is fixed.
