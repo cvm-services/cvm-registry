@@ -1,3 +1,118 @@
+# REPORT — t_63e91396: cvm-registry PR #28 rebased onto `main` (durable-deploy)
+
+Task: `cvm-registry: rebase + land PR #28 durable-deploy (resolve both deploy-script conflicts)`.
+Repo `cvm-services/cvm-registry`, PR #28 <https://github.com/cvm-services/cvm-registry/pull/28>.
+Rebase only — **not merged, no push to `main`** (the manager merges, per the card).
+
+| | commit |
+|---|---|
+| old branch head (`pr/orders-durable-deploy` on origin) | `ea2eac7ca074d18a512ef60f3df8418f92073dd1` |
+| rebase base (`origin/main`, real, re-verified with `git ls-remote`) | `991a162bee2fb686f43613a0effdbbce2dd0b51d` |
+| **rebased head pushed** | `40fb287320172f051af31bf72d30f9d4fef6c716` |
+| rebased commits | `a1b6509` durable store + ship `config/` → `93f6db3` do not drop unmanaged settings → `40fb287` restart instead of `enable --now` |
+
+This report is the branch tip's parent: the tip is the `docs(t_63e91396)` commit and its
+parent is the rebased head `40fb287`, so the entire code delta under review is exactly
+`991a162..40fb287` (one file, `deploy/cvm-orders-remote-setup.sh`); a SHA written into a
+file cannot describe the commit that contains it, so the tip is identified by its parent.
+
+`main` is NOT `f6cc8c9`. `f6cc8c9` (Merge PR #29) **is an ancestor** of the real tip
+`991a162` (Merge PR #25), which landed after it. So the branch was 26 commits behind,
+not 8. The rebase was done onto `991a162` — the tip `git ls-remote origin refs/heads/main`
+reports. Nothing was lost by the newer base; `#27`'s `config/` + `--allow-read` work is
+in it (that is what made the first conflict interesting).
+
+## Conflict 1 — `deploy/orders-setup.sh` → took `main` (`--theirs` semantics)
+
+The branch's only edit to this file (in `9bf0185`) was: refuse to ship when
+`config/venues.json` is missing, and add `config` to the tar. `main`'s version, landed
+independently by **#27** (`76b2ef6`), does all of that and strictly more:
+
+| branch's delta | `main`/#27 |
+|---|---|
+| `[ -f $ORDERS_REPO/config/venues.json ]` | checks `main.ts deno.json src/store.ts config/venues.json config/mint.json` |
+| `tar … src` → `tar … config src` | `tar … config src` |
+| — | post-ship `test -s $DEST/config/venues.json` |
+| — | `CASHU_MINT_URL` passed through to the remote script |
+
+So the branch's hunk is a **subset** of the base; keeping the base loses no guarantee
+(only the branch's weaker wording of it). The rebased head's net diff for this file is
+**empty**. This is the honest resolution, not a drop: the same intent reached `main`
+by a second route, and taking both would have duplicated the check.
+
+## Conflict 2 — `deploy/cvm-orders-remote-setup.sh` → union of both intents
+
+Five distinct regions, each resolved to keep BOTH sides:
+
+1. **`config.env` writing.** `main`/#27 appends/updates `CASHU_MINT_URL` (only when
+   passed) and reads it back; the branch rewrites the file from a template and
+   re-appends every key it does not own. Union, with the ordering that makes both work:
+   the branch's rewrite + `PRESERVED` block runs **first**, `main`'s `CASHU_MINT_URL`
+   block **after**. `PRESERVED` deliberately excludes only
+   `FACILITATOR_NPUB|PORT|ORDER_DB_PATH`, so an installed `CASHU_MINT_URL` is carried
+   over and `main`'s `sed -i` then replaces it in place — no duplicate key, and a
+   re-run without the variable keeps the installed rail.
+2. **`FACILITATOR_NPUB`.** Kept from the installed file when not passed; the
+   "wrote" vs "kept existing" distinction is preserved by tracking `PASSED_NPUB`
+   separately (the branch's own form tested the variable *after* reassigning it, so it
+   was always true and always said "wrote").
+3. **`ExecStart`.** `--allow-read` (from #27: `config/venues.json` + `config/mint.json`
+   are read at startup) **and** `--allow-write` (from the branch: the SQLite WAL store).
+   Both comments kept — losing either one is a 503 `catalog_unavailable` or a store
+   that cannot be written.
+4. **Systemd start.** `systemctl enable` + explicit `systemctl restart` + `sleep 2`;
+   the string `enable --now` appears nowhere. Both sides wanted the restart; one
+   comment now carries the reason (old code keeps serving on a no-op `--now`).
+5. **Post-start assertion** that `$ORDER_DB_PATH` exists and is a file, plus the
+   "store lives outside `$DEST`" comments — the branch's, kept verbatim.
+
+## Verification (all at the rebased head `40fb287`)
+
+```
+bash -n deploy/cvm-orders-remote-setup.sh   # OK
+bash -n deploy/orders-setup.sh              # OK
+deno check collector/ tests/                # exit 0        evidence/t_63e91396/GREEN-deno-check.txt
+deno test --allow-read --allow-net --allow-env tests/
+    ok | 181 passed | 0 failed (11s)        evidence/t_63e91396/GREEN-full-rebased.txt
+```
+
+**No test was changed or weakened** — the suite is green as-is, and 181/181 is the same
+count #29 measured on `main`. The scripts' text assertions in
+`tests/pwa_vhost_test.ts` (loopback bind, `EnvironmentFile=$ENV_DIR/config.env`,
+`FACILITATOR_NPUB=$FACILITATOR_NPUB`, `ENV_DIR=/etc/cvm-orders`, "FACILITATOR_NPUB is
+required") all still hold against the resolved text.
+
+Because a text assertion only proves a substring exists, the union was additionally
+**driven**: `evidence/t_63e91396/probe-config-env-union.sh` extracts the shipped
+`config.env` hunk *verbatim* out of the rebased script and runs it in a temp `ENV_DIR`
+across four scenarios — fresh install with a mint URL; re-run without npub and without
+the mint URL (both kept); re-run with a *changed* mint URL (replaced exactly once, the
+old value gone, no duplicate); a hand-added foreign setting (`SOME_FUTURE_SETTING=keep-me`)
+survives a rewrite. **ALL CHECKS PASS** (`probe-config-env-union.txt`), plus static
+checks that `ExecStart` has both allow-flags, that `enable --now` is gone, and that the
+durable-store assertion is present.
+
+## Could not verify / caveats
+
+- **No live deploy.** The card asked for the rebase + suites, not a deploy, so the script
+  was never executed against a host: it needs root, systemd, `deno` on the target and
+  ssh to `debian@testserver2.fips`. The `config.env` hunk above was executed verbatim;
+  everything else was checked statically (`bash -n`, greps, the Deno suite).
+- `systemctl restart`'s effect on the **running** production unit is asserted by reading
+  the script, not observed on the box.
+- The `ngit` remote was deliberately untouched; only `origin` was pushed.
+- The worktree still carries untracked leftovers from the crashed first attempt
+  (`.x/` = its conflict scratch copies, `deno.lock` = generated by `deno check`, not
+  tracked in `main`). They are not part of the pushed branch.
+- **Attribution:** this task's first attempt was killed by the crash wrapper mid-run; it
+  had already completed the rebase locally. This run re-derived every version
+  independently from the git objects (`53cf1a9` base / `ea2eac7` branch / `991a162` main),
+  re-checked the resolution hunk by hunk against both intents, then ran the suites and
+  pushed. The resolution described above is this run's, verified — not taken on trust
+  from the previous attempt's scratch files.
+
+---
+
 # REPORT — t_e3abf2ae: the facilitator console at /console/ is an installable PWA
 # REPORT — t_889735b3: the order PWA's happy path, in a real browser
 

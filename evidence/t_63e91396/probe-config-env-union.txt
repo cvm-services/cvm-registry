@@ -1,0 +1,82 @@
+--- extracted hunk: 65 lines ---
+
+=== scenario 1: fresh install, CASHU_MINT_URL passed ===
+   rail: CASHU_MINT_URL=https://mint.example
+   wrote /home/c03rad0r/.tmp/tmp.rybky3eNze/e1/config.env
+--- config.env:
+# Facilitator identity for the console NIP-98 challenge (cvm-orders).
+# Public key only. Private material never belongs here (ADR-0013).
+FACILITATOR_NPUB=npub1FRESH
+PORT=8788
+# Durable order store (SQLite, WAL). It holds the invoice a customer is paying
+# and the sats-settlement claim; losing it strands paid sats, so it must not sit
+# in the code directory a redeploy replaces.
+ORDER_DB_PATH=/home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db/orders.sqlite
+CASHU_MINT_URL=https://mint.example
+--- db dir:
+drwx------ 2 c03rad0r c03rad0r 4096 Oct 11 23:21 /home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db
+
+=== scenario 2: re-run WITHOUT npub, WITHOUT CASHU_MINT_URL (must keep both) ===
+   rail: kept installed CASHU_MINT_URL=https://mint.example
+   kept existing FACILITATOR_NPUB; rewrote /home/c03rad0r/.tmp/tmp.rybky3eNze/e1/config.env with PORT + ORDER_DB_PATH
+# Facilitator identity for the console NIP-98 challenge (cvm-orders).
+# Public key only. Private material never belongs here (ADR-0013).
+FACILITATOR_NPUB=npub1FRESH
+PORT=8788
+# Durable order store (SQLite, WAL). It holds the invoice a customer is paying
+# and the sats-settlement claim; losing it strands paid sats, so it must not sit
+# in the code directory a redeploy replaces.
+ORDER_DB_PATH=/home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db/orders.sqlite
+
+# Preserved from the previous install (settings this script does not manage).
+CASHU_MINT_URL=https://mint.example
+
+=== scenario 3: re-run without npub, CASHU_MINT_URL CHANGED (override, no duplicate) ===
+   rail: CASHU_MINT_URL=https://mint2.example
+   kept existing FACILITATOR_NPUB; rewrote /home/c03rad0r/.tmp/tmp.rybky3eNze/e1/config.env with PORT + ORDER_DB_PATH
+# Facilitator identity for the console NIP-98 challenge (cvm-orders).
+# Public key only. Private material never belongs here (ADR-0013).
+FACILITATOR_NPUB=npub1FRESH
+PORT=8788
+# Durable order store (SQLite, WAL). It holds the invoice a customer is paying
+# and the sats-settlement claim; losing it strands paid sats, so it must not sit
+# in the code directory a redeploy replaces.
+ORDER_DB_PATH=/home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db/orders.sqlite
+
+# Preserved from the previous install (settings this script does not manage).
+CASHU_MINT_URL=https://mint2.example
+
+=== scenario 4: an unmanaged setting added by hand survives ===
+   rail: kept installed CASHU_MINT_URL=https://mint2.example
+   kept existing FACILITATOR_NPUB; rewrote /home/c03rad0r/.tmp/tmp.rybky3eNze/e1/config.env with PORT + ORDER_DB_PATH
+# Facilitator identity for the console NIP-98 challenge (cvm-orders).
+# Public key only. Private material never belongs here (ADR-0013).
+FACILITATOR_NPUB=npub1FRESH
+PORT=8788
+# Durable order store (SQLite, WAL). It holds the invoice a customer is paying
+# and the sats-settlement claim; losing it strands paid sats, so it must not sit
+# in the code directory a redeploy replaces.
+ORDER_DB_PATH=/home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db/orders.sqlite
+
+# Preserved from the previous install (settings this script does not manage).
+CASHU_MINT_URL=https://mint2.example
+SOME_FUTURE_SETTING=keep-me
+
+=== assertions ===
+PASS  FACILITATOR_NPUB kept across re-runs without it (^FACILITATOR_NPUB=npub1FRESH$ x1)
+PASS  CASHU_MINT_URL is the NEW value, exactly once (^CASHU_MINT_URL=https://mint2.example$ x1)
+PASS  the old mint URL is gone (replaced, not appended) (^CASHU_MINT_URL=https://mint.example/$ x0)
+PASS  PORT written (^PORT=8788$ x1)
+PASS  ORDER_DB_PATH written and points outside DEST (^ORDER_DB_PATH=/home/c03rad0r/.tmp/tmp.rybky3eNze/e1/db/orders.sqlite$ x1)
+PASS  an unmanaged setting survives the rewrite (^SOME_FUTURE_SETTING=keep-me$ x1)
+PASS  the preservation is announced once (no duplicate blocks) (Preserved from the previous install x1)
+
+=== static union checks on the shipped file ===
+PASS  ExecStart allows read (catalog/mint: #27)
+PASS  ExecStart allows write (durable store: branch)
+PASS  enable AND restart, never bare 'enable --now'
+PASS  no 'enable --now' left
+PASS  durable store asserted after start
+PASS  loopback bind (vhost test) 
+
+PROBE RESULT: ALL CHECKS PASS
