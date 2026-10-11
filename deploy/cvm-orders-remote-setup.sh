@@ -34,10 +34,11 @@ DENO="${DENO:-/usr/local/bin/deno}"
 mkdir -p "$ENV_DIR"
 chmod 0755 "$ENV_DIR"
 
-# config.env is the source of truth for values we must not silently blank: a
-# re-run without FACILITATOR_NPUB keeps what is already installed. The file is
-# rewritten in full so an install from an older script (no ORDER_DB_PATH) gains
-# the durable store path on the next run.
+# config.env is the source of truth for values we must not silently blank. A
+# re-run without FACILITATOR_NPUB keeps the installed one, and settings this
+# script does not manage (CASHU_MINT_URL — which mint the rail points at) are
+# carried over VERBATIM: rewriting the file from a template would quietly drop
+# them and change where the money rail points.
 PASSED_NPUB="${FACILITATOR_NPUB:-}"
 EXISTING_NPUB="$(grep -m1 '^FACILITATOR_NPUB=npub1' "$ENV_DIR/config.env" 2>/dev/null | cut -d= -f2- || true)"
 FACILITATOR_NPUB="${PASSED_NPUB:-$EXISTING_NPUB}"
@@ -46,6 +47,10 @@ if [ -z "$FACILITATOR_NPUB" ]; then
   echo "       Re-run with: FACILITATOR_NPUB=<npub1...> bash deploy/orders-setup.sh" >&2
   exit 1
 fi
+
+# Everything that is not a comment and not one of the three keys this script
+# owns. `grep -v` on an absent file is tolerated, so a first install works too.
+PRESERVED="$(grep -vE '^[[:space:]]*#' "$ENV_DIR/config.env" 2>/dev/null | grep -vE '^(FACILITATOR_NPUB|PORT|ORDER_DB_PATH)=' | grep -vE '^[[:space:]]*$' || true)"
 
 mkdir -p "$ORDER_DB_DIR"
 chmod 0700 "$ORDER_DB_DIR"
@@ -60,6 +65,13 @@ PORT=$PORT
 # in the code directory a redeploy replaces.
 ORDER_DB_PATH=$ORDER_DB_PATH
 EOF
+if [ -n "$PRESERVED" ]; then
+  {
+    echo ""
+    echo "# Preserved from the previous install (settings this script does not manage)."
+    echo "$PRESERVED"
+  } >> "$ENV_DIR/config.env"
+fi
 
 # CASHU_MINT_URL is a deploy-time override of the committed config/mint.json
 # selection (src/mints.ts: env wins, config is the fallback). It is a PUBLIC mint
