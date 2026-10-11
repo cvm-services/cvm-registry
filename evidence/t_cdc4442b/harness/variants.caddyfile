@@ -1,0 +1,30 @@
+:19999 {
+	handle /a {
+		redir /a/ 308
+	}
+	handle /b {
+		redir to /b/ 308
+	}
+	handle /c {
+		redir "/c/" 308
+	}
+	handle /d {
+		redir * /d/ 308
+	}
+	handle /e {
+		route {
+			redir /e/ 308
+		}
+	}
+	handle /f {
+		respond "moved" 308 {
+			Location /f/
+		}
+	}
+	handle /g {
+		redir {http.request.uri}/ 308
+	}
+	handle /h {
+		redir /h/ permanent
+	}
+}

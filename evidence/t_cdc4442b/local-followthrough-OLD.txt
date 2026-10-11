@@ -1,0 +1,8 @@
+### follow-through (client FOLLOWS redirects) — old
+  GET /api   final=200 ct=text/html; charset=utf-8 redirects=0 size=1851b body=ORDER-DOC
+  GET /      final=200 ct=text/html; charset=utf-8 redirects=0 size=1851b body=ORDER-DOC
+  POST /api  final=200 ct=text/html; charset=utf-8 redirects=0 body=<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="wi

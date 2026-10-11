@@ -1,0 +1,49 @@
+[0m[32mCheck[0m tests/pwa_vhost_test.ts
+[0m[38;5;245mrunning 10 tests from ./tests/pwa_vhost_test.ts[0m
+/api/* is reverse-proxied to cvm-orders and the prefix is stripped ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+a down /api answers a JSON error, never the SPA fallback ... [0m[32mok[0m [0m[38;5;245m(465µs)[0m
+the in-memory store is stated in the vhost, where a restart is read ... [0m[32mok[0m [0m[38;5;245m(484µs)[0m
+each PWA falls back to its OWN document ... [0m[32mok[0m [0m[38;5;245m(199µs)[0m
+the deploy replaces an existing vhost instead of skipping it ... [0m[32mok[0m [0m[38;5;245m(785µs)[0m
+the order service is installed loopback-only with its own env file ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+bare /api has its own handler and never reaches the order fallback ... [0m[31mFAILED[0m [0m[38;5;245m(2ms)[0m
+the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+the catch-all still serves the docroot's real files, and only those ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+the origin root is an explicit alias, not a second copy of the app ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+
+[0m[1m[37m[41m ERRORS [0m
+
+bare /api has its own handler and never reaches the order fallback [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:131:6[0m
+[0m[1m[31merror[0m: Error: no `handle /api` (exact): bare /api still falls through to the SPA fallback and answers the order document as text/html
+    throw new Error(
+[0m[31m          ^[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_cdc4442b/[0m[0m[36mtests/pwa_vhost_test.ts[0m:[0m[33m134[0m:[0m[33m11[0m
+
+the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:149:6[0m
+[0m[1m[31merror[0m: Error: no `handle /order/*`: the order fallback is unscoped, so /style.css, /app.js and /nope all answer 200 + the order document
+    throw new Error(
+[0m[31m          ^[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_cdc4442b/[0m[0m[36mtests/pwa_vhost_test.ts[0m:[0m[33m152[0m:[0m[33m11[0m
+
+the catch-all still serves the docroot's real files, and only those [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:177:6[0m
+[0m[1m[31merror[0m: Error: the catch-all must not rewrite a missing path to any document
+    throw new Error("the catch-all must not rewrite a missing path to any document");
+[0m[31m          ^[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_cdc4442b/[0m[0m[36mtests/pwa_vhost_test.ts[0m:[0m[33m190[0m:[0m[33m11[0m
+
+the origin root is an explicit alias, not a second copy of the app [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:197:6[0m
+[0m[1m[31merror[0m: Error: `/` is unhandled — the bare origin would 404
+    throw new Error("`/` is unhandled — the bare origin would 404");
+[0m[31m          ^[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_cdc4442b/[0m[0m[36mtests/pwa_vhost_test.ts[0m:[0m[33m200[0m:[0m[33m11[0m
+
+[0m[1m[37m[41m FAILURES [0m
+
+bare /api has its own handler and never reaches the order fallback [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:131:6[0m
+the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:149:6[0m
+the catch-all still serves the docroot's real files, and only those [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:177:6[0m
+the origin root is an explicit alias, not a second copy of the app [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:197:6[0m
+
+[0m[31mFAILED[0m | 6 passed | 4 failed [0m[38;5;245m(50ms)[0m
+
+[0m[1m[31merror[0m: Test failed

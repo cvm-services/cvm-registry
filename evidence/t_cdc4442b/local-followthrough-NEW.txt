@@ -1,0 +1,4 @@
+### follow-through (client FOLLOWS redirects) — new
+  GET /api   final=404 ct=application/json redirects=1 size=61b body={"error": "not found", "method": "GET", "upstream_path": "/"}
+  GET /      final=200 ct=text/html; charset=utf-8 redirects=1 size=1851b body=ORDER-DOC
+  POST /api  final=404 ct=application/json redirects=1 body={"error": "not found", "method": "POST", "upstream_path": "/"}

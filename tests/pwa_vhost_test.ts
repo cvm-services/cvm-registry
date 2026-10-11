@@ -77,3 +77,166 @@ Deno.test("the order service is installed loopback-only with its own env file", 
     throw new Error("orders-setup.sh must fail closed without FACILITATOR_NPUB");
   }
 });
+
+// ---------------------------------------------------------------------------
+// 2026-10-10 — the UNSCOPED catch-all.
+//
+// The vhost ended with `handle { try_files {path} /order/index.html; file_server }`.
+// Being unscoped, it answered HTTP 200 + the order document for EVERY path no
+// earlier handler matched, and the one that matters is bare `/api`:
+// `handle_path /api/*` needs the trailing slash, so `/api` fell through and came
+// back as text/html. The document at `/api` loads its assets with RELATIVE urls,
+// so the browser fetched `/style.css` and `/app.js`, got text/html for both and
+// refused to execute the module script — "Loading venues…" stayed on screen
+// forever, with no console error and no failed request to look at.
+//
+// These assertions describe the shape of the fix in the shipped bytes.
+// ---------------------------------------------------------------------------
+
+interface HandleBlock {
+  /** `handle` or `handle_path` */
+  name: string;
+  /** the path matcher, "" for the catch-all */
+  matcher: string;
+  /** the block body, braces excluded */
+  body: string;
+}
+
+/** Top-level handle/handle_path blocks of the shipped vhost text. */
+function handleBlocks(src: string): HandleBlock[] {
+  const lines = src.split("\n");
+  const header = /^\s*(handle|handle_path)(?:\s+([^{]*?))?\s*\{\s*$/;
+  const out: HandleBlock[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = header.exec(lines[i]);
+    if (!m) continue;
+    const body: string[] = [];
+    let depth = 1;
+    for (let j = i + 1; j < lines.length; j++) {
+      const line = lines[j];
+      const open = (line.match(/\{/g) ?? []).length;
+      const close = (line.match(/\}/g) ?? []).length;
+      if (depth + open - close <= 0) break;
+      depth += open - close;
+      body.push(line);
+    }
+    out.push({ name: m[1], matcher: (m[2] ?? "").trim(), body: body.join("\n") });
+  }
+  return out;
+}
+
+const BLOCKS = handleBlocks(VHOST);
+const blockFor = (matcher: string) => BLOCKS.find((b) => b.matcher === matcher);
+
+Deno.test("bare /api has its own handler and never reaches the order fallback", () => {
+  const api = blockFor("/api");
+  if (!api) {
+    throw new Error(
+      "no `handle /api` (exact): bare /api still falls through to the SPA fallback " +
+        "and answers the order document as text/html",
+    );
+  }
+  if (/try_files|file_server/.test(api.body)) {
+    throw new Error("the bare /api handler serves files — /api must answer as an API");
+  }
+  // Either an exact-match redirect to the proxy's own prefix (preserves the
+  // method) or a JSON answer. What may NOT happen is a 200 + HTML.
+  //
+  // The matcher slot (`*`) is REQUIRED, not stylistic: Caddy reads `redir`'s first
+  // argument as an optional inline matcher, and a path-looking token IS a path
+  // matcher, so `redir /api/ 308` adapts to `match path /api/ -> 302 Location: 308`
+  // and answers 200 + empty body. See the dedicated test below.
+  if (!/redir\s+(\*|@[\w.-]+)\s+\/api\/\s+308/.test(api.body) && !/respond[^\n]*`\{"/.test(api.body)) {
+    throw new Error("handle /api neither redirects to /api/ with an explicit matcher slot nor answers JSON");
+  }
+});
+
+Deno.test("the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app", () => {
+  const order = blockFor("/order/*");
+  if (!order) {
+    throw new Error(
+      "no `handle /order/*`: the order fallback is unscoped, so /style.css, /app.js " +
+        "and /nope all answer 200 + the order document",
+    );
+  }
+  if (!order.body.includes("try_files {path} /order/index.html")) {
+    throw new Error("/order/ lost its SPA fallback");
+  }
+  // One carrier only: the document must be reachable from exactly one handler,
+  // and that handler must be the app's own subtree.
+  const carriers = BLOCKS.filter((b) => /\/order\/index\.html/.test(b.body));
+  if (carriers.length !== 1) {
+    throw new Error(
+      "the order document is reachable from " + carriers.length + " handlers: " +
+        carriers.map((c) => c.matcher || "(catch-all)").join(", "),
+    );
+  }
+  // A catch-all may serve files; it may not rewrite a missing path to a document.
+  for (const b of BLOCKS) {
+    if (b.matcher === "" && /try_files/.test(b.body)) {
+      throw new Error("the catch-all still rewrites unknown paths to a document");
+    }
+  }
+});
+
+Deno.test("the catch-all still serves the docroot's real files, and only those", () => {
+  // app.js fetches `../menu.json` and `../../vocab/service-inputs.json` — paths
+  // OUTSIDE /order/. Deleting the catch-all instead of scoping it would 404 the
+  // app's own data and hang the page exactly like the defect above, so the
+  // fallback-free file_server is load-bearing, not decoration.
+  const catchAll = blockFor("");
+  if (!catchAll) {
+    throw new Error("no catch-all: /menu.json and /vocab/... would 404 and the app could not price anything");
+  }
+  if (!catchAll.body.includes("file_server")) {
+    throw new Error("the catch-all must serve the docroot's real files");
+  }
+  if (/try_files/.test(catchAll.body)) {
+    throw new Error("the catch-all must not rewrite a missing path to any document");
+  }
+  if (!DEPLOY.includes("site/menu.json") || !DEPLOY.includes("vocab/service-inputs.json")) {
+    throw new Error("the deploy stopped shipping the app's out-of-subtree data");
+  }
+});
+
+Deno.test("the origin root is an explicit alias, not a second copy of the app", () => {
+  const root = blockFor("/");
+  if (!root) {
+    throw new Error("`/` is unhandled — the bare origin would 404");
+  }
+  if (/try_files|file_server/.test(root.body)) {
+    throw new Error("`/` serves a document directly: the app's relative asset urls would resolve against the wrong base");
+  }
+  if (!/redir\s+(\*|@[\w.-]+)\s+\/order\/\s+302/.test(root.body)) {
+    throw new Error("`/` must alias to /order/ with an explicit matcher slot");
+  }
+});
+
+// ---------------------------------------------------------------------------
+// The failure mode a TEXT assertion cannot see on its own.
+//
+// Caddy reads `redir`'s first argument as an optional inline matcher, and a token
+// beginning with "/" is a path matcher. So the obvious-looking spelling
+//     redir /api/ 308
+// does NOT mean "redirect to /api/ with 308". `caddy adapt` (2.6.2) turns it into
+//     match path /api/   ->   static_response status 302, headers {Location: 308}
+// and because the rewritten inner route only matches /api/ — never bare /api —
+// GET /api answered 200 with an EMPTY body. The directive silently stopped
+// redirecting; only a real request revealed it (see evidence/t_cdc4442b/).
+//
+// The rule this test enforces is therefore about the whole file, not one line:
+// no `redir` may put its TARGET in the matcher slot.
+// ---------------------------------------------------------------------------
+Deno.test("no redir target can be read as Caddy's inline matcher slot", () => {
+  VHOST.split("\n").forEach((line, i) => {
+    const m = /^\s*redir\s+(\S+)/.exec(line);
+    if (!m) return;
+    if (m[1].startsWith("/")) {
+      throw new Error(
+        `line ${i + 1}: \`redir ${m[1]} …\` — Caddy reads \`${m[1]}\` as an inline path ` +
+          "matcher, so the target moves into the code slot: the directive becomes a " +
+          "302 to the literal string and stops redirecting. Name the matcher (`redir * …`).",
+      );
+    }
+  });
+});

@@ -1,0 +1,43 @@
+== bundle:
+   ./fixtures/doppelt.catalog.json
+   ./menu.json
+   ./vocab/service-inputs.json
+   ./console/style.css
+   ./console/index.html
+   ./console/app.js
+   ./order/sw.js
+   ./order/style.css
+   ./order/manifest.webmanifest
+   ./order/index.html
+   ./order/icon-maskable-512.png
+   ./order/icon-maskable-192.png
+   ./order/icon-512.png
+   ./order/icon-192.png
+   ./order/apple-touch-icon.png
+   ./order/app.js
+== ship to debian@testserver2.fips:/opt/tollgate/cvm-pwa
+== caddy vhost for cvm-pwa.orangesync.tech (source: deploy/caddy-vhost-cvm-pwa.caddy)
+   cvm-pwa.orangesync.tech: replaced 1 block(s); backup /etc/caddy/Caddyfile.vhostbak-20261010T203457Z
+   caddy config: valid
+   caddy: active
+== verify
+   /order/                      200 1851b text/html; charset=utf-8
+   /console/                    200 1102b text/html; charset=utf-8
+   /menu.json                   200 57027b application/json
+   /vocab/service-inputs.json   200 6366b application/json
+   /api/health                  200 11b application/json
+   /console/ document == site/console/index.html
+   /console/app.js              200 28538b
+   /console/style.css           200 5566b
+   /order/manifest.webmanifest  200 application/manifest+json
+   manifest: start_url and scope are /order/ (it cannot claim /console/)
+   /order/sw.js                 200 text/javascript; charset=utf-8
+   sw.js: the live worker is byte-identical to site/order/sw.js
+   /order/icon-192.png          200 1739b image/png
+   /order/icon-512.png          200 4148b image/png
+   /order/icon-maskable-192.png 200 1502b image/png
+   /order/icon-maskable-512.png 200 3594b image/png
+   /order/apple-touch-icon.png  200 1641b image/png
+   /api/auth/challenge          200 application/json
+   /api is proxying to cvm-orders (challenge carries facilitatorNpub)
+done. customer https://cvm-pwa.orangesync.tech/order/ · facilitator https://cvm-pwa.orangesync.tech/console/

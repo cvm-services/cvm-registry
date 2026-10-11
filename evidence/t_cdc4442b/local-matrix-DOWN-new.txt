@@ -1,0 +1,12 @@
+### new vhost, cvm-orders DOWN (nothing on 127.0.0.1:8788)
+  PATH           CODE SIZE    CONTENT-TYPE               LOCATION   BODY-IS-ORDER-DOC
+  /api           308  0b      –                        /api/      no
+  /api/          502  192b    application/json           –        no
+  /api/orders    502  192b    application/json           –        no
+  /style.css     404  0b      –                        –        no
+  /nope          404  0b      –                        –        no
+  /order/        200  1851b   text/html;                 –        ORDER-DOC
+  -- followed through (curl -L) for bare /api:
+     final=502 ct=application/json redirects=1 body={"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"
+  -- body of /api/ (the handle_errors JSON):
+     | {"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties the queue, it does not lose committed data"}
