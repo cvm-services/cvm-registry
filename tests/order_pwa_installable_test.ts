@@ -483,10 +483,29 @@ Deno.test("the console client at /console/ is unaffected by the order PWA", () =
     true,
     "the manifest must live under /order/, not at the origin root",
   );
-  // And the console document must not have grown a manifest/worker of its own.
+  // The console document has since grown its OWN manifest and worker
+  // (2026-10-11: /console/ is an installable PWA too — see
+  // tests/console_pwa_installable_test.ts). What must never happen is the
+  // console adopting the ORDER app's identity: the console's manifest must be
+  // its own, and a worker registered from /console/ can only ever claim
+  // /console/, never /order/ and never /api.
   const consolePage = read(CONSOLE_INDEX_PATH);
-  assert(!consolePage.includes("manifest.webmanifest"), "the console must not link the order manifest");
-  assert(!consolePage.includes("serviceWorker"), "the console must not register the order worker");
+  assert(
+    !consolePage.includes("/order/manifest.webmanifest"),
+    "the console must never link the order app's manifest",
+  );
+  assert(
+    !consolePage.includes('scope: "/order/"'),
+    "the console must never register a worker scoped to /order/",
+  );
+  assert(
+    consolePage.includes('href="manifest.webmanifest"'),
+    "the console links its OWN manifest (a relative href resolves to /console/manifest.webmanifest)",
+  );
+  assert(
+    consolePage.includes('scope: "/console/"'),
+    "the console's worker is scoped to /console/ only",
+  );
   assert(consolePage.includes('src="app.js"'), "the console document is otherwise untouched");
 });
 

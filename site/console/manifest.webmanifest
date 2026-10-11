@@ -1,0 +1,41 @@
+{
+  "id": "/console/",
+  "name": "CVM — facilitator console",
+  "short_name": "Console",
+  "description": "Facilitator console for facilitated sats orders: read the paid queue, place at the venue, settle. Card data never enters this console.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/console/",
+  "scope": "/console/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0f766e",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/console/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/console/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/console/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/console/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

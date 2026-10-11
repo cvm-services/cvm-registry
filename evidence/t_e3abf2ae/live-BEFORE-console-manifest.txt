@@ -1,0 +1,26 @@
+=== live BEFORE (2026-10-11, base 76b2ef6; deploy is NOT part of this card) ===
+2026-10-11T16:08:33+02:00
+/console/manifest.webmanifest      200 ct=text/html; charset=utf-8 bytes=1102
+/console/sw.js                     200 ct=text/html; charset=utf-8 bytes=1102
+/console/icon-192.png              200 ct=text/html; charset=utf-8 bytes=1102
+/console/apple-touch-icon.png      200 ct=text/html; charset=utf-8 bytes=1102
+/console/                          200 ct=text/html; charset=utf-8 bytes=1102
+/order/manifest.webmanifest        200 ct=application/manifest+json bytes=1012
+/api/health                        200 ct=application/json bytes=11
+--- first bytes of /console/manifest.webmanifest ---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Facili
+
+--- control: what Caddy's mime table already does for a .js under an app subtree ---
+/order/sw.js                       200 ct=text/javascript; charset=utf-8 bytes=5505
+--- control: an unknown path is still a real 404 (the vhost scoping PR #26/#27) ---
+/console/nope.txt                  200 ct=text/html; charset=utf-8
+--- control: the ROOT catch-all still 404s an unknown path (card's 'unknown path is still 404') ---
+/nope.txt                          404 ct=
+/nope/deep                         404 ct=
+--- NOTE: a path UNDER /console/ falls back to the console document BY DESIGN (try_files {path} /console/index.html; the console is in-page state, not a URL router). /console/nope.txt => 200 text/html is the fallback, not the old unscoped bug. ---
