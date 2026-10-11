@@ -1,3 +1,41 @@
+# t_63e91396 — PROGRESS map: rebase PR #28 (`pr/orders-durable-deploy`) onto main
+
+Worktree `/home/c03rad0r/worktrees/t_63e91396`, branch `rebase/pr28`.
+Suites (no `package.json`/`deno.json` in this repo): `deno check collector/ tests/` and
+`deno test --allow-read --allow-net --allow-env tests/`.
+
+## Milestones
+
+- [x] M0 recon: `git ls-remote` — real `origin/main` = `991a162` (the card said `f6cc8c9`;
+      that is a *parent-side* ancestor, main moved on again). Branch head `ea2eac7`.
+- [x] M1 conflict map: extracted `53cf1a9` (base) / `ea2eac7` (branch) / `991a162` (main)
+      versions of both files, diffed all three ways.
+      - `deploy/orders-setup.sh`: branch delta ⊂ `main`/#27 → take `main`.
+      - `deploy/cvm-orders-remote-setup.sh`: 5 regions → union (see REPORT.md).
+- [x] M2 rebase + resolution: 3 commits on `991a162` → head `40fb287`
+      (`a1b6509`, `93f6db3`, `40fb287`). `bash -n` clean on both scripts.
+- [x] M3 green: `deno check` exit 0; `deno test … tests/` **181 passed | 0 failed (11s)**.
+      No test needed updating.
+- [x] M4 mechanism probe (union, not just substrings): the shipped `config.env` hunk
+      driven in a temp `ENV_DIR` over 4 scenarios → ALL CHECKS PASS
+      (`evidence/t_63e91396/probe-config-env-union.txt`).
+- [x] M5 push: `git push --force-with-lease origin rebase/pr28:refs/heads/pr/orders-durable-deploy`.
+
+## Facts found (do not re-derive)
+
+- PR #28's branch is **26** commits behind `main`, not 8 — `#26`/`#27`/`#29` and the
+  large `#25` all landed after the branch's merge base `53cf1a9`.
+- `#27` (`76b2ef6`) independently shipped the `config/` tar + `--allow-read` + post-ship
+  `test -s config/venues.json`, which is why `deploy/orders-setup.sh` resolves to
+  "take main": the branch's version of that hunk is strictly weaker.
+- Both sides wanted the restart: `main`/#27 already replaced `enable --now` with
+  `enable` + `restart`; the branch's `sleep 2` + post-start durability assertion are the
+  only additions left there.
+- `REPORT.md` / `PROGRESS.md` at this repo's root are **tracked rolled files** in `main`,
+  so each task appends its own delimited section rather than overwriting.
+
+---
+
 # PROGRESS — t_e3abf2ae: console PWA (/console/ manifest + icons + SW) + vhost pinning
 
 Task: `cvm-registry: make the facilitator console an installable PWA (manifest, icons, SW) + pin it with vhost tests`

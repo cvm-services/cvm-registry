@@ -1,0 +1,216 @@
+[0m[32mCheck[0m tests/attestations_test.ts
+[0m[32mCheck[0m tests/catalog_test.ts
+[0m[32mCheck[0m tests/console_pwa_installable_test.ts
+[0m[32mCheck[0m tests/console_pwa_test.ts
+[0m[32mCheck[0m tests/lib_test.ts
+[0m[32mCheck[0m tests/link_check_test.ts
+[0m[32mCheck[0m tests/meatspace_test.ts
+[0m[32mCheck[0m tests/menu_capture_test.ts
+[0m[32mCheck[0m tests/order_pwa_installable_test.ts
+[0m[32mCheck[0m tests/order_pwa_test.ts
+[0m[32mCheck[0m tests/policy_test.ts
+[0m[32mCheck[0m tests/pwa_emulator_harness_test.ts
+[0m[32mCheck[0m tests/pwa_vhost_test.ts
+[0m[32mCheck[0m tests/render_spec_test.ts
+[0m[32mCheck[0m tests/reviews_test.ts
+[0m[32mCheck[0m tests/zaps_test.ts
+[0m[38;5;245mrunning 11 tests from ./tests/attestations_test.ts[0m
+attestations: a well-formed attestation is parsed ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+attestations: only attestations are attestations ... [0m[32mok[0m [0m[38;5;245m(148µs)[0m
+attestations: parseD must be strict ... [0m[32mok[0m [0m[38;5;245m(189µs)[0m
+attestations: self-contradictory events are flagged, not resolved ... [0m[32mok[0m [0m[38;5;245m(346µs)[0m
+attestations: malformed pieces are reported ... [0m[32mok[0m [0m[38;5;245m(197µs)[0m
+attestations: latest wins per (venue, reviewer), ties by larger id ... [0m[32mok[0m [0m[38;5;245m(355µs)[0m
+attestations: A THIRD PARTY CANNOT VOUCH FOR A VENUE ... [0m[32mok[0m [0m[38;5;245m(539µs)[0m
+attestations: the venue's own vouch confirms exactly one review ... [0m[32mok[0m [0m[38;5;245m(334µs)[0m
+attestations: two providers sharing a slug cannot badge each other ... [0m[32mok[0m [0m[38;5;245m(21ms)[0m
+attestations: an unknown venue cannot be badged ... [0m[32mok[0m [0m[38;5;245m(272µs)[0m
+attestations: attaching does not reorder reviews ... [0m[32mok[0m [0m[38;5;245m(517µs)[0m
+[0m[38;5;245mrunning 8 tests from ./tests/catalog_test.ts[0m
+the fixture capture really is a capture (no invented events) ... [0m[32mok[0m [0m[38;5;245m(33ms)[0m
+every entry in the built catalog is allow-listed (nothing leaks past the list) ... [0m[32mok[0m [0m[38;5;245m(239µs)[0m
+wild announcements are unclassified, not silently treated as req:none ... [0m[32mok[0m [0m[38;5;245m(203µs)[0m
+the demo catalog is stable: the replay is deterministic ... [0m[32mok[0m [0m[38;5;245m(165ms)[0m
+stale disables, and expiry disables harder (the headline rule) ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+the catalog emits SERVICES, not announcements (one card per service) ... [0m[32mok[0m [0m[38;5;245m(237µs)[0m
+service keys are unique, and every facet traces back to an allow-listed announcement ... [0m[32mok[0m [0m[38;5;245m(498µs)[0m
+every announcement is accounted for: no facet is dropped by the grouping ... [0m[32mok[0m [0m[38;5;245m(270µs)[0m
+[0m[38;5;245mrunning 12 tests from ./tests/console_pwa_installable_test.ts[0m
+every console PWA artifact exists on disk, under /console/ ... [0m[32mok[0m [0m[38;5;245m(349ms)[0m
+console manifest: valid JSON that scopes the app to /console/ in standalone mode ... [0m[32mok[0m [0m[38;5;245m(22ms)[0m
+console manifest: icons are real PNGs on disk whose bytes match their declared sizes ... [0m[32mok[0m [0m[38;5;245m(36ms)[0m
+console index.html links the manifest, an apple-touch-icon, and registers the worker — guarded ... [0m[32mok[0m [0m[38;5;245m(8ms)[0m
+console sw.js lives at /console/sw.js, its shell allow-list is /console/-only and lists only shipped files ... [0m[32mok[0m [0m[38;5;245m(9ms)[0m
+console sw.js: the fetch handler refuses /api/** before it can reach any cache ... [0m[32mok[0m [0m[38;5;245m(519µs)[0m
+console sw.js install: caches the whole shell from the network and nothing from /api/ ... [0m[32mok[0m [0m[38;5;245m(26ms)[0m
+console sw.js: a GET to /api/ is never intercepted and never cached ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+console sw.js: POST /api/orders and cross-origin requests are left to the network ... [0m[32mok[0m [0m[38;5;245m(625µs)[0m
+console sw.js: offline, /console/ is served from the cache (and a deep link falls back to the console shell) ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+console sw.js activate: drops this app's stale caches, keeps the order app's and others' ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+the order app and the money API are unaffected by the console PWA ... [0m[32mok[0m [0m[38;5;245m(24ms)[0m
+[0m[38;5;245mrunning 8 tests from ./tests/console_pwa_test.ts[0m
+console route is a standalone shell with the four screens ... [0m[32mok[0m [0m[38;5;245m(929µs)[0m
+sign-in is the server's NIP-98 challenge, signed on the device ... [0m[32mok[0m [0m[38;5;245m(109µs)[0m
+CARD CUSTODY (ADR-0013): no card field, and card data is refused ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+card custody hands off instead of collecting ... [0m[32mok[0m [0m[38;5;245m(139µs)[0m
+ADR-0008/0013: no fiat spend without settled sats ... [0m[32mok[0m [0m[38;5;245m(229µs)[0m
+the console drives only the legal state machine ... [0m[32mok[0m [0m[38;5;245m(242µs)[0m
+ADR-0012: a terminal fiat failure escalates to the operator over Nostr DM ... [0m[32mok[0m [0m[38;5;245m(354µs)[0m
+the console is fail-closed against a broken or lying service ... [0m[32mok[0m [0m[38;5;245m(161µs)[0m
+[0m[38;5;245mrunning 37 tests from ./tests/lib_test.ts[0m
+npub <-> hex: the curator npub round-trips ... [0m[32mok[0m [0m[38;5;245m(30ms)[0m
+npub decoder fails closed on junk ... [0m[32mok[0m [0m[38;5;245m(835µs)[0m
+dedupe keeps the newest per (kind,pubkey,d) and is deterministic ... [0m[32mok[0m [0m[38;5;245m(428µs)[0m
+dedupe ties break on the larger event id (byte-stable output) ... [0m[32mok[0m [0m[38;5;245m(129µs)[0m
+curators.json parses and the npub becomes an allowable hex pubkey ... [0m[32mok[0m [0m[38;5;245m(343µs)[0m
+an undecodable curator npub authorises nothing (fail closed) ... [0m[32mok[0m [0m[38;5;245m(237µs)[0m
+allow-list drops unknown npubs; an empty list drops everything ... [0m[32mok[0m [0m[38;5;245m(385µs)[0m
+tier recompute: req:none + payment.amount => financial (the spec example) ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+tier recompute takes the MAX rank across declared fields ... [0m[32mok[0m [0m[38;5;245m(297µs)[0m
+a wrong published tier is flagged and the recomputed value wins ... [0m[32mok[0m [0m[38;5;245m(259µs)[0m
+unknown field names fail loud and are never counted as req:none ... [0m[32mok[0m [0m[38;5;245m(253µs)[0m
+absent is not none: no req/opt tags => unclassified, tier null ... [0m[32mok[0m [0m[38;5;245m(189µs)[0m
+a service that publishes a tier tag but no fields still mismatches ... [0m[32mok[0m [0m[38;5;245m(181µs)[0m
+filters must be single-letter tags (D2) ... [0m[32mok[0m [0m[38;5;245m(257µs)[0m
+tier shorthand prefilters on cvm:tier:* only ... [0m[32mok[0m [0m[38;5;245m(244µs)[0m
+tier shorthand matches the RECOMPUTED tier, and never an unclassified entry ... [0m[32mok[0m [0m[38;5;245m(521µs)[0m
+field-level AND is local, and an unknown declared field fails it by default ... [0m[32mok[0m [0m[38;5;245m(406µs)[0m
+cap tags become per-tool prices ... [0m[32mok[0m [0m[38;5;245m(224µs)[0m
+geohash precisions are kept, deduped and sorted ... [0m[32mok[0m [0m[38;5;245m(188µs)[0m
+parseCaps ignores malformed cap tags instead of inventing a price ... [0m[32mok[0m [0m[38;5;245m(84µs)[0m
+r tags become outbound links (the venue ordering deep-link) ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+parseLinks drops non-http schemes and junk instead of rendering them ... [0m[32mok[0m [0m[38;5;245m(714µs)[0m
+a 11316+11317 pair from one signer collapses to ONE service ... [0m[32mok[0m [0m[38;5;245m(9ms)[0m
+all five CEP-6 kinds are facets of one service ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+identity is (pubkey,d): a shared d from two signers stays two services ... [0m[32mok[0m [0m[38;5;245m(719µs)[0m
+...and two slugs from one signer are two services ... [0m[32mok[0m [0m[38;5;245m(690µs)[0m
+the empty-d case (most CEP-6 servers omit d) is pubkey-only identity ... [0m[32mok[0m [0m[38;5;245m(395µs)[0m
+facets merge honestly: caps union deduped, classes union, newest created_at ... [0m[32mok[0m [0m[38;5;245m(463µs)[0m
+a service is unclassified ONLY when no facet classifies it ... [0m[32mok[0m [0m[38;5;245m(537µs)[0m
+the merged tier takes the WORST (highest-rank) facet, never the kindest ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+grouping is order-independent and byte-stable ... [0m[32mok[0m [0m[38;5;245m(810µs)[0m
+groupServices of nothing is nothing (no phantom service) ... [0m[32mok[0m [0m[38;5;245m(696µs)[0m
+a provider-supplied website with a hostile scheme is dropped, not rendered ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+verdictText: UNKNOWN is never a pass and never silent ... [0m[32mok[0m [0m[38;5;245m(306µs)[0m
+ingest: a well-formed event passes the shape guard untouched ... [0m[32mok[0m [0m[38;5;245m(645µs)[0m
+ingest: every malformed shape is DROPPED AND COUNTED, never fatal ... [0m[32mok[0m [0m[38;5;245m(780µs)[0m
+ingest: the triggers that killed the run are exactly what the guard catches ... [0m[32mok[0m [0m[38;5;245m(780µs)[0m
+[0m[38;5;245mrunning 10 tests from ./tests/link_check_test.ts[0m
+checkUrl: a live URL is ok, a dead one is not, and neither throws ... [0m[32mok[0m [0m[38;5;245m(308ms)[0m
+checkUrl falls back to GET when the server refuses HEAD ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+checkUrl: a timeout is UNKNOWN (ok=null), never silently ok ... [0m[32mok[0m [0m[38;5;245m(606ms)[0m
+checkUrl refuses to fetch what it cannot fetch: bad schemes and junk ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+checkUrl: an unresolvable host is unreachable or unknown, but NEVER a pass ... [0m[32mok[0m [0m[38;5;245m(1s)[0m
+checkServiceLinks: disabled records nothing as ok, and never invents a verdict ... [0m[32mok[0m [0m[38;5;245m(935µs)[0m
+checkServiceLinks: checks website AND r links, dedupes, and caps the work ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+checkServiceLinks mutates nothing when a service declares no URL at all ... [0m[32mok[0m [0m[38;5;245m(843µs)[0m
+shutdown ... [0m[32mok[0m [0m[38;5;245m(679µs)[0m
+the collector stamps the PAGE-FACING verdict, so the page derives nothing ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+[0m[38;5;245mrunning 14 tests from ./tests/meatspace_test.ts[0m
+parseDeclared: absent or empty content yields all-null, never throws ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+parseDeclared: malformed JSON yields all-null, never throws ... [0m[32mok[0m [0m[38;5;245m(203µs)[0m
+parseDeclared: a valid venue content carries fulfilment/menu/settlement facts ... [0m[32mok[0m [0m[38;5;245m(484µs)[0m
+parseDeclared: a non-object content (e.g. a tools array) yields all-null ... [0m[32mok[0m [0m[38;5;245m(98µs)[0m
+parseDeclared: partially-present content keeps present facts, nulls the rest ... [0m[32mok[0m [0m[38;5;245m(137µs)[0m
+meatspace: a pickup venue with no required ship.* is true ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+meatspace: a delivery-only venue that REQUIRES ship.address is false ... [0m[32mok[0m [0m[38;5;245m(23ms)[0m
+meatspace: a digital service that requires nothing (class compute, tier none) is false ... [0m[32mok[0m [0m[38;5;245m(845µs)[0m
+meatspace: a service that requires only payment.amount (class sms) is false ... [0m[32mok[0m [0m[38;5;245m(356µs)[0m
+meatspace: the explicit cvm:service:meatspace class tag is an additional signal ... [0m[32mok[0m [0m[38;5;245m(330µs)[0m
+meatspace: dine_in is a physical handover too ... [0m[32mok[0m [0m[38;5;245m(310µs)[0m
+meatspace merges to the grouped service: any meatspace facet makes the service meatspace ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+meatspace merges honestly: a non-meatspace service stays false ... [0m[32mok[0m [0m[38;5;245m(429µs)[0m
+isMeatspace: clause (1) and clause (2) are both required ... [0m[32mok[0m [0m[38;5;245m(122µs)[0m
+[0m[38;5;245mrunning 3 tests from ./tests/menu_capture_test.ts[0m
+the capture is a real one, with provenance per venue ... [0m[32mok[0m [0m[38;5;245m(939µs)[0m
+doppelt-kaese-berlin: the real capture renders within the spec cap ... [0m[32mok[0m [0m[38;5;245m(34ms)[0m
+pizza-e-pasta-ruedesheimerplatz: the real capture renders within the spec cap ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+[0m[38;5;245mrunning 13 tests from ./tests/order_pwa_installable_test.ts[0m
+manifest: valid JSON that scopes the app to /order/ in standalone mode ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+manifest: icons are real PNGs on disk whose bytes match their declared sizes ... [0m[32mok[0m [0m[38;5;245m(90ms)[0m
+index.html links the manifest, an apple-touch-icon, and registers the worker — guarded ... [0m[32mok[0m [0m[38;5;245m(29ms)[0m
+sw.js: the shell allow-list contains no /api/ path, and every entry is a real shipped file ... [0m[32mok[0m [0m[38;5;245m(519ms)[0m
+sw.js: the fetch handler refuses /api/** before it can reach any cache ... [0m[32mok[0m [0m[38;5;245m(493µs)[0m
+sw.js install: caches the whole shell from the network and nothing from /api/ ... [0m[32mok[0m [0m[38;5;245m(15ms)[0m
+sw.js: a GET to /api/ is never intercepted and never cached ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+sw.js: POST /api/orders and cross-origin requests are left to the network ... [0m[32mok[0m [0m[38;5;245m(490µs)[0m
+sw.js: offline, /order/ is served from the cache (and a deep link falls back to the shell) ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+sw.js activate: drops this app's stale caches, keeps the console's and others' ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+the console client at /console/ is unaffected by the order PWA ... [0m[32mok[0m [0m[38;5;245m(477µs)[0m
+deploy ships the PWA artifacts and asserts them on the live origin ... [0m[32mok[0m [0m[38;5;245m(52ms)[0m
+the vhost serves the manifest as application/manifest+json ... [0m[32mok[0m [0m[38;5;245m(255ms)[0m
+[0m[38;5;245mrunning 4 tests from ./tests/order_pwa_test.ts[0m
+customer order route is a standalone six-screen client ... [0m[32mok[0m [0m[38;5;245m(696µs)[0m
+order client is catalog-constrained and renders declared inputs ... [0m[32mok[0m [0m[38;5;245m(115µs)[0m
+payment and status use service endpoints and never fabricate an invoice ... [0m[32mok[0m [0m[38;5;245m(486µs)[0m
+sold-out catalog entries are disabled ... [0m[32mok[0m [0m[38;5;245m(80µs)[0m
+[0m[38;5;245mrunning 8 tests from ./tests/policy_test.ts[0m
+fresh while within the freshness ttl ... [0m[32mok[0m [0m[38;5;245m(536µs)[0m
+stale between the ttl and the hard limit ... [0m[32mok[0m [0m[38;5;245m(75µs)[0m
+expired past the hard limit ... [0m[32mok[0m [0m[38;5;245m(57µs)[0m
+missing / unparseable / future-dated generated_at is invalid, not fresh ... [0m[32mok[0m [0m[38;5;245m(86µs)[0m
+decisions: stale keeps entries but kills every live claim ... [0m[32mok[0m [0m[38;5;245m(215µs)[0m
+decisions: expired and invalid disable rendering entirely ... [0m[32mok[0m [0m[38;5;245m(105µs)[0m
+defaults are the published policy.json numbers ... [0m[32mok[0m [0m[38;5;245m(52µs)[0m
+humanAge is readable ... [0m[32mok[0m [0m[38;5;245m(110µs)[0m
+[0m[38;5;245mrunning 7 tests from ./tests/pwa_emulator_harness_test.ts[0m
+emulator harness ships every piece needed to reproduce ... [0m[32mok[0m [0m[38;5;245m(492ms)[0m
+harness keeps the uiautomator2 fix for the synthetic-tap pitfall ... [0m[32mok[0m [0m[38;5;245m(7ms)[0m
+harness never leaves the guest holding the rail ... [0m[32mok[0m [0m[38;5;245m(5ms)[0m
+deploy ships the files the app actually fetches ... [0m[32mok[0m [0m[38;5;245m(541µs)[0m
+deploy makes the tree readable by the caddy user ... [0m[32mok[0m [0m[38;5;245m(224µs)[0m
+harness guards against the cold-boot Chrome ANR ... [0m[32mok[0m [0m[38;5;245m(235µs)[0m
+harness can validate a real deployment, not just a local tree ... [0m[32mok[0m [0m[38;5;245m(127µs)[0m
+[0m[38;5;245mrunning 14 tests from ./tests/pwa_vhost_test.ts[0m
+/api/* is reverse-proxied to cvm-orders and the prefix is stripped ... [0m[32mok[0m [0m[38;5;245m(633µs)[0m
+a down /api answers a JSON error, never the SPA fallback ... [0m[32mok[0m [0m[38;5;245m(200µs)[0m
+the in-memory store is stated in the vhost, where a restart is read ... [0m[32mok[0m [0m[38;5;245m(204µs)[0m
+each PWA falls back to its OWN document ... [0m[32mok[0m [0m[38;5;245m(85µs)[0m
+the deploy replaces an existing vhost instead of skipping it ... [0m[32mok[0m [0m[38;5;245m(152µs)[0m
+the order service is installed loopback-only with its own env file ... [0m[32mok[0m [0m[38;5;245m(74ms)[0m
+bare /api has its own handler and never reaches the order fallback ... [0m[32mok[0m [0m[38;5;245m(526µs)[0m
+the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app ... [0m[32mok[0m [0m[38;5;245m(226µs)[0m
+the catch-all still serves the docroot's real files, and only those ... [0m[32mok[0m [0m[38;5;245m(136µs)[0m
+the origin root is an explicit alias, not a second copy of the app ... [0m[32mok[0m [0m[38;5;245m(271µs)[0m
+no redir target can be read as Caddy's inline matcher slot ... [0m[32mok[0m [0m[38;5;245m(393µs)[0m
+both PWA manifests are retyped as manifest JSON through a specific path list ... [0m[32mok[0m [0m[38;5;245m(864µs)[0m
+the console falls back to the console document only, and exactly one handler carries it ... [0m[32mok[0m [0m[38;5;245m(298µs)[0m
+no document-producing handler is reachable from an /api path ... [0m[32mok[0m [0m[38;5;245m(172µs)[0m
+[0m[38;5;245mrunning 10 tests from ./tests/render_spec_test.ts[0m
+the fixture is a real capture, not invented data ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+the catalog keeps the spec surface to what the brief defines ... [0m[32mok[0m [0m[38;5;245m(196µs)[0m
+buildServiceSpec is a pure function of served data ... [0m[32mok[0m [0m[38;5;245m(29ms)[0m
+the doppelt spec fits the renderer's size cap ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+one MenuItem and one PriceRow per served item, and the count matches the fixture ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+every price in the spec IS a served price — and an injected one is detected ... [0m[32mok[0m [0m[38;5;245m(17ms)[0m
+the spec contains no URL at all ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+OrderAction needs the declared tool; HandoffAction needs the published URL ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+the order payload identifies items the way the tool requires ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+the renderer's own source keeps the hard rules (static) ... [0m[32mok[0m [0m[38;5;245m(1s)[0m
+[0m[38;5;245mrunning 12 tests from ./tests/reviews_test.ts[0m
+reviews: a well-formed review is parsed and bound to its service ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+reviews: non-reviews are not classified as reviews ... [0m[32mok[0m [0m[38;5;245m(145µs)[0m
+reviews: rating comes from #t, and a payload-only rating is flagged ... [0m[32mok[0m [0m[38;5;245m(11ms)[0m
+reviews: out-of-range or non-integer ratings are refused, not clamped ... [0m[32mok[0m [0m[38;5;245m(488µs)[0m
+reviews: a missing or malformed 'a' binding is reported, never silent ... [0m[32mok[0m [0m[38;5;245m(386µs)[0m
+reviews: (pubkey, d) is the identity — one author, two venues, no collapse ... [0m[32mok[0m [0m[38;5;245m(604µs)[0m
+reviews: same created_at is broken deterministically by event id ... [0m[32mok[0m [0m[38;5;245m(186µs)[0m
+reviews: binding attaches to the right entry and orphanes the rest ... [0m[32mok[0m [0m[38;5;245m(417µs)[0m
+reviews: attached reviews are newest-first ... [0m[32mok[0m [0m[38;5;245m(313µs)[0m
+reviews: survive service grouping — the page renders services, not entries ... [0m[32mok[0m [0m[38;5;245m(714µs)[0m
+reviews: the cvm.rating label is selected by NAMESPACE, not by position ... [0m[32mok[0m [0m[38;5;245m(315µs)[0m
+reviews: zap tallies do not reorder the ATTACHED list (R3 on the rendered order) ... [0m[32mok[0m [0m[38;5;245m(562µs)[0m
+[0m[38;5;245mrunning 10 tests from ./tests/zaps_test.ts[0m
+zaps: a receipt is read, millisats converted, sender and target kept ... [0m[32mok[0m [0m[38;5;245m(752µs)[0m
+zaps: amount falls back to the zap request inside `description` ... [0m[32mok[0m [0m[38;5;245m(202µs)[0m
+zaps: an unreadable amount is reported, never estimated as zero ... [0m[32mok[0m [0m[38;5;245m(207µs)[0m
+zaps: malformed description is survivable ... [0m[32mok[0m [0m[38;5;245m(480µs)[0m
+zaps: a receipt with no target is not a zap ... [0m[32mok[0m [0m[38;5;245m(106µs)[0m
+zaps: tally sums per target and lists distinct senders once ... [0m[32mok[0m [0m[38;5;245m(155µs)[0m
+zaps: attaching does not reorder reviews — this is the point of R3 ... [0m[32mok[0m [0m[38;5;245m(296µs)[0m
+zaps: the SAME receipt served twice is ONE zap — this was the double-count ... [0m[32mok[0m [0m[38;5;245m(12ms)[0m
+zaps: two DIFFERENT receipts for one review still count twice ... [0m[32mok[0m [0m[38;5;245m(239µs)[0m
+zaps: the label tells the reader what the number is ... [0m[32mok[0m [0m[38;5;245m(78µs)[0m
+
+[0m[32mok[0m | 181 passed | 0 failed [0m[38;5;245m(11s)[0m
+
