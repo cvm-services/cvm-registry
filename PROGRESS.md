@@ -1,55 +1,35 @@
-# PROGRESS — t_cdc4442b: cvm-pwa Caddy vhost, the unscoped catch-all
+# PROGRESS — t_e3abf2ae: console PWA (/console/ manifest + icons + SW) + vhost pinning
 
-Task: `https://cvm-pwa.orangesync.tech/api` renders "Loading venues…" forever because the
-vhost's UNSCOPED `handle { try_files {path} /order/index.html }` answers 200 + text/html for
-every path no earlier handler matched (bare `/api` does not match `handle_path /api/*`).
-Deliverable: pushed branch + PR to `main` in cvm-services/cvm-registry. **NOT merged by me.**
+Task: `cvm-registry: make the facilitator console an installable PWA (manifest, icons, SW) + pin it with vhost tests`
+Repo `cvm-services/cvm-registry`, base `origin/main` `76b2ef6`.
+Worktree `/home/c03rad0r/worktrees/t_e3abf2ae`, branch `worker-base/t_e3abf2ae`.
 
-Worktree: /home/c03rad0r/worktrees/t_cdc4442b (off origin/main 53cf1a9, branch worker-base/t_cdc4442b)
-Test command (no deno.json / package.json in this repo — see .ngit/act/workflows/ci.yml):
+Test command (NO `deno.json`/`package.json` in this repo; `.ngit/act/workflows/ci.yml` is the CI):
+  deno check collector/ tests/
   deno test --allow-read --allow-net --allow-env tests/
-Baseline before any change: 161 passed | 0 failed.
+Inner loop (card: box is loaded, run only the touched file):
+  deno test --allow-read --allow-net tests/pwa_vhost_test.ts tests/order_pwa_installable_test.ts tests/console_pwa_installable_test.ts
+Baseline (unmodified main, those 3 files): 24 passed | 0 failed.
 
 ## Milestones
-- [x] M0 recon: vhost, deploy-pwa.sh, rewrite-caddy-vhost.py, existing tests, CI.
-- [x] M1 RED: 4 new assertions in tests/pwa_vhost_test.ts — FAILS on the shipped vhost
-      (6 passed | 4 failed). Output: /home/c03rad0r/scratch/RED-pwa_vhost.txt (attempt 1)
-      and re-run by attempt 3 (this run) -> /home/c03rad0r/scratch/t_cdc4442b/RED-mine.txt
-- [x] M2 fix deploy/caddy-vhost-cvm-pwa.caddy (scoped /order/* fallback, exact `/api`,
-      explicit `/` alias, fallback-free catch-all).
-- [x] M3 green suite: 165 passed | 0 failed (161 baseline + 4 new).
-- [x] M4 local Caddy 2.6.2 behavioural before/after matrix (real curl, not text assertions):
-      evidence/t_cdc4442b/local-matrix-{OLD,NEW}.txt + follow-through + upstream-DOWN passes.
-      IT CAUGHT A REAL BUG the text assertions could not: Caddy reads the first arg of `redir`
-      as an optional inline matcher and a `/`-token IS a path matcher, so `redir /api/ 308`
-      adapted to `match path /api/ -> 302 Location: 308` and bare /api answered 200 + EMPTY
-      rather than the 308. Fixed to `redir * /api/ 308` / `redir * /order/ 302`, and the suite
-      now fails if any redir target sits in the matcher slot
-      (probe: evidence/t_cdc4442b/caddy-adapt-redir-spellings.txt).
-- [x] M5 REPORT.md + PR to main.
-- [x] M6 host install on testserver2.fips + live before/after curl matrix:
-      evidence/t_cdc4442b/live-{BEFORE,INSTALL,AFTER}.txt. Vhost replaced (backup
-      /etc/caddy/Caddyfile.vhostbak-20261010T203457Z), `caddy config: valid`, `caddy: active`.
-      NOTE: the live docroot was still the pre-PWA bundle (381b /order/, sw.js + manifest falling
-      through to the fallback), so the same documented deploy-path refreshed it.
-
-## Next worker: nothing to resume — branch pushed, PR open, host installed. Manager merges.
+- [x] M0 recon: vhost, site/order PWA set, site/console, deploy-pwa.sh, both existing test files.
+- [x] M1 RED: 3 console cases appended to tests/pwa_vhost_test.ts + new
+      tests/console_pwa_installable_test.ts (13 tests) + 1 refined test in
+      tests/order_pwa_installable_test.ts. Captured BEFORE implementing:
+      25 passed | 14 failed against unmodified main -> evidence/t_e3abf2ae/RED-console-pwa.txt
+- [x] M2 implement: site/console/{manifest.webmanifest,sw.js,index.html,5 icons} +
+      deploy/caddy-vhost-cvm-pwa.caddy matcher.
+- [ ] M3 GREEN: deno check + full suite.
+- [ ] M4 live BEFORE probe of /console/manifest.webmanifest.
+- [ ] M5 REPORT.md final + PR (do NOT merge; manager merges).
 
 ## Facts found (do not re-derive)
-- CI: `deno check collector/ tests/` then `deno test --allow-read --allow-net --allow-env tests/`.
-  No `deno task` indirection exists.
-- The deploy BUNDLE is NOT the repo `site/`: deploy-pwa.sh copies only site/order/*,
-  site/console/*, site/menu.json, vocab/service-inputs.json (+ site/fixtures). The docroot has
-  NO root /index.html, /style.css, /app.js — which is exactly why those paths answered the
-  order document.
-- app.js fetches `../menu.json` and `../../vocab/service-inputs.json`, i.e. paths OUTSIDE
-  /order/. So the catch-all must SURVIVE as a fallback-free file_server; deleting it (instead
-  of scoping it) 404s the app's own data and hangs the page the same way.
-- Caddy `handle /api` (no `/*`) is an EXACT match — that is the whole defect: `/api` never
-  matched `handle_path /api/*`. There is no caddy(1) in this repo's CI; local caddy 2.6.2 was
-  extracted from the Debian package for the behavioural check:
-  /home/c03rad0r/scratch/caddy2/root/usr/bin/caddy (no install needed, runs in place).
-- REPORT.md is overwritten per task (previous tasks did the same) — history is in git.
-- `/` also served the order document under the OLD unscoped catch-all, so the same
-  relative-asset trap applied at the root: scoping the fallback to /order/* without an
-  explicit `/` handler would turn the root into a 404. Hence `handle / -> 302 /order/`.
+- The card's "four console artifacts" = manifest + worker + icons; deploy ships `site/console/*`
+  with a glob, so no deploy change is needed for the new files (`cp "$REPO"/site/console/*`).
+- prepush hooks here are secret-scan gates only (`core.hooksPath=/home/c03rad0r/.git-hooks`),
+  they do not run the test suite. Pushing a RED-tests commit is safe.
+- `tests/order_pwa_installable_test.ts` had a test that FORBADE the console from having any
+  manifest/worker (raw substring checks). It had to be narrowed to the real intent (the console
+  must not adopt the ORDER app's identity). site/order/ itself is untouched.
+- The vhost `header @pwa_manifest ...` sits BEFORE the handle blocks and only retypes matched
+  paths; adding a second literal path cannot re-introduce text/html for unknown paths.

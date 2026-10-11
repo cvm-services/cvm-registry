@@ -1,0 +1,170 @@
+[0m[32mCheck[0m tests/pwa_vhost_test.ts
+[0m[32mCheck[0m tests/order_pwa_installable_test.ts
+[0m[32mCheck[0m tests/console_pwa_installable_test.ts
+[0m[38;5;245mrunning 14 tests from ./tests/pwa_vhost_test.ts[0m
+/api/* is reverse-proxied to cvm-orders and the prefix is stripped ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+a down /api answers a JSON error, never the SPA fallback ... [0m[32mok[0m [0m[38;5;245m(279µs)[0m
+the in-memory store is stated in the vhost, where a restart is read ... [0m[32mok[0m [0m[38;5;245m(271µs)[0m
+each PWA falls back to its OWN document ... [0m[32mok[0m [0m[38;5;245m(199µs)[0m
+the deploy replaces an existing vhost instead of skipping it ... [0m[32mok[0m [0m[38;5;245m(178µs)[0m
+the order service is installed loopback-only with its own env file ... [0m[32mok[0m [0m[38;5;245m(14ms)[0m
+bare /api has its own handler and never reaches the order fallback ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+the SPA fallback is scoped to /order/*, so an arbitrary path cannot serve the app ... [0m[32mok[0m [0m[38;5;245m(315µs)[0m
+the catch-all still serves the docroot's real files, and only those ... [0m[32mok[0m [0m[38;5;245m(211µs)[0m
+the origin root is an explicit alias, not a second copy of the app ... [0m[32mok[0m [0m[38;5;245m(580µs)[0m
+no redir target can be read as Caddy's inline matcher slot ... [0m[32mok[0m [0m[38;5;245m(724µs)[0m
+both PWA manifests are retyped as manifest JSON through a specific path list ... [0m[31mFAILED[0m [0m[38;5;245m(26ms)[0m
+the console falls back to the console document only, and exactly one handler carries it ... [0m[32mok[0m [0m[38;5;245m(433µs)[0m
+no document-producing handler is reachable from an /api path ... [0m[32mok[0m [0m[38;5;245m(240µs)[0m
+[0m[38;5;245mrunning 13 tests from ./tests/order_pwa_installable_test.ts[0m
+manifest: valid JSON that scopes the app to /order/ in standalone mode ... [0m[32mok[0m [0m[38;5;245m(16ms)[0m
+manifest: icons are real PNGs on disk whose bytes match their declared sizes ... [0m[32mok[0m [0m[38;5;245m(14ms)[0m
+index.html links the manifest, an apple-touch-icon, and registers the worker — guarded ... [0m[32mok[0m [0m[38;5;245m(33ms)[0m
+sw.js: the shell allow-list contains no /api/ path, and every entry is a real shipped file ... [0m[32mok[0m [0m[38;5;245m(19ms)[0m
+sw.js: the fetch handler refuses /api/** before it can reach any cache ... [0m[32mok[0m [0m[38;5;245m(2ms)[0m
+sw.js install: caches the whole shell from the network and nothing from /api/ ... [0m[32mok[0m [0m[38;5;245m(63ms)[0m
+sw.js: a GET to /api/ is never intercepted and never cached ... [0m[32mok[0m [0m[38;5;245m(3ms)[0m
+sw.js: POST /api/orders and cross-origin requests are left to the network ... [0m[32mok[0m [0m[38;5;245m(1ms)[0m
+sw.js: offline, /order/ is served from the cache (and a deep link falls back to the shell) ... [0m[32mok[0m [0m[38;5;245m(6ms)[0m
+sw.js activate: drops this app's stale caches, keeps the console's and others' ... [0m[32mok[0m [0m[38;5;245m(4ms)[0m
+the console client at /console/ is unaffected by the order PWA ... [0m[31mFAILED[0m [0m[38;5;245m(12ms)[0m
+deploy ships the PWA artifacts and asserts them on the live origin ... [0m[32mok[0m [0m[38;5;245m(371µs)[0m
+the vhost serves the manifest as application/manifest+json ... [0m[32mok[0m [0m[38;5;245m(751µs)[0m
+[0m[38;5;245mrunning 12 tests from ./tests/console_pwa_installable_test.ts[0m
+every console PWA artifact exists on disk, under /console/ ... [0m[31mFAILED[0m [0m[38;5;245m(8ms)[0m
+console manifest: valid JSON that scopes the app to /console/ in standalone mode ... [0m[31mFAILED[0m [0m[38;5;245m(2ms)[0m
+console manifest: icons are real PNGs on disk whose bytes match their declared sizes ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+console index.html links the manifest, an apple-touch-icon, and registers the worker — guarded ... [0m[31mFAILED[0m [0m[38;5;245m(383ms)[0m
+console sw.js lives at /console/sw.js, its shell allow-list is /console/-only and lists only shipped files ... [0m[31mFAILED[0m [0m[38;5;245m(19ms)[0m
+console sw.js: the fetch handler refuses /api/** before it can reach any cache ... [0m[31mFAILED[0m [0m[38;5;245m(2ms)[0m
+console sw.js install: caches the whole shell from the network and nothing from /api/ ... [0m[31mFAILED[0m [0m[38;5;245m(10ms)[0m
+console sw.js: a GET to /api/ is never intercepted and never cached ... [0m[31mFAILED[0m [0m[38;5;245m(26ms)[0m
+console sw.js: POST /api/orders and cross-origin requests are left to the network ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+console sw.js: offline, /console/ is served from the cache (and a deep link falls back to the console shell) ... [0m[31mFAILED[0m [0m[38;5;245m(1ms)[0m
+console sw.js activate: drops this app's stale caches, keeps the order app's and others' ... [0m[31mFAILED[0m [0m[38;5;245m(919µs)[0m
+the order app and the money API are unaffected by the console PWA ... [0m[31mFAILED[0m [0m[38;5;245m(2ms)[0m
+
+[0m[1m[37m[41m ERRORS [0m
+
+every console PWA artifact exists on disk, under /console/ [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:288:6[0m
+[0m[1m[31merror[0m: NotFound: No such file or directory (os error 2): stat 'site/console/manifest.webmanifest'
+    const stat = Deno.statSync(`${CONSOLE_DIR}/${name}`);
+[0m[31m                      ^[0m
+    [0m[2m[38;5;245mat [0m[0m[2m[38;5;245mObject.statSync[0m[0m[2m[38;5;245m ([0m[0m[2m[38;5;245mext:deno_fs/30_fs.js[0m[0m[2m[38;5;245m:[0m[0m[2m[38;5;245m1[0m[0m[2m[38;5;245m:[0m[0m[2m[38;5;245m8022[0m[0m[2m[38;5;245m)[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m290[0m:[0m[33m23[0m
+
+console manifest: valid JSON that scopes the app to /console/ in standalone mode [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:313:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/manifest.webmanifest
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[1m[3mmanifest[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m68[0m:[0m[33m15[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m314[0m:[0m[33m13[0m
+
+console manifest: icons are real PNGs on disk whose bytes match their declared sizes [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:340:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/manifest.webmanifest
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[1m[3mmanifest[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m68[0m:[0m[33m15[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m341[0m:[0m[33m17[0m
+
+console index.html links the manifest, an apple-touch-icon, and registers the worker — guarded [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:377:6[0m
+[0m[1m[31merror[0m: AssertionError: index.html must link the web app manifest
+    throw new AssertionError(msg);
+[0m[31m          ^[0m
+    at [0m[1m[3massert[0m ([0m[36mhttps://deno.land/std@0.224.0/assert/assert.ts[0m:[0m[33m18[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m379[0m:[0m[33m3[0m
+
+console sw.js lives at /console/sw.js, its shell allow-list is /console/-only and lists only shipped files [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:400:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m401[0m:[0m[33m14[0m
+
+console sw.js: the fetch handler refuses /api/** before it can reach any cache [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:422:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m423[0m:[0m[33m14[0m
+
+console sw.js install: caches the whole shell from the network and nothing from /api/ [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:437:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m438[0m:[0m[33m32[0m
+
+console sw.js: a GET to /api/ is never intercepted and never cached [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:455:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[1m[3mbootSw[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m236[0m:[0m[33m70[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m456[0m:[0m[33m14[0m
+
+console sw.js: POST /api/orders and cross-origin requests are left to the network [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:464:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[1m[3mbootSw[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m236[0m:[0m[33m70[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m465[0m:[0m[33m14[0m
+
+console sw.js: offline, /console/ is served from the cache (and a deep link falls back to the console shell) [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:479:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m481[0m:[0m[33m38[0m
+
+console sw.js activate: drops this app's stale caches, keeps the order app's and others' [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:499:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/sw.js
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m501[0m:[0m[33m38[0m
+
+the order app and the money API are unaffected by the console PWA [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:518:6[0m
+[0m[1m[31merror[0m: Error: missing file: site/console/manifest.webmanifest
+    throw new Error(`missing file: ${path}`);
+[0m[31m          ^[0m
+    at [0m[1m[3mread[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m55[0m:[0m[33m11[0m)
+    at [0m[1m[3mmanifest[0m ([0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m68[0m:[0m[33m15[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/console_pwa_installable_test.ts[0m:[0m[33m519[0m:[0m[33m13[0m
+
+the console client at /console/ is unaffected by the order PWA [0m[38;5;245m=> ./tests/order_pwa_installable_test.ts:473:6[0m
+[0m[1m[31merror[0m: AssertionError: the console links its OWN manifest (a relative href resolves to /console/manifest.webmanifest)
+    throw new AssertionError(msg);
+[0m[31m          ^[0m
+    at [0m[1m[3massert[0m ([0m[36mhttps://deno.land/std@0.224.0/assert/assert.ts[0m:[0m[33m18[0m:[0m[33m11[0m)
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/order_pwa_installable_test.ts[0m:[0m[33m501[0m:[0m[33m3[0m
+
+both PWA manifests are retyped as manifest JSON through a specific path list [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:264:6[0m
+[0m[1m[31merror[0m: Error: the manifest content-type matcher does not cover /console/manifest.webmanifest (paths: /order/manifest.webmanifest) — that manifest arrives as whatever Caddy's mime table defaults to, and the install prompt is refused on a text/html answer
+      throw new Error(
+[0m[31m            ^[0m
+    at [0m[2m[38;5;245mfile:///home/c03rad0r/worktrees/t_e3abf2ae/[0m[0m[36mtests/pwa_vhost_test.ts[0m:[0m[33m282[0m:[0m[33m13[0m
+
+[0m[1m[37m[41m FAILURES [0m
+
+every console PWA artifact exists on disk, under /console/ [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:288:6[0m
+console manifest: valid JSON that scopes the app to /console/ in standalone mode [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:313:6[0m
+console manifest: icons are real PNGs on disk whose bytes match their declared sizes [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:340:6[0m
+console index.html links the manifest, an apple-touch-icon, and registers the worker — guarded [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:377:6[0m
+console sw.js lives at /console/sw.js, its shell allow-list is /console/-only and lists only shipped files [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:400:6[0m
+console sw.js: the fetch handler refuses /api/** before it can reach any cache [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:422:6[0m
+console sw.js install: caches the whole shell from the network and nothing from /api/ [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:437:6[0m
+console sw.js: a GET to /api/ is never intercepted and never cached [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:455:6[0m
+console sw.js: POST /api/orders and cross-origin requests are left to the network [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:464:6[0m
+console sw.js: offline, /console/ is served from the cache (and a deep link falls back to the console shell) [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:479:6[0m
+console sw.js activate: drops this app's stale caches, keeps the order app's and others' [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:499:6[0m
+the order app and the money API are unaffected by the console PWA [0m[38;5;245m=> ./tests/console_pwa_installable_test.ts:518:6[0m
+the console client at /console/ is unaffected by the order PWA [0m[38;5;245m=> ./tests/order_pwa_installable_test.ts:473:6[0m
+both PWA manifests are retyped as manifest JSON through a specific path list [0m[38;5;245m=> ./tests/pwa_vhost_test.ts:264:6[0m
+
+[0m[31mFAILED[0m | 25 passed | 14 failed [0m[38;5;245m(1s)[0m
+
+[0m[1m[31merror[0m: Test failed

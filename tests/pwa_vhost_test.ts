@@ -240,3 +240,125 @@ Deno.test("no redir target can be read as Caddy's inline matcher slot", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// 2026-10-11 — the console at /console/ is a PWA too.
+//
+// The console shipped with a document, a module and a stylesheet and NOTHING
+// else, so /console/manifest.webmanifest, /console/sw.js and /console/icon-192.png
+// all answered 200 + text/html: the SCOPED /console/ fallback firing on paths
+// with no file behind them. That is not the unscoped-catch-all defect (the
+// scoping landed), and it is worse in one way — a 200 text/html is
+// indistinguishable from "the file is there" by probing, so the two states the
+// card needed to tell apart (absent vs mis-served) looked identical.
+//
+// The artifacts now exist (tests/console_pwa_installable_test.ts asserts the
+// bytes, the manifest's scope and the worker's /api refusal). What the EDGE has
+// to get right is the media type: Chrome refuses the install prompt for a
+// manifest that does not arrive as manifest JSON, and Caddy's mime table is a
+// default, not a guarantee. The retyping must stay a path LIST — a bare
+// wildcard would re-introduce text/html-as-manifest-JSON for arbitrary paths,
+// which is the same class of defect this file was written for.
+// ---------------------------------------------------------------------------
+
+Deno.test("both PWA manifests are retyped as manifest JSON through a specific path list", () => {
+  const line = /@([A-Za-z0-9_]+)\s+path\s+([^\n]+)/g;
+  let matcher: RegExpExecArray | null;
+  let pwa: { name: string; paths: string[] } | null = null;
+  while ((matcher = line.exec(VHOST)) !== null) {
+    const paths = matcher[2].trim().split(/\s+/);
+    if (paths.some((p) => p.endsWith("/manifest.webmanifest"))) {
+      pwa = { name: matcher[1], paths };
+      break;
+    }
+  }
+  if (!pwa) {
+    throw new Error(
+      "the manifest content-type matcher is gone: a manifest served as text/html makes Chrome refuse the install prompt",
+    );
+  }
+  for (const path of ["/order/manifest.webmanifest", "/console/manifest.webmanifest"]) {
+    if (!pwa.paths.includes(path)) {
+      throw new Error(
+        `the manifest content-type matcher does not cover ${path} (paths: ${pwa.paths.join(", ")}) — ` +
+          "that manifest arrives as whatever Caddy's mime table defaults to, and the install prompt is refused on a text/html answer",
+      );
+    }
+  }
+  // Specific, not a wildcard: a path matcher covering everything would retype
+  // arbitrary paths as manifest JSON, i.e. the "absent vs broken is
+  // indistinguishable" problem this file exists to prevent.
+  for (const path of pwa.paths) {
+    if (path.includes("*") || path.includes("?") || !path.endsWith("/manifest.webmanifest")) {
+      throw new Error(
+        `the manifest content-type matcher must name literal manifest paths: found "${path}"`,
+      );
+    }
+  }
+  const header = new RegExp(
+    `header\\s+@${pwa.name}\\s+Content-Type\\s+"application/manifest\\+json"`,
+  );
+  if (!header.test(VHOST)) {
+    throw new Error("the content-type is not applied through that path matcher");
+  }
+  // Not a bare `header Content-Type …`, which would retype EVERY file on the
+  // origin — including /api — as manifest JSON.
+  if (/^\s*header\s+Content-Type/m.test(VHOST)) {
+    throw new Error("the content-type override must sit behind a path matcher, never apply to the whole site");
+  }
+});
+
+Deno.test("the console falls back to the console document only, and exactly one handler carries it", () => {
+  const console = blockFor("/console/*");
+  if (!console) {
+    throw new Error("no `handle /console/*`: the console would fall through to the catch-all and 404");
+  }
+  if (!console.body.includes("try_files {path} /console/index.html")) {
+    throw new Error("/console/ lost its SPA fallback — a deep link would 404 instead of loading the console");
+  }
+  // The console document must be reachable from exactly one handler, and that
+  // handler must be the console's own subtree.
+  const carriers = BLOCKS.filter((b) => /\/console\/index\.html/.test(b.body));
+  if (carriers.length !== 1) {
+    throw new Error(
+      "the console document is reachable from " + carriers.length + " handlers: " +
+        carriers.map((c) => c.matcher || "(catch-all)").join(", "),
+    );
+  }
+  // The console PWA artifacts land under /console/, so `try_files {path}` must
+  // be able to serve them: the fallback must be the LAST try_files argument,
+  // i.e. a real file at /console/manifest.webmanifest wins over the document.
+  if (!/try_files\s+\{path\}\s+\/console\/index\.html/.test(console.body)) {
+    throw new Error("the console fallback must try the real path first, or the manifest/SW/icons could never be served");
+  }
+});
+
+Deno.test("no document-producing handler is reachable from an /api path", () => {
+  // /api carries order state and the Lightning invoice. A 200 + text/html here
+  // is the defect that made the pay step undiagnosable, so the guarantee is
+  // structural: the ONLY handler whose matcher starts with /api is the proxy,
+  // and no handler that can rewrite a path to a document may be reached by one.
+  for (const b of BLOCKS) {
+    const isApiScoped = b.matcher.startsWith("/api");
+    if (isApiScoped && /try_files/.test(b.body)) {
+      throw new Error(
+        `the /api handler (\`${b.name} ${b.matcher}\`) can rewrite a path to a document — ` +
+          "an API request must never be answered with HTML",
+      );
+    }
+    if (b.matcher === "" && /try_files/.test(b.body)) {
+      throw new Error("the catch-all rewrites unknown paths to a document, so /api could reach it again");
+    }
+  }
+  // Bare /api has its own exact handler (asserted above); the prefix form must
+  // still be a stripping proxy, not a file_server.
+  const prefix = blockFor("/api/*");
+  if (!prefix) throw new Error("no `handle_path /api/*`: the API surface is no longer proxied at all");
+  if (!prefix.body.includes("reverse_proxy 127.0.0.1:8788")) {
+    throw new Error("handle_path /api/* no longer proxies to cvm-orders");
+  }
+  if (/try_files|file_server/.test(prefix.body)) {
+    throw new Error("handle_path /api/* serves files — /api must answer as an API");
+  }
+});
+
