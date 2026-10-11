@@ -4,19 +4,26 @@
 # Installs the order service the /api/* proxy in the cvm-pwa vhost points at:
 #   * /opt/tollgate/cvm-orders        (code, shipped by deploy/orders-setup.sh)
 #   * /etc/systemd/system/cvm-orders.service
-#   * /etc/cvm-orders/config.env      (FACILITATOR_NPUB, PORT)
+#   * /etc/cvm-orders/config.env      (FACILITATOR_NPUB, CASHU_MINT_URL, PORT, ORDER_DB_PATH)
+#   * /var/lib/cvm-orders/orders.sqlite (the DURABLE order store, created on start)
 #
 # Required env: FACILITATOR_NPUB (public key — the console compares the signer's
-# pubkey against it). ADR-0013: no card data, no PSP secret and no private key
-# ever belongs in this file.
+# pubkey against it). Re-running WITHOUT it keeps the installed one. ADR-0013: no
+# card data, no PSP secret and no private key ever belongs in this file.
 #
-# PORT, BIND_ADDR and SERVICE_USER are optional. BIND_ADDR stays loopback: the
-# store has no authentication of its own (server-side NIP-98 is still open).
+# PORT, BIND_ADDR, ORDER_DB_DIR and SERVICE_USER are optional. BIND_ADDR stays
+# loopback: the store has no authentication of its own (server-side NIP-98 is
+# still open).
 set -euo pipefail
 DEST="${DEST:-/opt/tollgate/cvm-orders}"
 PORT="${PORT:-8788}"
 BIND_ADDR="${BIND_ADDR:-127.0.0.1}"
 SERVICE_USER="${SERVICE_USER:-root}"
+# The store lives OUTSIDE $DEST on purpose: deploy/orders-setup.sh re-tars the
+# code directory on every deploy, so orders kept inside it would be wiped by a
+# routine redeploy — the exact failure the file store exists to prevent.
+ORDER_DB_DIR="${ORDER_DB_DIR:-/var/lib/cvm-orders}"
+ORDER_DB_PATH="$ORDER_DB_DIR/orders.sqlite"
 ENV_DIR=/etc/cvm-orders
 DENO="${DENO:-/usr/local/bin/deno}"
 
@@ -27,23 +34,32 @@ DENO="${DENO:-/usr/local/bin/deno}"
 mkdir -p "$ENV_DIR"
 chmod 0755 "$ENV_DIR"
 
-# config.env is the source of truth for a value we must not silently blank: a
-# re-run without FACILITATOR_NPUB keeps what is already installed.
-if [ -n "${FACILITATOR_NPUB:-}" ]; then
-  cat > "$ENV_DIR/config.env" <<EOF
-# Facilitator identity for the console NIP-98 challenge (cvm-orders).
-# Public key only. Private material never belongs here (ADR-0013).
-FACILITATOR_NPUB=$FACILITATOR_NPUB
-PORT=$PORT
-EOF
-  echo "   wrote $ENV_DIR/config.env"
-elif grep -q '^FACILITATOR_NPUB=npub1' "$ENV_DIR/config.env" 2>/dev/null; then
-  echo "   kept existing $ENV_DIR/config.env (no FACILITATOR_NPUB passed)"
-else
+# config.env is the source of truth for values we must not silently blank: a
+# re-run without FACILITATOR_NPUB keeps what is already installed. The file is
+# rewritten in full so an install from an older script (no ORDER_DB_PATH) gains
+# the durable store path on the next run.
+PASSED_NPUB="${FACILITATOR_NPUB:-}"
+EXISTING_NPUB="$(grep -m1 '^FACILITATOR_NPUB=npub1' "$ENV_DIR/config.env" 2>/dev/null | cut -d= -f2- || true)"
+FACILITATOR_NPUB="${PASSED_NPUB:-$EXISTING_NPUB}"
+if [ -z "$FACILITATOR_NPUB" ]; then
   echo "ERROR: FACILITATOR_NPUB is required and $ENV_DIR/config.env has none." >&2
   echo "       Re-run with: FACILITATOR_NPUB=<npub1...> bash deploy/orders-setup.sh" >&2
   exit 1
 fi
+
+mkdir -p "$ORDER_DB_DIR"
+chmod 0700 "$ORDER_DB_DIR"
+
+cat > "$ENV_DIR/config.env" <<EOF
+# Facilitator identity for the console NIP-98 challenge (cvm-orders).
+# Public key only. Private material never belongs here (ADR-0013).
+FACILITATOR_NPUB=$FACILITATOR_NPUB
+PORT=$PORT
+# Durable order store (SQLite, WAL). It holds the invoice a customer is paying
+# and the sats-settlement claim; losing it strands paid sats, so it must not sit
+# in the code directory a redeploy replaces.
+ORDER_DB_PATH=$ORDER_DB_PATH
+EOF
 
 # CASHU_MINT_URL is a deploy-time override of the committed config/mint.json
 # selection (src/mints.ts: env wins, config is the fallback). It is a PUBLIC mint
@@ -65,6 +81,11 @@ elif grep -q '^CASHU_MINT_URL=' "$ENV_DIR/config.env" 2>/dev/null; then
 else
   echo "   rail: none in config.env — falling back to $DEST/config/mint.json (resolveMintUrl)"
 fi
+if [ -n "$PASSED_NPUB" ]; then
+  echo "   wrote $ENV_DIR/config.env"
+else
+  echo "   kept existing FACILITATOR_NPUB; rewrote $ENV_DIR/config.env with PORT + ORDER_DB_PATH"
+fi
 chmod 0644 "$ENV_DIR/config.env"
 
 cat > /etc/systemd/system/cvm-orders.service <<EOF
@@ -78,8 +99,10 @@ Wants=network-online.target
 Type=simple
 User=$SERVICE_USER
 WorkingDirectory=$DEST
-# config.env holds FACILITATOR_NPUB (public), CASHU_MINT_URL (public) and PORT.
-# The order store is IN MEMORY: a restart empties the queue by design, not by bug.
+# config.env holds FACILITATOR_NPUB (public), CASHU_MINT_URL (public), PORT and
+# ORDER_DB_PATH. The order store is a SQLite file (WAL) OUTSIDE the code
+# directory: orders, the invoice a customer is paying and the exactly-once
+# sats-settlement claim all survive a restart.
 EnvironmentFile=$ENV_DIR/config.env
 Environment=BIND_ADDR=$BIND_ADDR
 # --allow-read is REQUIRED, not decorative: the service prices every basket from
@@ -87,7 +110,10 @@ Environment=BIND_ADDR=$BIND_ADDR
 # both through Deno.readTextFile. Without it the catalog load throws, is caught,
 # and POST /orders answers 503 catalog_unavailable — a "deployed" service whose
 # Pay button cannot create a single order.
-ExecStart=$DENO run --allow-net --allow-env --allow-read $DEST/main.ts
+# --allow-write, together with ORDER_DB_PATH, is what the durable store needs;
+# without ORDER_DB_PATH main.ts would fall back to data/orders.sqlite inside
+# WorkingDirectory, which a redeploy replaces.
+ExecStart=$DENO run --allow-net --allow-env --allow-read --allow-write $DEST/main.ts
 Restart=always
 RestartSec=3
 StandardOutput=journal
@@ -117,5 +143,16 @@ if curl -fsS -m 5 "http://$BIND_ADDR:$PORT/health" >/dev/null; then
   echo "   health http://$BIND_ADDR:$PORT/health OK"
 else
   echo "   health probe FAILED — see: journalctl -u cvm-orders -n 40" >&2
+  exit 1
+fi
+
+# The store is the reason this unit exists in this shape: assert the durable file
+# is really there and is a file (not the in-memory fallback), so a deploy that
+# silently lost ORDER_DB_PATH fails here instead of at the first paid order.
+if [ -f "$ORDER_DB_PATH" ]; then
+  echo "   order store: $ORDER_DB_PATH ($(stat -c%s "$ORDER_DB_PATH") bytes, durable)"
+else
+  echo "   ERROR: $ORDER_DB_PATH was not created — the service is not durable." >&2
+  echo "          Check ORDER_DB_PATH in $ENV_DIR/config.env and that ExecStart has --allow-read --allow-write." >&2
   exit 1
 fi
