@@ -141,13 +141,14 @@ EOF
 (cd "$DEST" && "$DENO" cache main.ts >/dev/null)
 
 systemctl daemon-reload
-# `enable --now` is a NO-OP on a unit that is already running: the first run of
-# this script left the OLD code in memory and the deploy looked successful
-# (`Active: active ... 14h ago`, same PID, while $DEST/main.ts was new). A
-# redeploy only takes effect on an explicit restart.
+# RESTART, not `enable --now`: on an already-running unit `--now` is a NO-OP, so
+# the deploy would leave the OLD process serving — old code, and an environment
+# that predates ORDER_DB_PATH (`Active: active ... 14h ago`, same PID, while
+# $DEST/main.ts was new) — while every check looked green. A redeploy only takes
+# effect on an explicit restart, which is also what loads the new ORDER_DB_PATH.
 systemctl enable cvm-orders.service >/dev/null
 systemctl restart cvm-orders.service
-sleep 1
+sleep 2
 systemctl --no-pager --lines=0 status cvm-orders.service | head -4
 echo "   listening:"
 ss -ltnp 2>/dev/null | grep -E ":$PORT\b" || echo "   (nothing on :$PORT yet)"
