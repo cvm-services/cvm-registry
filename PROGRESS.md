@@ -19,9 +19,13 @@ Baseline (unmodified main, those 3 files): 24 passed | 0 failed.
       25 passed | 14 failed against unmodified main -> evidence/t_e3abf2ae/RED-console-pwa.txt
 - [x] M2 implement: site/console/{manifest.webmanifest,sw.js,index.html,5 icons} +
       deploy/caddy-vhost-cvm-pwa.caddy matcher.
-- [ ] M3 GREEN: deno check + full suite.
-- [ ] M4 live BEFORE probe of /console/manifest.webmanifest.
-- [ ] M5 REPORT.md final + PR (do NOT merge; manager merges).
+- [x] M3 GREEN: `deno check collector/ tests/` exit 0; touched files 39 passed | 0 failed;
+      full suite `deno test --allow-read --allow-net --allow-env tests/` 181 passed | 0 failed
+      (166 on main + 15). Evidence: evidence/t_e3abf2ae/{GREEN-touched,GREEN-final,deno-check}.txt
+- [x] M4 live BEFORE probe: evidence/t_e3abf2ae/live-BEFORE-console-manifest.txt — the four
+      /console/ PWA artifact paths are still 200 text/html (1102 b = the console document).
+- [x] M5 REPORT.md final + PR #29 https://github.com/cvm-services/cvm-registry/pull/29
+      head b2f82dc93e609f9d4f191fcf2e27b6dde984524f. NOT merged, NOT deployed: manager merges.
 
 ## Facts found (do not re-derive)
 - The card's "four console artifacts" = manifest + worker + icons; deploy ships `site/console/*`

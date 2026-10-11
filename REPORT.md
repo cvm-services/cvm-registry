@@ -5,6 +5,13 @@ Repo: `cvm-services/cvm-registry`. Base: `origin/main` = `76b2ef6`.
 Worktree: `/home/c03rad0r/worktrees/t_e3abf2ae`, branch `worker-base/t_e3abf2ae`.
 Merged by the MANAGER — this branch is NOT merged here.
 
+**PR: https://github.com/cvm-services/cvm-registry/pull/29 — open against `main`, NOT merged and NOT deployed.**
+Branch `worker-base/t_e3abf2ae`, three commits: `33d1c90` (RED tests) -> `b2f82dc`
+(implementation) -> docs/evidence (this file). The exact PR head oid is read from the PR
+itself (`gh pr view 29 --json headRefOid`) rather than hard-coded here, because the commit
+that writes this report IS the branch tip — a SHA written into a file can never describe
+the commit that contains it.
+
 ## The defect being closed (measured live 2026-10-11, https://cvm-pwa.orangesync.tech)
 
 `/console/` is a plain page, not an installable PWA:
@@ -107,7 +114,7 @@ See the commit list in this branch. Files:
    `/console/manifest.webmanifest` as a second LITERAL path. Nothing else in the vhost changes:
    `/api`, `/api/*`, `/`, `/order/*` and the fallback-free catch-all are untouched.
 6. `tests/pwa_vhost_test.ts` — 3 console vhost cases (RED).
-7. `tests/console_pwa_installable_test.ts` — new, 13 tests mirroring
+7. `tests/console_pwa_installable_test.ts` — new, 12 tests mirroring
    `tests/order_pwa_installable_test.ts` (artifacts on disk, manifest scope, real-PNG icon
    sizes, the worker evaluated against an in-memory CacheStorage/fetch double, offline shell,
    activate hygiene, no-collateral).
@@ -141,11 +148,96 @@ branch (see the `git diff --stat` in the evidence section).
 
 ## M3 — GREEN
 
-See `evidence/t_e3abf2ae/GREEN-final.txt` (full suite) and `evidence/t_e3abf2ae/GREEN-touched.txt`.
+```
+$ deno check collector/ tests/
+(exit 0 — no output; full log evidence/t_e3abf2ae/deno-check.txt)
 
-## M4 — live probe
+$ deno test --allow-read --allow-net tests/pwa_vhost_test.ts tests/order_pwa_installable_test.ts tests/console_pwa_installable_test.ts
+ok | 39 passed | 0 failed (1s)          # 24 baseline + the 15 added
+                                          evidence/t_e3abf2ae/GREEN-touched.txt
 
-See `evidence/t_e3abf2ae/live-BEFORE-console-manifest.txt`. Deploy is NOT part of this card;
-the "before" is the current live state and there is no "after" until the manager merges and
-the host is deployed. Stated plainly: **the live origin still serves `200 text/html` for
-`/console/manifest.webmanifest` at the time of this report.**
+$ deno test --allow-read --allow-net --allow-env tests/
+ok | 181 passed | 0 failed (8s)         # 166 on main + 15
+                                          evidence/t_e3abf2ae/GREEN-final.txt
+```
+
+So: **RED 25 passed | 14 failed → GREEN 39 passed | 0 failed** on the touched files, and the
+repo's own CI commands (`deno check collector/ tests/`, the full `deno test ... tests/`) are
+green with no other test regressed.
+
+The console worker is not asserted by grep alone: `tests/console_pwa_installable_test.ts`
+evaluates the shipped `site/console/sw.js` against an in-memory `CacheStorage`/`fetch` double,
+so these are OBSERVED rather than assumed:
+
+- `GET /api/orders/42` is never `respondWith()`ed, no cache ever holds an `/api` URL, and the
+  worker does not even fetch it itself (`sw.fetched === []`) — the money API is untouched.
+- `POST /api/orders/42/transition` likewise (a state-and-money change is never replayed).
+- install caches every shell entry and nothing from `/api/`; offline `/console/` renders from
+  cache and an offline deep link falls back to the console document.
+- `activate()` purges `cvm-console-shell-v0` and never touches `cvm-order-shell-v1` or
+  `workbox-precache` (CacheStorage is per-origin, not per-scope).
+
+Non-vacuity controls for the RED/GREEN pair: the two new vhost cases that already passed
+before the change (`the console falls back to the console document only`,
+`no document-producing handler is reachable from an /api path`) are the guards that FAIL if
+this branch over-reaches — e.g. if a `try_files` ever appeared on an `/api`-scoped handler or
+the catch-all, or if the console document became reachable from two handlers.
+
+## M4 — live probe (BEFORE) — deploy is NOT part of this card
+
+Raw: `evidence/t_e3abf2ae/live-BEFORE-console-manifest.txt`, captured 2026-10-11T16:08+02:00
+against https://cvm-pwa.orangesync.tech at branch head (the host still runs the merged-main
+bundle, so this is the un-deployed state):
+
+```
+/console/manifest.webmanifest      200 ct=text/html; charset=utf-8 bytes=1102
+/console/sw.js                     200 ct=text/html; charset=utf-8 bytes=1102
+/console/icon-192.png              200 ct=text/html; charset=utf-8 bytes=1102
+/console/apple-touch-icon.png      200 ct=text/html; charset=utf-8 bytes=1102
+/console/                          200 ct=text/html; charset=utf-8 bytes=1102
+/order/manifest.webmanifest        200 ct=application/manifest+json bytes=1012   <- control
+/order/sw.js                       200 ct=text/javascript; charset=utf-8 bytes=5505 <- control
+/api/health                        200 ct=application/json bytes=11             <- control
+/nope.txt                          404   <- control: the ROOT catch-all still 404s
+/nope/deep                         404   <- control
+/console/nope.txt                  200 ct=text/html; charset=utf-8               <- BY DESIGN
+```
+
+The first 1102 bytes of `/console/manifest.webmanifest` are `<!doctype html> … <title>Facili…`
+— the console document, i.e. the scoped `/console/` fallback, exactly as the card measured it.
+
+Honest statement of what is NOT done: **no deploy was attempted** (the card excludes it), so
+there is no "after" yet. The live origin still answers `200 text/html` for
+`/console/manifest.webmanifest` at the time of this report. After the manager merges and the
+host is deployed, the four `/console/` PWA-artifact rows must flip to
+`application/manifest+json` (manifest), `text/javascript` (worker) and `image/png` (icons);
+`deploy/deploy-pwa.sh` needs no change for that — it already ships `site/console/*` with a
+glob and already asserts that `/console/` serves the console's own document.
+
+One measured nuance, stated so it is not mistaken for a regression:
+`/console/nope.txt` answers `200 text/html` because `handle /console/*` is
+`try_files {path} /console/index.html` and the console is in-page state with no URL router.
+That is the intended scoped fallback, not the unscoped-catch-all defect. The card's
+"an unknown path is still 404" refers to the ROOT catch-all, which still 404s (`/nope.txt`,
+`/nope/deep` above) and is pinned by `tests/pwa_vhost_test.ts`.
+
+## Files in this branch
+
+```
+deploy/caddy-vhost-cvm-pwa.caddy                     (matcher: +1 literal path)
+site/console/manifest.webmanifest                    (new)
+site/console/sw.js                                   (new)
+site/console/index.html                              (manifest/apple/theme + registration)
+site/console/icon-192.png                            (new, byte-identical to site/order/)
+site/console/icon-512.png                            (new, byte-identical)
+site/console/icon-maskable-192.png                   (new, byte-identical)
+site/console/icon-maskable-512.png                   (new, byte-identical)
+site/console/apple-touch-icon.png                    (new, byte-identical)
+tests/console_pwa_installable_test.ts                (new)
+tests/pwa_vhost_test.ts                              (+3 console cases)
+tests/order_pwa_installable_test.ts                  (1 test narrowed to its real intent)
+evidence/t_e3abf2ae/                                 (raw RED / GREEN / deno check / live probe)
+REPORT.md, PROGRESS.md
+```
+
+`site/order/` is byte-identical to `main` on this branch; the `/api` contract is unchanged.
