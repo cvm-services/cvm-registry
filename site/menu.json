@@ -2151,9 +2151,9 @@
     }
    ],
    "_capture": {
-    "captured_at": 1791794828,
+    "captured_at": 1791813178,
     "server_pubkey": "c3496b877eaa0e7d328d04b748e74c8d23a210f2c53b541bc3e2c79e827bac78",
-    "client_pubkey": "df04d1b03f1d2da82cd7fd987d6e001e2de74aefe67c7f80408b0dd430235b9f",
+    "client_pubkey": "eb6afa04deed0c114d0607d1a4274698076be81ab0d4568a4dac879ec7036267",
     "relays": [
      "wss://relay2.orangesync.tech"
     ],
@@ -3674,9 +3674,9 @@
     }
    ],
    "_capture": {
-    "captured_at": 1791794836,
+    "captured_at": 1791813184,
     "server_pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
-    "client_pubkey": "b2e8e990fc2f5a4a627e99e44cc96c956accafc8fbd55dba4b27ea104a63c141",
+    "client_pubkey": "d58b1a666a1037e5f2ce54aff17ee2c98327048570f6d7ea38d1c6c8e93ee9a9",
     "relays": [
      "wss://relay2.orangesync.tech"
     ],
@@ -5541,9 +5541,9 @@
     }
    ],
    "_capture": {
-    "captured_at": 1791794844,
+    "captured_at": 1791813191,
     "server_pubkey": "ef070a5dcaaa368d05d6a248041195e9f3b388ea323ca0c0a1d73ed44e31ea2b",
-    "client_pubkey": "145f2c5756057d8e153071a579ad6368618035fff92ed2947b7a0205c062dc6a",
+    "client_pubkey": "6f49f6b469e3bc64b7fac2099a88d91f60fa64eb666d8b76b3c1ba0bacd23652",
     "relays": [
      "wss://relay2.orangesync.tech"
     ],
