@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer — webshop facilitated sats orders (mockup)</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#ffffff; --ink:#1c1b18; --dim:#6f6b62; --line:#e7e4dd;
+    --accent:#f59e0b; --accent-ink:#7c4a02; --ok:#15803d; --okbg:#ecfdf3;
+    --warn:#b45309; --warnbg:#fff7ed; --sat:#1c1b18; --fiat:#8a857a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .phone{width:390px;min-height:844px;margin:0 auto;position:relative;display:flex;flex-direction:column}
+  .screen{display:none;flex-direction:column;min-height:844px}
+  .screen.on{display:flex}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1}
+  .sat{font-weight:700;letter-spacing:-.02em}
+  .fiat{color:var(--fiat);font-size:12px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:99px;padding:3px 9px;background:#fff}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .trust{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--dim);padding:10px 16px}
+  .trust b{color:var(--ink);font-weight:600}
+  .top{padding:18px 16px 10px}
+  .top h1{font-size:22px;letter-spacing:-.02em}
+  .sub{font-size:12.5px;color:var(--dim);margin-top:2px}
+  .wallet{font-size:12px;font-weight:600;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 11px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 16px}
+  .card h2{font-size:16px;letter-spacing:-.01em}
+  .card .meta{font-size:12px;color:var(--dim);margin-top:2px}
+  input,select{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 13px;font-size:14px;color:var(--ink);width:100%}
+  input::placeholder{color:#a8a49a}
+  label{font-size:11.5px;font-weight:600;color:var(--dim);display:block;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em}
+  .primary{display:block;width:100%;background:var(--ink);color:#fff;border:0;border-radius:14px;padding:14px;font-size:15px;font-weight:650;text-align:center;text-decoration:none;margin-top:14px}
+  .results{padding:4px 16px 90px;flex:1}
+  .prod{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .prod .nm{font-size:15px;font-weight:550}
+  .prod .spec{font-size:12px;color:var(--dim);margin-top:2px}
+  .prod .pr{font-size:14.5px;margin-top:3px}
+  .fit{font-size:11px;color:var(--ok);background:var(--okbg);border-radius:6px;padding:2px 7px;margin-top:4px;display:inline-block}
+  .row3{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .bar{position:absolute;left:12px;right:12px;bottom:12px;background:var(--ink);color:#fff;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .bar .amt{font-size:17px;font-weight:700}
+  .sect{font-size:12px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 6px}
+  .line{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}
+  .line .sub2{font-size:11.5px;color:var(--dim)}
+  .total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+  .states{display:flex;gap:6px;margin:6px 0 2px;flex-wrap:wrap}
+  .st{font-size:11px;border-radius:99px;padding:3px 9px;border:1px solid var(--line);color:var(--dim);background:#fff}
+  .st.on{background:var(--okbg);color:var(--ok);border-color:#bbe7c9}
+  .st.now{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .warn{background:var(--warnbg);border:1px solid #f3ddba;border-radius:12px;padding:10px 12px;font-size:12px;color:var(--warn);margin-top:10px}
+  .details{margin-top:10px;font-size:12px;color:var(--dim)}
+  .details summary{cursor:pointer;color:var(--dim);font-weight:600}
+  .back{font-size:13px;color:var(--dim);text-decoration:none;margin:14px 16px 0;display:inline-block}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<!-- s=1 FIT FINDER (home) -->
+<section class="screen" data-s="1">
+  <div class="top row">
+    <div class="grow"><h1>Car batteries,<br>paid in sats</h1></div>
+    <div class="wallet">⚡ 45 210 sats</div>
+  </div>
+  <p class="sub" style="padding:0 16px">A facilitator buys on your behalf at akkudirekt.de and you pay in Lightning. No shop account, no card.</p>
+
+  <div class="card">
+    <h2>Find your battery</h2>
+    <div class="meta">Fit is checked against your vehicle — the shop's own compat data.</div>
+    <label>License plate (KBA) or</label>
+    <input placeholder="e.g. HB-AB 1234">
+    <label>or pick by spec</label>
+    <div class="row3">
+      <span class="chip">12 V</span><span class="chip on">60 Ah</span><span class="chip">600 A CCA</span>
+      <span class="chip">EFB</span><span class="chip">AGM</span>
+    </div>
+    <a class="primary" href="?s=2">Show 14 matching batteries</a>
+  </div>
+
+  <div class="card" style="background:#fffdf7">
+    <h2 style="font-size:14px">How this works</h2>
+    <div class="meta" style="margin-top:6px">1 · You pay the shop price + facilitator fee in sats<br>2 · Facilitator orders at akkudirekt.de same day<br>3 · Battery ships to your address · deposit (Pfand) refunded on old-battery return</div>
+  </div>
+
+  <div class="trust"><span>🛡</span><span><b>No personal data beyond delivery</b> — your name and shipping address go to the shop once, via the facilitator. No client-side key custody.</span></div>
+</section>
+
+<!-- s=2 RESULTS -->
+<section class="screen" data-s="2">
+  <a class="back" href="?s=1">‹ Back to fit finder</a>
+  <div class="top row">
+    <div class="grow"><h1>14 matches</h1></div>
+    <div class="wallet">⚡ 45 210 sats</div>
+  </div>
+  <p class="sub" style="padding:0 16px 6px">For VW Golf VII 1.6 TDI (KBA match) · 12 V · 60 Ah</p>
+  <div class="row3" style="padding:0 16px 10px">
+    <span class="chip on">Fits my car</span><span class="chip">In stock</span><span class="chip">Price ↑</span>
+  </div>
+
+  <div class="results">
+    <div class="prod">
+      <div class="grow">
+        <div class="nm">intAct Start-Stop-Power EFB</div>
+        <div class="spec">12 V · 60 Ah · 540 A · EFB · + 7,50 € Pfand</div>
+        <span class="fit">✓ Fits your Golf VII</span>
+      </div>
+      <div style="text-align:right">
+        <div class="sat">109 090 <span style="font-size:11px">sats</span></div>
+        <div class="fiat">109,09 €</div>
+        <a href="?s=3" style="font-size:13px;color:var(--ink);font-weight:600">Details ›</a>
+      </div>
+    </div>
+    <div class="prod">
+      <div class="grow">
+        <div class="nm">Varta Silver Dynamic AGM</div>
+        <div class="spec">12 V · 60 Ah · 680 A · AGM · + 7,50 € Pfand</div>
+        <span class="fit">✓ Fits your Golf VII</span>
+      </div>
+      <div style="text-align:right">
+        <div class="sat">168 390 <span style="font-size:11px">sats</span></div>
+        <div class="fiat">168,39 €</div>
+        <a href="?s=3" style="font-size:13px;color:var(--ink);font-weight:600">Details ›</a>
+      </div>
+    </div>
+    <div class="prod">
+      <div class="grow">
+        <div class="nm">Exide Excell EB608</div>
+        <div class="spec">12 V · 60 Ah · 600 A · wet · + 7,50 € Pfand</div>
+        <span class="fit">✓ Fits your Golf VII</span>
+      </div>
+      <div style="text-align:right">
+        <div class="sat">101 990 <span style="font-size:11px">sats</span></div>
+        <div class="fiat">101,99 €</div>
+        <a href="?s=3" style="font-size:13px;color:var(--ink);font-weight:600">Details ›</a>
+      </div>
+    </div>
+    <div class="prod">
+      <div class="grow">
+        <div class="nm">Bosch S4 S4005</div>
+        <div class="spec">12 V · 60 Ah · 540 A · wet · + 7,50 € Pfand</div>
+        <span class="fit">✓ Fits your Golf VII</span>
+      </div>
+      <div style="text-align:right">
+        <div class="sat">95 290 <span style="font-size:11px">sats</span></div>
+        <div class="fiat">95,29 €</div>
+        <a href="?s=3" style="font-size:13px;color:var(--ink);font-weight:600">Details ›</a>
+      </div>
+    </div>
+  </div>
+  <div class="trust"><span>⚡</span><span>Sats-first: 1 € ≈ 1 000 sats (display rate, fixed for this order). Shop fiat price stays the source of truth.</span></div>
+</section>
+
+<!-- s=3 PRODUCT / COMPARE -->
+<section class="screen" data-s="3">
+  <a class="back" href="?s=2">‹ Results</a>
+  <div class="top">
+    <h1>intAct Start-Stop-Power EFB</h1>
+    <p class="sub">12 V · 60 Ah · 540 A CCA · EFB · for start-stop vehicles</p>
+    <div class="row" style="margin-top:10px;align-items:baseline">
+      <span class="sat" style="font-size:28px">109 090 sats</span>
+      <span class="fiat" style="font-size:14px">109,09 €</span>
+    </div>
+    <p class="sub" style="margin-top:4px">incl. 7,50 € deposit (Pfand) · shop price 101,59 €</p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:14px">Fit check</h2>
+    <div class="states"><span class="st on">✓ VW Golf VII 1.6 TDI</span><span class="st">L 242 × B 175 × H 190 mm</span><span class="st">Bodenleiste B3</span></div>
+    <p class="meta" style="margin-top:8px">Facilitator verifies dims against your old battery photo before ordering — no return shipping if it doesn't fit the bay.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:14px">Why EFB</h2>
+    <p class="meta" style="margin-top:4px">Start-stop vehicles need EFB or AGM. A cheaper wet cell will fail the start-stop duty cycle — the fit verdict above already excludes them for your car.</p>
+  </div>
+
+  <a class="primary" style="margin:8px 16px 90px" href="?s=4">Add to basket — 109 090 sats</a>
+  <div class="trust"><span>🛡</span><span>14-day EU withdrawal right runs <b>from your delivery</b>; facilitator files it for you. Deposit refunds when the old battery is handed in.</span></div>
+</section>
+
+<!-- s=4 BASKET -->
+<section class="screen" data-s="4">
+  <a class="back" href="?s=3">‹ Battery</a>
+  <div class="top"><h1>Basket</h1><p class="sub">Bought for you at akkudirekt.de</p></div>
+
+  <div class="card">
+    <div class="line"><span class="grow">intAct EFB 60 Ah<br><span class="sub2">12 V · 540 A · 1 ×</span></span><span style="text-align:right"><span class="sat">101 590 sats</span><br><span class="fiat">101,59 €</span></span></div>
+    <div class="line"><span class="grow">Batteriepfand (deposit)<br><span class="sub2">refundable on old-battery return</span></span><span style="text-align:right"><span class="sat">7 500 sats</span><br><span class="fiat">7,50 €</span></span></div>
+    <div class="line"><span class="grow">Shipping to 12163 Berlin<br><span class="sub2">DHL, 2–3 days</span></span><span style="text-align:right"><span class="sat">0 sats</span><br><span class="fiat">free ≥ 50 €</span></span></div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:14px">Delivery</h2>
+    <label>Name</label><input value="Felix">
+    <label>Shipping address</label><input value="Albrechtstr. 131, 12163 Berlin">
+    <label>Order notes (optional)</label><input placeholder="e.g. leave with neighbour">
+  </div>
+
+  <div class="card">
+    <div class="line"><span class="grow">Subtotal</span><span style="text-align:right"><span class="sat">109 090 sats</span><br><span class="fiat">109,09 €</span></span></div>
+    <div class="line"><span class="grow">Facilitator fee · 5%<br><span class="sub2">order, verify fit, handle return</span></span><span style="text-align:right"><span class="sat">5 455 sats</span><br><span class="fiat">5,46 €</span></span></div>
+    <div class="line total"><span class="grow sat" style="font-size:16px">Total</span><span style="text-align:right"><span class="sat" style="font-size:17px">114 545 sats</span><br><span class="fiat">114,55 €</span></span></div>
+    <details class="details"><summary>Details · price &amp; rate</summary>
+      Shop price captured 12 Oct 2026 · if the shop price moves before the facilitator buys, you pay the shop price at purchase ± this fee, and the difference is auto-refunded or topped up — never more than 3%.
+    </details>
+  </div>
+
+  <a class="primary" style="margin:8px 16px 20px" href="?s=5">Pay 114 545 sats</a>
+  <div class="trust"><span>⚡</span><span>Lightning or Cashu · facilitator fee shown before payment, never baked into the item price.</span></div>
+</section>
+
+<!-- s=5 PAY -->
+<section class="screen" data-s="5">
+  <div class="top"><h1>Pay</h1><p class="sub">Invoice expires in 15:00</p></div>
+  <div class="card" style="text-align:center;padding:22px 16px">
+    <div style="width:180px;height:180px;margin:4px auto 10px;background:
+      repeating-conic-gradient(#1c1b18 0 25%, #fff 0 50%) 0 0/16px 16px;border-radius:8px"></div>
+    <div class="row" style="justify-content:center;align-items:baseline">
+      <span class="sat" style="font-size:24px">114 545 sats</span><span class="fiat" style="font-size:14px">114,55 €</span>
+    </div>
+    <p class="meta" style="margin-top:6px">[mockup invoice placeholder — no real token in this file]</p>
+    <a class="primary" href="?s=6">I've paid — show status</a>
+  </div>
+  <div class="card">
+    <h2 style="font-size:14px">After payment</h2>
+    <p class="meta" style="margin-top:4px">The facilitator is notified instantly, buys at akkudirekt.de the same day, and your battery ships in 2–3 days. You'll see every step on the status screen.</p>
+  </div>
+  <div class="trust"><span>🛡</span><span>No client-side key or wallet custody. The invoice is a real Lightning invoice from the order service.</span></div>
+</section>
+
+<!-- s=6 STATUS -->
+<section class="screen" data-s="6">
+  <div class="top"><h1>Order bc-3f2b</h1><p class="sub">intAct EFB 60 Ah · paid 114 545 sats</p></div>
+
+  <div class="card">
+    <h2 style="font-size:14px">Progress</h2>
+    <div class="states">
+      <span class="st on">✓ paid</span>
+      <span class="st now">facilitator buying</span>
+      <span class="st">placed at shop</span>
+      <span class="st">shipped</span>
+      <span class="st">delivered</span>
+    </div>
+    <p class="meta" style="margin-top:8px">Facilitator confirmed: shop price checked at 101,59 € — no drift, no top-up needed. Bought 12 Oct, 13:40.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:14px">Fees &amp; refunds</h2>
+    <div class="line"><span class="grow">Facilitator fee kept</span><span style="text-align:right"><span class="sat">5 455 sats</span><br><span class="fiat">5,46 €</span></span></div>
+    <div class="line"><span class="grow">Price-drift refund</span><span style="text-align:right"><span class="sat">0 sats</span><br><span class="fiat">—</span></span></div>
+    <div class="line"><span class="grow">Deposit (Pfand) — pending</span><span style="text-align:right"><span class="sat">− 7 500 sats</span><br><span class="fiat">− 7,50 € back to you</span></span></div>
+    <p class="meta" style="margin-top:8px">When the old battery is handed in, the shop refunds the deposit to the facilitator and it's passed on to you in sats.</p>
+  </div>
+
+  <div class="warn">⚠ If the shop price had moved more than 3% before purchase, you'd see a <b>price-changed</b> card here with a one-tap approve or refund choice — this order didn't need it.</div>
+
+  <details class="details" style="margin:4px 16px"><summary>Details · provenance</summary>
+    Shop capture: akkudirekt.de product page, 12 Oct 2026 · facilitator npub1… · settlement on relay2 · every state transition is a signed Nostr event.
+  </details>
+</section>
+
+</div>
+<script>
+  const s = new URLSearchParams(location.search).get("s") ?? "1";
+  const el = document.querySelector(`.screen[data-s="${s}"]`);
+  if (el) el.classList.add("on"); else document.querySelector('.screen[data-s="1"]').classList.add("on");
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Facilitator console — webshop orders (mockup)</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#fff; --ink:#1c1b18; --dim:#6f6b62; --line:#e7e4dd;
+    --ok:#15803d; --okbg:#ecfdf3; --warn:#b45309; --warnbg:#fff7ed;
+    --danger:#b3261e; --dangerbg:#fdecea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .app{width:1440px;min-height:900px;margin:0 auto;display:flex}
+  .nav{width:210px;border-right:1px solid var(--line);padding:18px 14px;background:#fbfaf8}
+  .nav h1{font-size:15px;margin-bottom:16px}
+  .nav a{display:block;padding:8px 10px;border-radius:9px;font-size:13px;color:var(--dim);text-decoration:none;margin-bottom:2px}
+  .nav a.on{background:var(--ink);color:#fff}
+  .main{flex:1;padding:18px 22px}
+  .screen{display:none}
+  .screen.on{display:block}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1}
+  .sat{font-weight:700}
+  .fiat{color:#8a857a;font-size:12px}
+  h2{font-size:19px;margin-bottom:12px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:99px;padding:3px 9px;background:#fff}
+  .aging{font-size:10.5px;border-radius:99px;padding:2px 8px;border:1px solid var(--line);color:var(--dim);background:#fff}
+  .aging.warn{background:var(--warnbg);color:var(--warn);border-color:#f3ddba}
+  .tbl{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .tbl table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#fcfbf9}
+  .tbl td{padding:11px 14px;border-bottom:1px solid var(--line)}
+  .tbl tr:last-child td{border-bottom:0}
+  .st{font-size:11px;border-radius:99px;padding:3px 10px;border:1px solid var(--line);background:#fff;color:var(--dim);white-space:nowrap}
+  .st.now{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .st.paid{background:var(--okbg);color:var(--ok);border-color:#bbe7c9}
+  .st.refund{background:var(--dangerbg);color:var(--danger);border-color:#f2c4be}
+  .st.drift{background:var(--warnbg);color:var(--warn);border-color:#f3ddba}
+  .cols{display:flex;gap:16px;align-items:flex-start}
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .pane h3{font-size:14px;margin-bottom:10px}
+  .pane .meta{font-size:12px;color:var(--dim)}
+  .btn{display:inline-block;background:var(--ink);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:600;text-decoration:none}
+  .btn.quiet{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.warn{background:var(--warn)}
+  .kv{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dashed var(--line)}
+  .kv:last-child{border-bottom:0}
+  .note{background:#fffdf7;border:1px solid #f0e7cf;border-radius:12px;padding:10px 12px;font-size:12px;color:#7c6a3f;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <h1>⚡ Facilitator</h1>
+    <a href="?s=1" class="on">Order queue</a>
+    <a href="?s=2">Order detail</a>
+    <a href="?s=3">Settlements &amp; refunds</a>
+    <div style="margin-top:24px;font-size:11px;color:var(--dim)">signed in<br><b style="color:var(--ink)">npub1…c03rad0r</b><br>NIP-98 challenge</div>
+  </nav>
+  <main class="main">
+
+<!-- s=1 QUEUE -->
+<section class="screen on" data-s="1">
+  <div class="row" style="margin-bottom:10px">
+    <h2 class="grow">Order queue — 4 open</h2>
+    <span class="chip">venue: akkudirekt.de</span><span class="chip">all venues</span>
+  </div>
+  <div class="tbl">
+    <table>
+      <tr><th>Order</th><th>Customer</th><th>Items</th><th>Value</th><th>State</th><th>Age</th><th></th></tr>
+      <tr>
+        <td><b>bc-3f2b</b></td><td>Felix · 12163 Berlin</td><td>intAct EFB 60 Ah<br><span class="fiat">+ Pfand</span></td>
+        <td><span class="sat">114 545 sats</span><br><span class="fiat">114,55 €</span></td>
+        <td><span class="st now">buy now</span></td>
+        <td><span class="aging">12 min</span></td>
+        <td><a class="btn" href="?s=2">Open</a></td>
+      </tr>
+      <tr>
+        <td><b>bc-9a71</b></td><td>M. Krause · 10781 Berlin</td><td>Varta AGM 70 Ah<br><span class="fiat">+ Pfand</span></td>
+        <td><span class="sat">193 210 sats</span><br><span class="fiat">193,21 €</span></td>
+        <td><span class="st paid">placed at shop</span></td>
+        <td><span class="aging">3 h</span></td>
+        <td><a class="btn" href="?s=2">Track</a></td>
+      </tr>
+      <tr>
+        <td><b>bc-77c2</b></td><td>S. Brandt · 22559 Hamburg</td><td>Exide EB608 wet<br><span class="fiat">+ Pfand</span></td>
+        <td><span class="sat">108 640 sats</span><br><span class="fiat">108,64 €</span></td>
+        <td><span class="st drift">price changed +4,2%</span></td>
+        <td><span class="aging warn">5 h</span></td>
+        <td><a class="btn" href="?s=2">Resolve</a></td>
+      </tr>
+      <tr>
+        <td><b>bc-10dd</b></td><td>R. Vogel · 80331 München</td><td>Bosch S4 74 Ah<br><span class="fiat">+ Pfand</span></td>
+        <td><span class="sat">122 180 sats</span><br><span class="fiat">122,18 €</span></td>
+        <td><span class="st refund">refund owed</span></td>
+        <td><span class="aging warn">26 h</span></td>
+        <td><a class="btn" href="?s=2">Refund</a></td>
+      </tr>
+    </table>
+  </div>
+  <p class="note">Aging SLA: orders must be bought within 4 h of payment or they age to warn. Stock-outs and price drift &gt;3% flip the row to <b>resolve</b> — the customer is asked approve/refund, never silently charged.</p>
+</section>
+
+<!-- s=2 ORDER DETAIL: webshop side-by-side -->
+<section class="screen" data-s="2">
+  <div class="row" style="margin-bottom:12px">
+    <h2 class="grow">Order bc-3f2b — intAct EFB 60 Ah</h2>
+    <span class="st now">buy now</span>
+  </div>
+  <div class="cols">
+    <div class="pane grow">
+      <h3>Customer basket (what they paid for)</h3>
+      <div class="kv"><span>intAct EFB 60 Ah · 12 V · 540 A</span><span><span class="sat">101 590 sats</span> <span class="fiat">101,59 €</span></span></div>
+      <div class="kv"><span>Batteriepfand</span><span><span class="sat">7 500 sats</span> <span class="fiat">7,50 €</span></span></div>
+      <div class="kv"><span>Shipping (DHL 2–3 d)</span><span><span class="sat">0 sats</span> <span class="fiat">free</span></span></div>
+      <div class="kv"><span>Facilitator fee 5%</span><span><span class="sat">5 455 sats</span> <span class="fiat">5,46 €</span></span></div>
+      <div class="kv"><b>Total collected</b><span><b class="sat">114 545 sats</b> <span class="fiat">114,55 €</span></span></div>
+      <p class="meta" style="margin-top:8px">Ship to: Felix, Albrechtstr. 131, 12163 Berlin</p>
+      <p class="meta">Fit verdict source: shop compat data + customer's Golf VII</p>
+      <p class="note">Before committing, re-check the live shop price. If it moved &gt;3% you must click <b>Price changed</b> — the customer decides, you never absorb or pocket the difference.</p>
+    </div>
+    <div class="pane grow" style="background:#fffdf7">
+      <h3>akkudirekt.de checkout — side by side</h3>
+      <p class="meta">Same browser session, shop's own cart. Type what the left pane shows — amounts must match to the cent.</p>
+      <div class="kv"><span>Shop cart: intAct EFB 60 Ah</span><span><span class="sat">101 590 sats</span> <span class="fiat">101,59 €</span> ✓</span></div>
+      <div class="kv"><span>Pfand</span><span><span class="fiat">7,50 €</span> ✓</span></div>
+      <div class="kv"><span>Shipping</span><span><span class="fiat">0,00 €</span> ✓</span></div>
+      <div class="kv"><span><b>Shop total</b></span><span><b class="fiat">109,09 €</b></span></div>
+      <p class="meta" style="margin-top:8px">Payment method: facilitator card (2fiat, ADR-0013) · account: facilitator's</p>
+      <div class="row" style="margin-top:12px">
+        <a class="btn" href="?s=3">Confirm bought ✓</a>
+        <a class="btn quiet" href="?s=1">Price changed</a>
+        <a class="btn warn" href="?s=1">Stock-out — refund</a>
+      </div>
+      <p class="meta" style="margin-top:10px">After checkout, paste the shop order number — it anchors the delivery tracking to the signed order event.</p>
+    </div>
+  </div>
+</section>
+
+<!-- s=3 SETTLEMENTS -->
+<section class="screen" data-s="3">
+  <h2>Settlements &amp; refunds — week 41</h2>
+  <div class="cols">
+    <div class="pane grow">
+      <h3>Money in / out</h3>
+      <div class="kv"><span>Collected from customers</span><span><span class="sat">538 575 sats</span> <span class="fiat">538,58 €</span></span></div>
+      <div class="kv"><span>Spent at shops (incl. Pfand)</span><span><span class="fiat">− 496,10 €</span></span></div>
+      <div class="kv"><span>Fees kept (5%)</span><span><span class="fiat">+ 26,63 €</span></span></div>
+      <div class="kv"><span>Price-drift refunds paid</span><span><span class="fiat">− 1,20 €</span></span></div>
+      <div class="kv"><span>Stock-out refunds paid</span><span><span class="fiat">− 14,00 €</span></span></div>
+      <div class="kv"><b>Net this week</b><span><b class="fiat">+ 11,43 €</b> <span class="fiat">before card fees</span></span></div>
+      <p class="note">Refunds are a first-class state, not an error message: every refund shows the reason, the order, and the signed transition. Pfand refunds to customers are tracked until the old battery is handed in.</p>
+    </div>
+    <div class="pane grow">
+      <h3>Open items</h3>
+      <div class="kv"><span>bc-10dd refund owed — stock-out</span><span><span class="st refund">pay 122 180 sats</span></span></div>
+      <div class="kv"><span>bc-77c2 price drift — awaiting customer</span><span><span class="st drift">approve or refund</span></span></div>
+      <div class="kv"><span>Pfand held (3 batteries returned pending)</span><span><span class="fiat">22,50 €</span></span></div>
+      <p class="meta" style="margin-top:10px">The withdrawal-right clock (14 d) is shown per order on its detail pane; a return flips the order to <b>refund owed</b> automatically.</p>
+    </div>
+  </div>
+</section>
+
+  </main>
+</div>
+<script>
+  const s = new URLSearchParams(location.search).get("s") ?? "1";
+  document.querySelectorAll(".nav a").forEach(a=>{
+    const m = a.getAttribute("href").match(/s=(\d+)/);
+    a.classList.toggle("on", m && m[1]===s);
+  });
+  const el = document.querySelector(`.screen[data-s="${s}"]`);
+  if (el) el.classList.add("on"); else document.querySelector('.screen[data-s="1"]').classList.add("on");
+</script>
+</body>
+</html>
