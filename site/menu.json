@@ -1,10 +1,2235 @@
 {
  "venues": [
   {
+   "venue_slug": "three-buddies-berlin",
+   "name": "Three Buddies Steglitz",
+   "currency": "EUR",
+   "captured_at": "2026-10-11T22:34:12+00:00",
+   "adapter": {
+    "browser_automation_used": false,
+    "capabilities": {
+     "menu": true,
+     "quote": true,
+     "status": false,
+     "submit": false
+    },
+    "class": "deep_link_human",
+    "class_per_adr": "docs/adr/0007-venue-adapter-interface.md — class 1",
+    "credentials": {
+     "owner": "none",
+     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue and authenticates nothing (ADR-0007 class 1)"
+    },
+    "human_steps": [
+     "choose pickup or delivery (and, for delivery, an address)",
+     "open the venue's own ordering page at ordering.primary_url",
+     "pay the venue on the venue's own rail (card/paypal/cash; 3DS as the venue requires)",
+     "a human confirms the order with the venue"
+    ],
+    "idempotency": {
+     "detail": "the CVM mints no order id because it places no order; the human placing the order is the point of idempotency",
+     "key": "venue_slug + basket_sha256 + fulfilment + when"
+    },
+    "payment_authority": {
+     "authority": "the venue's own rail; this CVM takes no payment (ADR-0001 D5)",
+     "detail": "the customer pays the venue directly on the venue's own rail (card/PayPal/cash, 3DS as the venue requires); no payment is routed through the CVM"
+    },
+    "receipt": {
+     "form": "the venue's own confirmation (not machine-readable here)",
+     "machine_readable": false
+    },
+    "why_this_class": "The platform DOES run an online shop for this venue, but no unauthenticated or test-mode path to place an order was found or verified: the storefront's cart and checkout are authenticated, session-bound browser flows (the capture shows Stripe/Google Pay material loaded, and clicking 'Lieferung' opens an address modal). Per ADR-0007 the honest capability set is menu+quote only, with submit/status false."
+   },
+   "item_count": 100,
+   "from_priced_count": 0,
+   "priced_methods": [
+    "delivery",
+    "dine_in",
+    "pickup",
+    "room_service"
+   ],
+   "min_price": 1.5,
+   "max_price": 18.4,
+   "items": [
+    {
+     "id": "",
+     "sku": "1052475",
+     "name": "Cheeseburger Menü",
+     "prices_by_order_method": {
+      "delivery": 15,
+      "dine_in": 14,
+      "pickup": 14,
+      "room_service": 14
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052454",
+     "name": "Texas Burger",
+     "prices_by_order_method": {
+      "delivery": 9.3,
+      "dine_in": 8.3,
+      "pickup": 8.3,
+      "room_service": 8.3
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052491",
+     "name": "Curly Fries (vegan)",
+     "prices_by_order_method": {
+      "delivery": 5.5,
+      "dine_in": 4.5,
+      "pickup": 4.5,
+      "room_service": 4.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "SOJA"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052566",
+     "name": "New Jersey Burger",
+     "prices_by_order_method": {
+      "delivery": 10.5,
+      "dine_in": 9.5,
+      "pickup": 9.5,
+      "room_service": 9.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "EIER",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052545",
+     "name": "Chicken Wings",
+     "prices_by_order_method": {
+      "delivery": 7.9,
+      "dine_in": 6.9,
+      "pickup": 6.9,
+      "room_service": 6.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216529"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052526",
+     "name": "Texas Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15.8,
+      "dine_in": 14.8,
+      "pickup": 14.8,
+      "room_service": 14.8
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "SENF"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052511",
+     "name": "Chili Cheese Nuggets",
+     "prices_by_order_method": {
+      "delivery": 7.5,
+      "dine_in": 6.5,
+      "pickup": 6.5,
+      "room_service": 6.5
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216527"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052524",
+     "name": "Hamburger",
+     "prices_by_order_method": {
+      "delivery": 7.9,
+      "dine_in": 6.9,
+      "pickup": 6.9,
+      "room_service": 6.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052440",
+     "name": "Cheeseburger",
+     "prices_by_order_method": {
+      "delivery": 8.5,
+      "dine_in": 7.5,
+      "pickup": 7.5,
+      "room_service": 7.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052487",
+     "name": "Mexicali Burger (scharf)",
+     "prices_by_order_method": {
+      "delivery": 8.9,
+      "dine_in": 7.9,
+      "pickup": 7.9,
+      "room_service": 7.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052550",
+     "name": "Indiana Burger",
+     "prices_by_order_method": {
+      "delivery": 8.9,
+      "dine_in": 7.9,
+      "pickup": 7.9,
+      "room_service": 7.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052459",
+     "name": "Miami Burger",
+     "prices_by_order_method": {
+      "delivery": 8.9,
+      "dine_in": 7.9,
+      "pickup": 7.9,
+      "room_service": 7.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052449",
+     "name": "Blue Cheese Burger",
+     "prices_by_order_method": {
+      "delivery": 9.9,
+      "dine_in": 8.9,
+      "pickup": 8.9,
+      "room_service": 8.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052473",
+     "name": "Portobello Burger",
+     "prices_by_order_method": {
+      "delivery": 10.5,
+      "dine_in": 9.5,
+      "pickup": 9.5,
+      "room_service": 9.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052458",
+     "name": "Manhatten Burger",
+     "prices_by_order_method": {
+      "delivery": 10.5,
+      "dine_in": 9.5,
+      "pickup": 9.5,
+      "room_service": 9.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052455",
+     "name": "Three Buddies Burger",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052509",
+     "name": "Crispy Chicken Burger",
+     "prices_by_order_method": {
+      "delivery": 9.5,
+      "dine_in": 8.5,
+      "pickup": 8.5,
+      "room_service": 8.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052557",
+     "name": "Hamburger Menü",
+     "prices_by_order_method": {
+      "delivery": 14.4,
+      "dine_in": 13.4,
+      "pickup": 13.4,
+      "room_service": 13.4
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052472",
+     "name": "Mexicali Burger Menü (scharf)",
+     "prices_by_order_method": {
+      "delivery": 15.4,
+      "dine_in": 14.4,
+      "pickup": 14.4,
+      "room_service": 14.4
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052548",
+     "name": "Indiana Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15.4,
+      "dine_in": 14.4,
+      "pickup": 14.4,
+      "room_service": 14.4
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052447",
+     "name": "Miami Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15.4,
+      "dine_in": 14.4,
+      "pickup": 14.4,
+      "room_service": 14.4
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052448",
+     "name": "New Jersey Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 17,
+      "dine_in": 16,
+      "pickup": 16,
+      "room_service": 16
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052508",
+     "name": "Blue Cheeseburger Menü",
+     "prices_by_order_method": {
+      "delivery": 16.4,
+      "dine_in": 15.4,
+      "pickup": 15.4,
+      "room_service": 15.4
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052519",
+     "name": "Portobello Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 17,
+      "dine_in": 16,
+      "pickup": 16,
+      "room_service": 16
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EIER",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052488",
+     "name": "Manhatten Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 17,
+      "dine_in": 16,
+      "pickup": 16,
+      "room_service": 16
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052544",
+     "name": "Three Buddies Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 18.4,
+      "dine_in": 17.4,
+      "pickup": 17.4,
+      "room_service": 17.4
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052452",
+     "name": "Veggie Falafel Burger",
+     "prices_by_order_method": {
+      "delivery": 8.5,
+      "dine_in": 7.5,
+      "pickup": 7.5,
+      "room_service": 7.5
+     },
+     "available": true,
+     "allergens": [
+      "NÜSSE",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052510",
+     "name": "Veggie Halloumi Burger",
+     "prices_by_order_method": {
+      "delivery": 8.5,
+      "dine_in": 7.5,
+      "pickup": 7.5,
+      "room_service": 7.5
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052442",
+     "name": "Veggie Gemüse Burger",
+     "prices_by_order_method": {
+      "delivery": 8.5,
+      "dine_in": 7.5,
+      "pickup": 7.5,
+      "room_service": 7.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "NÜSSE",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052502",
+     "name": "Veggie Beyond Meat Burger",
+     "prices_by_order_method": {
+      "delivery": 9.9,
+      "dine_in": 8.9,
+      "pickup": 8.9,
+      "room_service": 8.9
+     },
+     "available": true,
+     "allergens": [
+      "ERBSENPROTEIN"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052552",
+     "name": "Veggie Mexicali Burger",
+     "prices_by_order_method": {
+      "delivery": 10.5,
+      "dine_in": 9.5,
+      "pickup": 9.5,
+      "room_service": 9.5
+     },
+     "available": true,
+     "allergens": [
+      "SOJA",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052530",
+     "name": "Three Buddies Veggie",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052549",
+     "name": "Veggi Falafel Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15,
+      "dine_in": 14,
+      "pickup": 14,
+      "room_service": 14
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "SOJA",
+      "NÜSSE"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052463",
+     "name": "Veggi Halloumi Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15,
+      "dine_in": 14,
+      "pickup": 14,
+      "room_service": 14
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052514",
+     "name": "Veggi Gemüse Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 15,
+      "dine_in": 14,
+      "pickup": 14,
+      "room_service": 14
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052504",
+     "name": "Veggi Beyond Meat Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 16.4,
+      "dine_in": 15.4,
+      "pickup": 15.4,
+      "room_service": 15.4
+     },
+     "available": true,
+     "allergens": [
+      "ERBSENPROTEIN"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052529",
+     "name": "Veggi Mexicali Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 17,
+      "dine_in": 16,
+      "pickup": 16,
+      "room_service": 16
+     },
+     "available": true,
+     "allergens": [
+      "SOJA",
+      "SESAM",
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052516",
+     "name": "Three Buddies Burger Menü",
+     "prices_by_order_method": {
+      "delivery": 18.4,
+      "dine_in": 17.4,
+      "pickup": 17.4,
+      "room_service": 17.4
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "SOJA",
+      "MILCH",
+      "EIER",
+      "SESAM"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052478",
+     "name": "Hot Dog Classic",
+     "prices_by_order_method": {
+      "delivery": 4.9,
+      "dine_in": 3.9,
+      "pickup": 3.9,
+      "room_service": 3.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052446",
+     "name": "Hot Dog Americana",
+     "prices_by_order_method": {
+      "delivery": 5.5,
+      "dine_in": 4.5,
+      "pickup": 4.5,
+      "room_service": 4.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052445",
+     "name": "Hot Dog Mexicali (scharf)",
+     "prices_by_order_method": {
+      "delivery": 5.9,
+      "dine_in": 4.9,
+      "pickup": 4.9,
+      "room_service": 4.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052461",
+     "name": "Currywurst (Halal)",
+     "prices_by_order_method": {
+      "delivery": 6.5,
+      "dine_in": 5.5,
+      "pickup": 5.5,
+      "room_service": 5.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216512",
+      "216513",
+      "216514",
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052551",
+     "name": "Hot Dog Classic Menü",
+     "prices_by_order_method": {
+      "delivery": 15.3,
+      "dine_in": 14.3,
+      "pickup": 14.3,
+      "room_service": 14.3
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "SOJA"
+     ],
+     "option_group_ids": [
+      "216521",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052464",
+     "name": "Hot Dog Americana Menü",
+     "prices_by_order_method": {
+      "delivery": 15.9,
+      "dine_in": 14.9,
+      "pickup": 14.9,
+      "room_service": 14.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216521",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052520",
+     "name": "Hot Dog Mexicali Menü (scharf)",
+     "prices_by_order_method": {
+      "delivery": 16.3,
+      "dine_in": 15.3,
+      "pickup": 15.3,
+      "room_service": 15.3
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216521",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052477",
+     "name": "Currywurst Menü",
+     "prices_by_order_method": {
+      "delivery": 13,
+      "dine_in": 12,
+      "pickup": 12,
+      "room_service": 12
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216516",
+      "216517",
+      "216518",
+      "216519"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052451",
+     "name": "Pommes frites (vegan)",
+     "prices_by_order_method": {
+      "delivery": 5.5,
+      "dine_in": 4.5,
+      "pickup": 4.5,
+      "room_service": 4.5
+     },
+     "available": true,
+     "allergens": [
+      null
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052517",
+     "name": "Wedges (vegan)",
+     "prices_by_order_method": {
+      "delivery": 5.5,
+      "dine_in": 4.5,
+      "pickup": 4.5,
+      "room_service": 4.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "SOJA"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052542",
+     "name": "Sweet Potatoes (vegan)",
+     "prices_by_order_method": {
+      "delivery": 6.9,
+      "dine_in": 5.9,
+      "pickup": 5.9,
+      "room_service": 5.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052482",
+     "name": "Chili Cheese Pommes",
+     "prices_by_order_method": {
+      "delivery": 6.9,
+      "dine_in": 5.9,
+      "pickup": 5.9,
+      "room_service": 5.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052562",
+     "name": "Onion Rings",
+     "prices_by_order_method": {
+      "delivery": 5.9,
+      "dine_in": 4.9,
+      "pickup": 4.9,
+      "room_service": 4.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216530"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052506",
+     "name": "Chicken Nuggets",
+     "prices_by_order_method": {
+      "delivery": 7.5,
+      "dine_in": 6.5,
+      "pickup": 6.5,
+      "room_service": 6.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "WEIZEN"
+     ],
+     "option_group_ids": [
+      "216526"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052497",
+     "name": "Broccoli Nuggets (6 Stück)",
+     "prices_by_order_method": {
+      "delivery": 7.5,
+      "dine_in": 6.5,
+      "pickup": 6.5,
+      "room_service": 6.5
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "EI"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052536",
+     "name": "Mozzarella-Sticks",
+     "prices_by_order_method": {
+      "delivery": 7.5,
+      "dine_in": 6.5,
+      "pickup": 6.5,
+      "room_service": 6.5
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN",
+      "EI"
+     ],
+     "option_group_ids": [
+      "216528"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052523",
+     "name": "Pasta Pollo",
+     "prices_by_order_method": {
+      "delivery": 12.9,
+      "dine_in": 11.9,
+      "pickup": 11.9,
+      "room_service": 11.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052534",
+     "name": "Pasta Napoli",
+     "prices_by_order_method": {
+      "delivery": 10.9,
+      "dine_in": 9.9,
+      "pickup": 9.9,
+      "room_service": 9.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052481",
+     "name": "Pasta Gorgonzola",
+     "prices_by_order_method": {
+      "delivery": 12.9,
+      "dine_in": 11.9,
+      "pickup": 11.9,
+      "room_service": 11.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052441",
+     "name": "Pasta Carbonara",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "WEIZEN",
+      "EIER",
+      "MILCH",
+      "SCHWEINEFLEISCH"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052457",
+     "name": "Arrabiata - pikant",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052469",
+     "name": "Pasta Veggie",
+     "prices_by_order_method": {
+      "delivery": 12.9,
+      "dine_in": 11.9,
+      "pickup": 11.9,
+      "room_service": 11.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052513",
+     "name": "Aglio E Olio",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH"
+     ],
+     "option_group_ids": [
+      "216515"
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052498",
+     "name": "Salat Mista",
+     "prices_by_order_method": {
+      "delivery": 8.9,
+      "dine_in": 7.9,
+      "pickup": 7.9,
+      "room_service": 7.9
+     },
+     "available": true,
+     "allergens": [
+      null
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052543",
+     "name": "Rucola-Salat",
+     "prices_by_order_method": {
+      "delivery": 9.5,
+      "dine_in": 8.5,
+      "pickup": 8.5,
+      "room_service": 8.5
+     },
+     "available": true,
+     "allergens": [
+      "MILCH",
+      "GLUTEN"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052496",
+     "name": "Salat Tonno",
+     "prices_by_order_method": {
+      "delivery": 11.9,
+      "dine_in": 10.9,
+      "pickup": 10.9,
+      "room_service": 10.9
+     },
+     "available": true,
+     "allergens": [
+      "FISCH",
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052546",
+     "name": "Salat Chicken",
+     "prices_by_order_method": {
+      "delivery": 12.9,
+      "dine_in": 11.9,
+      "pickup": 11.9,
+      "room_service": 11.9
+     },
+     "available": true,
+     "allergens": [
+      "GLUTEN",
+      "MILCH",
+      "EI"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052495",
+     "name": "Ketchup",
+     "prices_by_order_method": {
+      "delivery": 1.5,
+      "dine_in": 1.5,
+      "pickup": 1.5,
+      "room_service": 1.5
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052480",
+     "name": "Mayonnaise",
+     "prices_by_order_method": {
+      "delivery": 1.6,
+      "dine_in": 1.6,
+      "pickup": 1.6,
+      "room_service": 1.6
+     },
+     "available": true,
+     "allergens": [
+      "EIER",
+      "SENF"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052485",
+     "name": "Barbecuesauce",
+     "prices_by_order_method": {
+      "delivery": 1.7,
+      "dine_in": 1.7,
+      "pickup": 1.7,
+      "room_service": 1.7
+     },
+     "available": true,
+     "allergens": [
+      ""
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052443",
+     "name": "Guacamole",
+     "prices_by_order_method": {
+      "delivery": 1.7,
+      "dine_in": 1.7,
+      "pickup": 1.7,
+      "room_service": 1.7
+     },
+     "available": true,
+     "allergens": [
+      "SOJA"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052560",
+     "name": "Chili-Cheese-Dip",
+     "prices_by_order_method": {
+      "delivery": 1.9,
+      "dine_in": 1.9,
+      "pickup": 1.9,
+      "room_service": 1.9
+     },
+     "available": true,
+     "allergens": [
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052564",
+     "name": "Sour Cream",
+     "prices_by_order_method": {
+      "delivery": 2.1,
+      "dine_in": 2.1,
+      "pickup": 2.1,
+      "room_service": 2.1
+     },
+     "available": true,
+     "allergens": [
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052558",
+     "name": "Knoblauch-Aioli",
+     "prices_by_order_method": {
+      "delivery": 2.1,
+      "dine_in": 2.1,
+      "pickup": 2.1,
+      "room_service": 2.1
+     },
+     "available": true,
+     "allergens": [
+      "EIER",
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052492",
+     "name": "Fuze Tea Schwarzer Tee Pfirsich 0,4l (EINWEG)",
+     "prices_by_order_method": {
+      "delivery": 3.2,
+      "dine_in": 3.2,
+      "pickup": 3.2,
+      "room_service": 3.2
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052540",
+     "name": "Fuze Tea Grüner Tee Mango Kamille 0,4l (EINWEG)",
+     "prices_by_order_method": {
+      "delivery": 2.95,
+      "dine_in": 2.95,
+      "pickup": 2.95,
+      "room_service": 2.95
+     },
+     "available": true,
+     "allergens": [
+      ""
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052444",
+     "name": "Fuze Tea Grüner Tee Limette Minze 0,4l (EINWEG)",
+     "prices_by_order_method": {
+      "delivery": 2.95,
+      "dine_in": 2.95,
+      "pickup": 2.95,
+      "room_service": 2.95
+     },
+     "available": true,
+     "allergens": [
+      "SOJA"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052535",
+     "name": "Fuze Tea Schwarzer Tee Zitrone 0,4l (EINWEG)",
+     "prices_by_order_method": {
+      "delivery": 2.95,
+      "dine_in": 2.95,
+      "pickup": 2.95,
+      "room_service": 2.95
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052539",
+     "name": "Fuze Tea Schwarzer Tee Pfirsich Hibiskus 0,4l (EINWEG)",
+     "prices_by_order_method": {
+      "delivery": 2.95,
+      "dine_in": 2.95,
+      "pickup": 2.95,
+      "room_service": 2.95
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052476",
+     "name": "Istanbul-Cola 0,50l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052471",
+     "name": "Uludağ Gazoz Zuckerfrei 0,50l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052537",
+     "name": "Sariyer-Cola 0,50l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052456",
+     "name": "Fritz Orange 0,33l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": [
+      "ZITRUSFRÜCHTE"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052499",
+     "name": "Fritz Misch Masch 0,33l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052532",
+     "name": "Sariyer Gazoz 0,50l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052479",
+     "name": "Cola Turka 0,50l",
+     "prices_by_order_method": {
+      "delivery": 2.2,
+      "dine_in": 2.2,
+      "pickup": 2.2,
+      "room_service": 2.2
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052465",
+     "name": "Uludag Gazoz 0,50l",
+     "prices_by_order_method": {
+      "delivery": 2.9,
+      "dine_in": 2.9,
+      "pickup": 2.9,
+      "room_service": 2.9
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052474",
+     "name": "Red Bull 0,25l",
+     "prices_by_order_method": {
+      "delivery": 3.25,
+      "dine_in": 3.25,
+      "pickup": 3.25,
+      "room_service": 3.25
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052533",
+     "name": "Spree Quell still 0,5l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.25,
+      "dine_in": 2.25,
+      "pickup": 2.25,
+      "room_service": 2.25
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052505",
+     "name": "Spree Quell medium 0,5l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.5,
+      "dine_in": 2.5,
+      "pickup": 2.5,
+      "room_service": 2.5
+     },
+     "available": true,
+     "allergens": [
+      ""
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052531",
+     "name": "Spree Quell spritzig 0,5l (Einweg)",
+     "prices_by_order_method": {
+      "delivery": 2.25,
+      "dine_in": 2.25,
+      "pickup": 2.25,
+      "room_service": 2.25
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052462",
+     "name": "Durstlöscher Eistee Zitrone 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052500",
+     "name": "Durstlöscher Sauerkirsch Zitrone 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": [
+      "ZUCKER"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052450",
+     "name": "Durstlöscher Eistee Mango 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052486",
+     "name": "Durstlöscher Multivitamin 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": [
+      ""
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052553",
+     "name": "Durstlöscher Eistee Pfirsich 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": [
+      "SOJA"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052470",
+     "name": "Durstlöscher Blueberry Marshmallow 0,5l",
+     "prices_by_order_method": {
+      "delivery": 2,
+      "dine_in": 2,
+      "pickup": 2,
+      "room_service": 2
+     },
+     "available": true,
+     "allergens": [
+      "ZUCKER"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052503",
+     "name": "Capri Sun Orange 0,2l",
+     "prices_by_order_method": {
+      "delivery": 1.5,
+      "dine_in": 1.5,
+      "pickup": 1.5,
+      "room_service": 1.5
+     },
+     "available": true,
+     "allergens": [
+      "ZUCKER"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052489",
+     "name": "Capri Sun Multivitamin 0,2l",
+     "prices_by_order_method": {
+      "delivery": 1.5,
+      "dine_in": 1.5,
+      "pickup": 1.5,
+      "room_service": 1.5
+     },
+     "available": true,
+     "allergens": [
+      ""
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052466",
+     "name": "Capri Sun Kirsche 0,2l",
+     "prices_by_order_method": {
+      "delivery": 1.5,
+      "dine_in": 1.5,
+      "pickup": 1.5,
+      "room_service": 1.5
+     },
+     "available": true,
+     "allergens": [
+      "null"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052490",
+     "name": "Capri Sun Lemon 0,2l",
+     "prices_by_order_method": {
+      "delivery": 1.5,
+      "dine_in": 1.5,
+      "pickup": 1.5,
+      "room_service": 1.5
+     },
+     "available": true,
+     "allergens": [
+      "ZUCKER"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "",
+     "sku": "1052538",
+     "name": "7Gün Ayran 0,2l",
+     "prices_by_order_method": {
+      "delivery": 2.2,
+      "dine_in": 2.2,
+      "pickup": 2.2,
+      "room_service": 2.2
+     },
+     "available": true,
+     "allergens": [
+      "MILCH"
+     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    }
+   ],
+   "_capture": {
+    "captured_at": 1791794828,
+    "server_pubkey": "c3496b877eaa0e7d328d04b748e74c8d23a210f2c53b541bc3e2c79e827bac78",
+    "client_pubkey": "df04d1b03f1d2da82cd7fd987d6e001e2de74aefe67c7f80408b0dd430235b9f",
+    "relays": [
+     "wss://relay2.orangesync.tech"
+    ],
+    "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
+    "checks": [
+     {
+      "name": "initialize",
+      "ok": true,
+      "detail": "serverInfo.name=contextvm-venue-server"
+     },
+     {
+      "name": "tools/list",
+      "ok": true,
+      "detail": "tools=[\"menu\",\"order\"]"
+     },
+     {
+      "name": "tools/call:menu",
+      "ok": true,
+      "detail": "total_items=100 venues=[\"three-buddies-berlin\"] expected=[\"three-buddies-berlin\"]/100 sha256=38f4466251fc==38f4466251fc"
+     },
+     {
+      "name": "tools/call:order",
+      "ok": true,
+      "detail": "status=basket lines=2 total=13.5 venue=three-buddies-berlin deep_link=https://www.threebuddies.de/speisekarte/threebuddies"
+     }
+    ],
+    "tool": "services/restaurant-cvm/e2e_client.ts --json"
+   }
+  },
+  {
    "venue_slug": "doppelt-kaese-berlin",
    "name": "Doppelt Käse Laubacher Straße",
    "currency": "EUR",
+   "captured_at": "2026-10-05",
+   "adapter": {
+    "class": "deep_link_human",
+    "capabilities": {
+     "menu": true,
+     "quote": true,
+     "submit": false,
+     "status": false
+    },
+    "human_steps": [
+     "the CVM returns the basket and the venue's own deep link; it places nothing",
+     "a human places the order on the venue's own rail (its own web store or by telephone)",
+     "a human pays the venue on its own rail; the CVM never takes payment",
+     "a human records the venue's own order confirmation as the receipt"
+    ],
+    "credentials": {
+     "owner": "none",
+     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue"
+    },
+    "payment_authority": {
+     "authority": "the human who places the order, on the venue's own rail",
+     "cvm_cap_sats": 0
+    },
+    "idempotency": {
+     "key": "venue_slug + basket_sha256 + fulfilment + when",
+     "on_duplicate": "the CVM places nothing, so it cannot double-place; the venue's own order record is the authority"
+    },
+    "receipt": {
+     "form": "the venue's own order confirmation on its own rail (order id)",
+     "durable": "the venue's own record"
+    },
+    "menu_source": "the venue's own storefront JSON API (FoodAmigos), fetched by venues/doppelt-kaese-berlin/adapter.py"
+   },
    "item_count": 76,
+   "from_priced_count": 0,
+   "priced_methods": [
+    "delivery",
+    "dine_in",
+    "pickup",
+    "room_service"
+   ],
+   "min_price": 0.5,
+   "max_price": 13,
    "items": [
     {
      "id": "",
@@ -25,7 +2250,9 @@
      "option_group_ids": [
       "68405",
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -41,7 +2268,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -61,7 +2290,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -79,7 +2310,9 @@
       "MILCH",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -99,7 +2332,9 @@
      "option_group_ids": [
       "68408",
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -118,7 +2353,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -134,7 +2371,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -151,7 +2390,9 @@
       "EIER",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -167,7 +2408,9 @@
      "allergens": [
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -184,7 +2427,9 @@
       "GLUTEN",
       "Hühnchen"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -200,7 +2445,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -221,7 +2468,9 @@
      "option_group_ids": [
       "68405",
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -241,7 +2490,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -261,7 +2512,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -281,7 +2534,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -301,7 +2556,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -321,7 +2578,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -340,7 +2599,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -360,7 +2621,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -376,7 +2639,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -392,7 +2657,9 @@
      "allergens": [
       "AVOCADO"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -409,7 +2676,9 @@
       "MILCH",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -426,7 +2695,9 @@
       "WEIZEN",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -442,7 +2713,9 @@
      "allergens": [
       "GEFLÜGEL"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -458,7 +2731,9 @@
      "allergens": [
       "Hühnchen"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -475,7 +2750,9 @@
       "WEIZEN",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -492,7 +2769,9 @@
       "GLUTEN",
       "Hühnchen"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -509,7 +2788,9 @@
       "WEIZEN",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -525,7 +2806,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -541,7 +2824,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -557,7 +2842,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -574,7 +2861,9 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -593,7 +2882,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -612,7 +2903,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -630,7 +2923,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -648,7 +2943,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -667,7 +2964,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -685,7 +2984,9 @@
      ],
      "option_group_ids": [
       "68406"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -702,7 +3003,9 @@
       "EIER",
       "SENF"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -719,7 +3022,9 @@
       "EIER",
       "SENF"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -733,7 +3038,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -750,7 +3057,9 @@
       "EIER",
       "SENF"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -766,7 +3075,9 @@
      "allergens": [
       "SOJA"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -782,7 +3093,9 @@
      "allergens": [
       "SOJA"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -798,7 +3111,9 @@
      "allergens": [
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -814,7 +3129,9 @@
      "allergens": [
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -830,7 +3147,9 @@
      "allergens": [
       "SOJA"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -848,7 +3167,9 @@
       "MILCH",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -864,7 +3185,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -880,7 +3203,9 @@
      "allergens": [
       "EIER"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -896,7 +3221,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -912,7 +3239,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -928,7 +3257,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -944,7 +3275,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -960,7 +3293,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -976,7 +3311,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -992,7 +3329,9 @@
      "allergens": [
       ""
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1008,7 +3347,9 @@
      "allergens": [
       "KOFFEIN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1024,7 +3365,9 @@
      "allergens": [
       "KOFFEIN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1038,7 +3381,9 @@
      },
      "available": false,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1052,7 +3397,9 @@
      },
      "available": false,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1066,7 +3413,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1080,7 +3429,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1094,7 +3445,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1110,7 +3463,9 @@
      "allergens": [
       "GLUTEN"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1124,7 +3479,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1140,7 +3497,9 @@
      "allergens": [
       "SULFITE"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1156,7 +3515,9 @@
      "allergens": [
       "SULFITE"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1172,7 +3533,9 @@
      "allergens": [
       "SULFITE"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1189,7 +3552,9 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1206,7 +3571,9 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1224,7 +3591,9 @@
       "MILCH",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1241,7 +3610,9 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1258,7 +3629,9 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1276,7 +3649,9 @@
       "MILCH",
       "EI"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "",
@@ -1293,15 +3668,17 @@
       "GLUTEN",
       "MILCH"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     }
    ],
    "_capture": {
-    "captured_at": 1791375735,
+    "captured_at": 1791794836,
     "server_pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
-    "client_pubkey": "6b39929926ab717bfcc28c40dadff180956221d6ad415c975aac0b3fa21ed4be",
+    "client_pubkey": "b2e8e990fc2f5a4a627e99e44cc96c956accafc8fbd55dba4b27ea104a63c141",
     "relays": [
-     "wss://relay.primal.net"
+     "wss://relay2.orangesync.tech"
     ],
     "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
     "checks": [
@@ -1318,12 +3695,12 @@
      {
       "name": "tools/call:menu",
       "ok": true,
-      "detail": "total_items=76 venues=[\"doppelt-kaese-berlin\"] expected=[\"doppelt-kaese-berlin\"]/76"
+      "detail": "total_items=76 venues=[\"doppelt-kaese-berlin\"] expected=[\"doppelt-kaese-berlin\"]/76 sha256=1cd53a212147==1cd53a212147"
      },
      {
       "name": "tools/call:order",
       "ok": true,
-      "detail": "status=basket lines=2 total=22.3 venue=doppelt-kaese-berlin deep_link=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
+      "detail": "status=basket lines=2 total=15.8 venue=doppelt-kaese-berlin deep_link=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
      }
     ],
     "tool": "services/restaurant-cvm/e2e_client.ts --json"
@@ -1333,7 +3710,46 @@
    "venue_slug": "pizza-e-pasta-ruedesheimerplatz",
    "name": "Pizza e Pasta",
    "currency": "EUR",
+   "captured_at": "2026-10-05",
+   "adapter": {
+    "class": "deep_link_human",
+    "capabilities": {
+     "menu": true,
+     "quote": true,
+     "submit": false,
+     "status": false
+    },
+    "human_steps": [
+     "the CVM returns the basket and the venue's own deep link; it places nothing",
+     "a human places the order on the venue's own rail (its own web store or by telephone)",
+     "a human pays the venue on its own rail; the CVM never takes payment",
+     "a human records the venue's own order confirmation as the receipt"
+    ],
+    "credentials": {
+     "owner": "none",
+     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue"
+    },
+    "payment_authority": {
+     "authority": "the human who places the order, on the venue's own rail",
+     "cvm_cap_sats": 0
+    },
+    "idempotency": {
+     "key": "venue_slug + basket_sha256 + fulfilment + when",
+     "on_duplicate": "the CVM places nothing, so it cannot double-place; the venue's own order record is the authority"
+    },
+    "receipt": {
+     "form": "the venue's own order confirmation on its own rail (order id)",
+     "durable": "the venue's own record"
+    },
+    "menu_source": "the venue's own storefront JSON API, fetched by venues/pizza-e-pasta-ruedesheimerplatz/adapter.py"
+   },
    "item_count": 112,
+   "from_priced_count": 0,
+   "priced_methods": [
+    "pickup"
+   ],
+   "min_price": 2.7,
+   "max_price": 16.65,
    "items": [
     {
      "id": "6943925",
@@ -1348,7 +3764,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943928",
@@ -1365,7 +3783,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943882",
@@ -1380,7 +3800,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943883",
@@ -1395,7 +3817,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943884",
@@ -1410,7 +3834,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943885",
@@ -1425,7 +3851,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943886",
@@ -1440,7 +3868,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943887",
@@ -1455,7 +3885,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943888",
@@ -1472,7 +3904,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943889",
@@ -1489,7 +3923,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943890",
@@ -1504,7 +3940,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943850",
@@ -1519,7 +3957,9 @@
      ],
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943892",
@@ -1534,7 +3974,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943891",
@@ -1551,7 +3993,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943893",
@@ -1566,7 +4010,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943894",
@@ -1581,7 +4027,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943895",
@@ -1599,7 +4047,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943896",
@@ -1616,7 +4066,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943897",
@@ -1633,7 +4085,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943898",
@@ -1648,7 +4102,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943899",
@@ -1663,7 +4119,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943900",
@@ -1680,7 +4138,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943901",
@@ -1697,7 +4157,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943902",
@@ -1714,7 +4176,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943903",
@@ -1732,7 +4196,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943912",
@@ -1746,7 +4212,9 @@
      "option_group_ids": [
       "4318514",
       "4318515"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943911",
@@ -1760,7 +4228,9 @@
      "option_group_ids": [
       "4318512",
       "4318513"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943904",
@@ -1775,7 +4245,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943905",
@@ -1792,7 +4264,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943906",
@@ -1807,7 +4281,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943907",
@@ -1822,7 +4298,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943908",
@@ -1839,7 +4317,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943909",
@@ -1854,7 +4334,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943851",
@@ -1867,7 +4349,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943910",
@@ -1884,7 +4368,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943916",
@@ -1899,7 +4385,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943913",
@@ -1914,7 +4402,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943914",
@@ -1931,7 +4421,9 @@
       "4454494",
       "4454495",
       "4454496"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943915",
@@ -1947,7 +4439,9 @@
      "option_group_ids": [
       "4318522",
       "4318523"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943918",
@@ -1965,7 +4459,9 @@
      "option_group_ids": [
       "4318529",
       "4318530"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943852",
@@ -1980,7 +4476,9 @@
      ],
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943853",
@@ -1995,7 +4493,9 @@
      ],
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943854",
@@ -2008,7 +4508,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943855",
@@ -2021,7 +4523,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943856",
@@ -2036,7 +4540,9 @@
      ],
      "option_group_ids": [
       "4454489"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943929",
@@ -2047,7 +4553,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943919",
@@ -2062,7 +4570,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "7660384",
@@ -2073,7 +4583,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943920",
@@ -2088,7 +4600,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943931",
@@ -2099,7 +4613,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943932",
@@ -2110,7 +4626,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943933",
@@ -2121,7 +4639,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943945",
@@ -2132,7 +4652,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943946",
@@ -2143,7 +4665,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943937",
@@ -2154,7 +4678,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943934",
@@ -2165,7 +4691,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943947",
@@ -2176,7 +4704,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943935",
@@ -2187,7 +4717,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943943",
@@ -2198,7 +4730,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943936",
@@ -2209,7 +4743,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943938",
@@ -2220,7 +4756,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943939",
@@ -2231,7 +4769,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943940",
@@ -2242,7 +4782,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943941",
@@ -2253,7 +4795,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943942",
@@ -2264,7 +4808,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943944",
@@ -2278,7 +4824,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943921",
@@ -2293,7 +4841,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943948",
@@ -2304,7 +4854,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943950",
@@ -2318,7 +4870,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943951",
@@ -2332,7 +4886,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943952",
@@ -2346,7 +4902,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943953",
@@ -2360,7 +4918,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943949",
@@ -2371,7 +4931,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943954",
@@ -2385,7 +4947,9 @@
       "GLUTEN",
       "WHEAT"
      ],
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943922",
@@ -2400,7 +4964,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943955",
@@ -2411,7 +4977,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943956",
@@ -2422,7 +4990,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943957",
@@ -2433,7 +5003,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943958",
@@ -2444,7 +5016,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943923",
@@ -2459,7 +5033,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943960",
@@ -2470,7 +5046,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943964",
@@ -2483,7 +5061,9 @@
      "allergens": null,
      "option_group_ids": [
       "4761625"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943961",
@@ -2494,7 +5074,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943962",
@@ -2505,7 +5087,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943963",
@@ -2516,7 +5100,9 @@
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": []
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943965",
@@ -2529,7 +5115,9 @@
      "allergens": null,
      "option_group_ids": [
       "4318561"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "7660389",
@@ -2542,7 +5130,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943924",
@@ -2557,7 +5147,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943859",
@@ -2570,7 +5162,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943860",
@@ -2585,7 +5179,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943861",
@@ -2598,7 +5194,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943862",
@@ -2611,7 +5209,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943863",
@@ -2627,7 +5227,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943864",
@@ -2640,7 +5242,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943865",
@@ -2656,7 +5260,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943866",
@@ -2669,7 +5275,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943867",
@@ -2682,7 +5290,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943868",
@@ -2697,7 +5307,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943926",
@@ -2712,7 +5324,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943869",
@@ -2727,7 +5341,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943870",
@@ -2740,7 +5356,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943871",
@@ -2753,7 +5371,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943872",
@@ -2766,7 +5386,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943873",
@@ -2779,7 +5401,9 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943874",
@@ -2794,7 +5418,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943875",
@@ -2809,7 +5435,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943876",
@@ -2824,7 +5452,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943877",
@@ -2839,7 +5469,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943880",
@@ -2854,7 +5486,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943927",
@@ -2869,7 +5503,9 @@
       "4454519",
       "4454520",
       "4454521"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943878",
@@ -2884,7 +5520,9 @@
      ],
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     },
     {
      "id": "6943879",
@@ -2897,15 +5535,17 @@
      "allergens": null,
      "option_group_ids": [
       "4454492"
-     ]
+     ],
+     "price_is_from": false,
+     "price_qualifier": null
     }
    ],
    "_capture": {
-    "captured_at": 1791375744,
+    "captured_at": 1791794844,
     "server_pubkey": "ef070a5dcaaa368d05d6a248041195e9f3b388ea323ca0c0a1d73ed44e31ea2b",
-    "client_pubkey": "0ffffd1d5ead52dce7ae4ec12a8c82564838c6424a2def5cb4cd1fe0e7176fc0",
+    "client_pubkey": "145f2c5756057d8e153071a579ad6368618035fff92ed2947b7a0205c062dc6a",
     "relays": [
-     "wss://relay.primal.net"
+     "wss://relay2.orangesync.tech"
     ],
     "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
     "checks": [
@@ -2922,12 +5562,12 @@
      {
       "name": "tools/call:menu",
       "ok": true,
-      "detail": "total_items=112 venues=[\"pizza-e-pasta-ruedesheimerplatz\"] expected=[\"pizza-e-pasta-ruedesheimerplatz\"]/112"
+      "detail": "total_items=112 venues=[\"pizza-e-pasta-ruedesheimerplatz\"] expected=[\"pizza-e-pasta-ruedesheimerplatz\"]/112 sha256=4107fe9577ef==4107fe9577ef"
      },
      {
       "name": "tools/call:order",
       "ok": true,
-      "detail": "status=basket lines=1 total=2.7 venue=pizza-e-pasta-ruedesheimerplatz deep_link=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"
+      "detail": "status=basket lines=2 total=17.1 venue=pizza-e-pasta-ruedesheimerplatz deep_link=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"
      }
     ],
     "tool": "services/restaurant-cvm/e2e_client.ts --json"
@@ -2943,7 +5583,7 @@
   "why": "site/app.js reads exactly this file; the dashboard must not invent a menu.",
   "how": "tools/capture_menu.py -> services/restaurant-cvm/e2e_client.ts --json",
   "relays": [
-   "wss://relay.primal.net"
+   "wss://relay2.orangesync.tech"
   ],
   "note": "Regenerate rather than hand-edit; each venue block carries its own _capture block."
  }
