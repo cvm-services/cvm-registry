@@ -156,8 +156,35 @@ def main() -> int:
     if not CLIENT.is_file():
         sys.exit(f"e2e_client not found at {CLIENT} — set CTXVM_REPO")
 
-    venues = args.venue or ["doppelt-kaese-berlin", "pizza-e-pasta-ruedesheimerplatz"]
-    results = [capture(slug, args.timeout_ms) for slug in venues]
+    # Auto-discover every venue we have a record for, instead of a hardcoded
+    # list. The old default named two slugs explicitly, so a venue that was
+    # onboarded (venue.json + key + running unit + announcement) was silently
+    # never chained into the served menu. Chandi (Berlin-Steglitz) sat unserved
+    # for exactly this reason. A venue whose server is not answering is now a
+    # VISIBLE skip with a warning, never a silent omission.
+    if args.venue:
+        venues = args.venue
+    else:
+        venues = sorted(
+            p.parent.name
+            for p in (CTXVM_REPO / "venues").glob("*/venue.json")
+        )
+        if not venues:
+            sys.exit(f"no venues found under {CTXVM_REPO / 'venues'}")
+    results = []
+    skipped: list[str] = []
+    for slug in venues:
+        try:
+            results.append(capture(slug, args.timeout_ms))
+        except SystemExit as e:
+            # capture() reports refusals via sys.exit. One unserved or drifted
+            # venue must not abort the whole capture — but it MUST be reported.
+            skipped.append(slug)
+            print(f"[capture] SKIP {slug}: {e.code}", file=sys.stderr)
+    if not results:
+        sys.exit("every venue failed to capture — refusing to write an empty menu")
+    if skipped:
+        print(f"[capture] WARNING: {len(skipped)} venue(s) not served: {', '.join(skipped)}", file=sys.stderr)
 
     tools = sorted({t for r in results for t in r["tools"]})
     doc = {
@@ -169,6 +196,7 @@ def main() -> int:
             "how": "tools/capture_menu.py -> services/restaurant-cvm/e2e_client.ts --json",
             "relays": [r.strip() for r in RELAYS.split(",")],
             "note": "Regenerate rather than hand-edit; each venue block carries its own _capture block.",
+            "not_served": skipped,
         },
     }
     out = Path(args.out)

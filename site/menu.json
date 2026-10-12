@@ -1,12 +1,11 @@
 {
  "venues": [
   {
-   "venue_slug": "three-buddies-berlin",
-   "name": "Three Buddies Steglitz",
+   "venue_slug": "chandi-berlin",
+   "name": "Chandi Restaurant",
    "currency": "EUR",
-   "captured_at": "2026-10-11T22:34:12+00:00",
+   "captured_at": "2026-10-10T08:05:05+00:00",
    "adapter": {
-    "browser_automation_used": false,
     "capabilities": {
      "menu": true,
      "quote": true,
@@ -14,4542 +13,43 @@
      "submit": false
     },
     "class": "deep_link_human",
-    "class_per_adr": "docs/adr/0007-venue-adapter-interface.md — class 1",
     "credentials": {
      "owner": "none",
-     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue and authenticates nothing (ADR-0007 class 1)"
-    },
-    "human_steps": [
-     "choose pickup or delivery (and, for delivery, an address)",
-     "open the venue's own ordering page at ordering.primary_url",
-     "pay the venue on the venue's own rail (card/paypal/cash; 3DS as the venue requires)",
-     "a human confirms the order with the venue"
-    ],
-    "idempotency": {
-     "detail": "the CVM mints no order id because it places no order; the human placing the order is the point of idempotency",
-     "key": "venue_slug + basket_sha256 + fulfilment + when"
-    },
-    "payment_authority": {
-     "authority": "the venue's own rail; this CVM takes no payment (ADR-0001 D5)",
-     "detail": "the customer pays the venue directly on the venue's own rail (card/PayPal/cash, 3DS as the venue requires); no payment is routed through the CVM"
-    },
-    "receipt": {
-     "form": "the venue's own confirmation (not machine-readable here)",
-     "machine_readable": false
-    },
-    "why_this_class": "The platform DOES run an online shop for this venue, but no unauthenticated or test-mode path to place an order was found or verified: the storefront's cart and checkout are authenticated, session-bound browser flows (the capture shows Stripe/Google Pay material loaded, and clicking 'Lieferung' opens an address modal). Per ADR-0007 the honest capability set is menu+quote only, with submit/status false."
-   },
-   "item_count": 100,
-   "from_priced_count": 0,
-   "priced_methods": [
-    "delivery",
-    "dine_in",
-    "pickup",
-    "room_service"
-   ],
-   "min_price": 1.5,
-   "max_price": 18.4,
-   "items": [
-    {
-     "id": "",
-     "sku": "1052475",
-     "name": "Cheeseburger Menü",
-     "prices_by_order_method": {
-      "delivery": 15,
-      "dine_in": 14,
-      "pickup": 14,
-      "room_service": 14
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052454",
-     "name": "Texas Burger",
-     "prices_by_order_method": {
-      "delivery": 9.3,
-      "dine_in": 8.3,
-      "pickup": 8.3,
-      "room_service": 8.3
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052491",
-     "name": "Curly Fries (vegan)",
-     "prices_by_order_method": {
-      "delivery": 5.5,
-      "dine_in": 4.5,
-      "pickup": 4.5,
-      "room_service": 4.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052566",
-     "name": "New Jersey Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 9.5,
-      "pickup": 9.5,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "EIER",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052545",
-     "name": "Chicken Wings",
-     "prices_by_order_method": {
-      "delivery": 7.9,
-      "dine_in": 6.9,
-      "pickup": 6.9,
-      "room_service": 6.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216529"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052526",
-     "name": "Texas Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15.8,
-      "dine_in": 14.8,
-      "pickup": 14.8,
-      "room_service": 14.8
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "SENF"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052511",
-     "name": "Chili Cheese Nuggets",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 6.5,
-      "pickup": 6.5,
-      "room_service": 6.5
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216527"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052524",
-     "name": "Hamburger",
-     "prices_by_order_method": {
-      "delivery": 7.9,
-      "dine_in": 6.9,
-      "pickup": 6.9,
-      "room_service": 6.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052440",
-     "name": "Cheeseburger",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 7.5,
-      "pickup": 7.5,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052487",
-     "name": "Mexicali Burger (scharf)",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 7.9,
-      "pickup": 7.9,
-      "room_service": 7.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052550",
-     "name": "Indiana Burger",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 7.9,
-      "pickup": 7.9,
-      "room_service": 7.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052459",
-     "name": "Miami Burger",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 7.9,
-      "pickup": 7.9,
-      "room_service": 7.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052449",
-     "name": "Blue Cheese Burger",
-     "prices_by_order_method": {
-      "delivery": 9.9,
-      "dine_in": 8.9,
-      "pickup": 8.9,
-      "room_service": 8.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052473",
-     "name": "Portobello Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 9.5,
-      "pickup": 9.5,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052458",
-     "name": "Manhatten Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 9.5,
-      "pickup": 9.5,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052455",
-     "name": "Three Buddies Burger",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052509",
-     "name": "Crispy Chicken Burger",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 8.5,
-      "pickup": 8.5,
-      "room_service": 8.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052557",
-     "name": "Hamburger Menü",
-     "prices_by_order_method": {
-      "delivery": 14.4,
-      "dine_in": 13.4,
-      "pickup": 13.4,
-      "room_service": 13.4
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052472",
-     "name": "Mexicali Burger Menü (scharf)",
-     "prices_by_order_method": {
-      "delivery": 15.4,
-      "dine_in": 14.4,
-      "pickup": 14.4,
-      "room_service": 14.4
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052548",
-     "name": "Indiana Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15.4,
-      "dine_in": 14.4,
-      "pickup": 14.4,
-      "room_service": 14.4
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052447",
-     "name": "Miami Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15.4,
-      "dine_in": 14.4,
-      "pickup": 14.4,
-      "room_service": 14.4
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052448",
-     "name": "New Jersey Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 17,
-      "dine_in": 16,
-      "pickup": 16,
-      "room_service": 16
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052508",
-     "name": "Blue Cheeseburger Menü",
-     "prices_by_order_method": {
-      "delivery": 16.4,
-      "dine_in": 15.4,
-      "pickup": 15.4,
-      "room_service": 15.4
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052519",
-     "name": "Portobello Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 17,
-      "dine_in": 16,
-      "pickup": 16,
-      "room_service": 16
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EIER",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052488",
-     "name": "Manhatten Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 17,
-      "dine_in": 16,
-      "pickup": 16,
-      "room_service": 16
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052544",
-     "name": "Three Buddies Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 18.4,
-      "dine_in": 17.4,
-      "pickup": 17.4,
-      "room_service": 17.4
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052452",
-     "name": "Veggie Falafel Burger",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 7.5,
-      "pickup": 7.5,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "NÜSSE",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052510",
-     "name": "Veggie Halloumi Burger",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 7.5,
-      "pickup": 7.5,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052442",
-     "name": "Veggie Gemüse Burger",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 7.5,
-      "pickup": 7.5,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "NÜSSE",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052502",
-     "name": "Veggie Beyond Meat Burger",
-     "prices_by_order_method": {
-      "delivery": 9.9,
-      "dine_in": 8.9,
-      "pickup": 8.9,
-      "room_service": 8.9
-     },
-     "available": true,
-     "allergens": [
-      "ERBSENPROTEIN"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052552",
-     "name": "Veggie Mexicali Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 9.5,
-      "pickup": 9.5,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052530",
-     "name": "Three Buddies Veggie",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052549",
-     "name": "Veggi Falafel Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15,
-      "dine_in": 14,
-      "pickup": 14,
-      "room_service": 14
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "SOJA",
-      "NÜSSE"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052463",
-     "name": "Veggi Halloumi Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15,
-      "dine_in": 14,
-      "pickup": 14,
-      "room_service": 14
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052514",
-     "name": "Veggi Gemüse Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 15,
-      "dine_in": 14,
-      "pickup": 14,
-      "room_service": 14
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052504",
-     "name": "Veggi Beyond Meat Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 16.4,
-      "dine_in": 15.4,
-      "pickup": 15.4,
-      "room_service": 15.4
-     },
-     "available": true,
-     "allergens": [
-      "ERBSENPROTEIN"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052529",
-     "name": "Veggi Mexicali Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 17,
-      "dine_in": 16,
-      "pickup": 16,
-      "room_service": 16
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "SESAM",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052516",
-     "name": "Three Buddies Burger Menü",
-     "prices_by_order_method": {
-      "delivery": 18.4,
-      "dine_in": 17.4,
-      "pickup": 17.4,
-      "room_service": 17.4
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "SOJA",
-      "MILCH",
-      "EIER",
-      "SESAM"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052478",
-     "name": "Hot Dog Classic",
-     "prices_by_order_method": {
-      "delivery": 4.9,
-      "dine_in": 3.9,
-      "pickup": 3.9,
-      "room_service": 3.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052446",
-     "name": "Hot Dog Americana",
-     "prices_by_order_method": {
-      "delivery": 5.5,
-      "dine_in": 4.5,
-      "pickup": 4.5,
-      "room_service": 4.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052445",
-     "name": "Hot Dog Mexicali (scharf)",
-     "prices_by_order_method": {
-      "delivery": 5.9,
-      "dine_in": 4.9,
-      "pickup": 4.9,
-      "room_service": 4.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052461",
-     "name": "Currywurst (Halal)",
-     "prices_by_order_method": {
-      "delivery": 6.5,
-      "dine_in": 5.5,
-      "pickup": 5.5,
-      "room_service": 5.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216512",
-      "216513",
-      "216514",
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052551",
-     "name": "Hot Dog Classic Menü",
-     "prices_by_order_method": {
-      "delivery": 15.3,
-      "dine_in": 14.3,
-      "pickup": 14.3,
-      "room_service": 14.3
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "216521",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052464",
-     "name": "Hot Dog Americana Menü",
-     "prices_by_order_method": {
-      "delivery": 15.9,
-      "dine_in": 14.9,
-      "pickup": 14.9,
-      "room_service": 14.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216521",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052520",
-     "name": "Hot Dog Mexicali Menü (scharf)",
-     "prices_by_order_method": {
-      "delivery": 16.3,
-      "dine_in": 15.3,
-      "pickup": 15.3,
-      "room_service": 15.3
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216521",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052477",
-     "name": "Currywurst Menü",
-     "prices_by_order_method": {
-      "delivery": 13,
-      "dine_in": 12,
-      "pickup": 12,
-      "room_service": 12
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216516",
-      "216517",
-      "216518",
-      "216519"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052451",
-     "name": "Pommes frites (vegan)",
-     "prices_by_order_method": {
-      "delivery": 5.5,
-      "dine_in": 4.5,
-      "pickup": 4.5,
-      "room_service": 4.5
-     },
-     "available": true,
-     "allergens": [
-      null
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052517",
-     "name": "Wedges (vegan)",
-     "prices_by_order_method": {
-      "delivery": 5.5,
-      "dine_in": 4.5,
-      "pickup": 4.5,
-      "room_service": 4.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052542",
-     "name": "Sweet Potatoes (vegan)",
-     "prices_by_order_method": {
-      "delivery": 6.9,
-      "dine_in": 5.9,
-      "pickup": 5.9,
-      "room_service": 5.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052482",
-     "name": "Chili Cheese Pommes",
-     "prices_by_order_method": {
-      "delivery": 6.9,
-      "dine_in": 5.9,
-      "pickup": 5.9,
-      "room_service": 5.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052562",
-     "name": "Onion Rings",
-     "prices_by_order_method": {
-      "delivery": 5.9,
-      "dine_in": 4.9,
-      "pickup": 4.9,
-      "room_service": 4.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216530"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052506",
-     "name": "Chicken Nuggets",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 6.5,
-      "pickup": 6.5,
-      "room_service": 6.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WEIZEN"
-     ],
-     "option_group_ids": [
-      "216526"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052497",
-     "name": "Broccoli Nuggets (6 Stück)",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 6.5,
-      "pickup": 6.5,
-      "room_service": 6.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052536",
-     "name": "Mozzarella-Sticks",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 6.5,
-      "pickup": 6.5,
-      "room_service": 6.5
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN",
-      "EI"
-     ],
-     "option_group_ids": [
-      "216528"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052523",
-     "name": "Pasta Pollo",
-     "prices_by_order_method": {
-      "delivery": 12.9,
-      "dine_in": 11.9,
-      "pickup": 11.9,
-      "room_service": 11.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052534",
-     "name": "Pasta Napoli",
-     "prices_by_order_method": {
-      "delivery": 10.9,
-      "dine_in": 9.9,
-      "pickup": 9.9,
-      "room_service": 9.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052481",
-     "name": "Pasta Gorgonzola",
-     "prices_by_order_method": {
-      "delivery": 12.9,
-      "dine_in": 11.9,
-      "pickup": 11.9,
-      "room_service": 11.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052441",
-     "name": "Pasta Carbonara",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "WEIZEN",
-      "EIER",
-      "MILCH",
-      "SCHWEINEFLEISCH"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052457",
-     "name": "Arrabiata - pikant",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052469",
-     "name": "Pasta Veggie",
-     "prices_by_order_method": {
-      "delivery": 12.9,
-      "dine_in": 11.9,
-      "pickup": 11.9,
-      "room_service": 11.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052513",
-     "name": "Aglio E Olio",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [
-      "216515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052498",
-     "name": "Salat Mista",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 7.9,
-      "pickup": 7.9,
-      "room_service": 7.9
-     },
-     "available": true,
-     "allergens": [
-      null
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052543",
-     "name": "Rucola-Salat",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 8.5,
-      "pickup": 8.5,
-      "room_service": 8.5
-     },
-     "available": true,
-     "allergens": [
-      "MILCH",
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052496",
-     "name": "Salat Tonno",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 10.9,
-      "pickup": 10.9,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "FISCH",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052546",
-     "name": "Salat Chicken",
-     "prices_by_order_method": {
-      "delivery": 12.9,
-      "dine_in": 11.9,
-      "pickup": 11.9,
-      "room_service": 11.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052495",
-     "name": "Ketchup",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.5,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052480",
-     "name": "Mayonnaise",
-     "prices_by_order_method": {
-      "delivery": 1.6,
-      "dine_in": 1.6,
-      "pickup": 1.6,
-      "room_service": 1.6
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "SENF"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052485",
-     "name": "Barbecuesauce",
-     "prices_by_order_method": {
-      "delivery": 1.7,
-      "dine_in": 1.7,
-      "pickup": 1.7,
-      "room_service": 1.7
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052443",
-     "name": "Guacamole",
-     "prices_by_order_method": {
-      "delivery": 1.7,
-      "dine_in": 1.7,
-      "pickup": 1.7,
-      "room_service": 1.7
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052560",
-     "name": "Chili-Cheese-Dip",
-     "prices_by_order_method": {
-      "delivery": 1.9,
-      "dine_in": 1.9,
-      "pickup": 1.9,
-      "room_service": 1.9
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052564",
-     "name": "Sour Cream",
-     "prices_by_order_method": {
-      "delivery": 2.1,
-      "dine_in": 2.1,
-      "pickup": 2.1,
-      "room_service": 2.1
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052558",
-     "name": "Knoblauch-Aioli",
-     "prices_by_order_method": {
-      "delivery": 2.1,
-      "dine_in": 2.1,
-      "pickup": 2.1,
-      "room_service": 2.1
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052492",
-     "name": "Fuze Tea Schwarzer Tee Pfirsich 0,4l (EINWEG)",
-     "prices_by_order_method": {
-      "delivery": 3.2,
-      "dine_in": 3.2,
-      "pickup": 3.2,
-      "room_service": 3.2
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052540",
-     "name": "Fuze Tea Grüner Tee Mango Kamille 0,4l (EINWEG)",
-     "prices_by_order_method": {
-      "delivery": 2.95,
-      "dine_in": 2.95,
-      "pickup": 2.95,
-      "room_service": 2.95
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052444",
-     "name": "Fuze Tea Grüner Tee Limette Minze 0,4l (EINWEG)",
-     "prices_by_order_method": {
-      "delivery": 2.95,
-      "dine_in": 2.95,
-      "pickup": 2.95,
-      "room_service": 2.95
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052535",
-     "name": "Fuze Tea Schwarzer Tee Zitrone 0,4l (EINWEG)",
-     "prices_by_order_method": {
-      "delivery": 2.95,
-      "dine_in": 2.95,
-      "pickup": 2.95,
-      "room_service": 2.95
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052539",
-     "name": "Fuze Tea Schwarzer Tee Pfirsich Hibiskus 0,4l (EINWEG)",
-     "prices_by_order_method": {
-      "delivery": 2.95,
-      "dine_in": 2.95,
-      "pickup": 2.95,
-      "room_service": 2.95
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052476",
-     "name": "Istanbul-Cola 0,50l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052471",
-     "name": "Uludağ Gazoz Zuckerfrei 0,50l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052537",
-     "name": "Sariyer-Cola 0,50l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052456",
-     "name": "Fritz Orange 0,33l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": [
-      "ZITRUSFRÜCHTE"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052499",
-     "name": "Fritz Misch Masch 0,33l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052532",
-     "name": "Sariyer Gazoz 0,50l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052479",
-     "name": "Cola Turka 0,50l",
-     "prices_by_order_method": {
-      "delivery": 2.2,
-      "dine_in": 2.2,
-      "pickup": 2.2,
-      "room_service": 2.2
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052465",
-     "name": "Uludag Gazoz 0,50l",
-     "prices_by_order_method": {
-      "delivery": 2.9,
-      "dine_in": 2.9,
-      "pickup": 2.9,
-      "room_service": 2.9
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052474",
-     "name": "Red Bull 0,25l",
-     "prices_by_order_method": {
-      "delivery": 3.25,
-      "dine_in": 3.25,
-      "pickup": 3.25,
-      "room_service": 3.25
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052533",
-     "name": "Spree Quell still 0,5l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.25,
-      "dine_in": 2.25,
-      "pickup": 2.25,
-      "room_service": 2.25
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052505",
-     "name": "Spree Quell medium 0,5l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.5,
-      "dine_in": 2.5,
-      "pickup": 2.5,
-      "room_service": 2.5
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052531",
-     "name": "Spree Quell spritzig 0,5l (Einweg)",
-     "prices_by_order_method": {
-      "delivery": 2.25,
-      "dine_in": 2.25,
-      "pickup": 2.25,
-      "room_service": 2.25
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052462",
-     "name": "Durstlöscher Eistee Zitrone 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052500",
-     "name": "Durstlöscher Sauerkirsch Zitrone 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": [
-      "ZUCKER"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052450",
-     "name": "Durstlöscher Eistee Mango 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052486",
-     "name": "Durstlöscher Multivitamin 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052553",
-     "name": "Durstlöscher Eistee Pfirsich 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052470",
-     "name": "Durstlöscher Blueberry Marshmallow 0,5l",
-     "prices_by_order_method": {
-      "delivery": 2,
-      "dine_in": 2,
-      "pickup": 2,
-      "room_service": 2
-     },
-     "available": true,
-     "allergens": [
-      "ZUCKER"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052503",
-     "name": "Capri Sun Orange 0,2l",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.5,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "ZUCKER"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052489",
-     "name": "Capri Sun Multivitamin 0,2l",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.5,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052466",
-     "name": "Capri Sun Kirsche 0,2l",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.5,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "null"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052490",
-     "name": "Capri Sun Lemon 0,2l",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.5,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "ZUCKER"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "1052538",
-     "name": "7Gün Ayran 0,2l",
-     "prices_by_order_method": {
-      "delivery": 2.2,
-      "dine_in": 2.2,
-      "pickup": 2.2,
-      "room_service": 2.2
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    }
-   ],
-   "_capture": {
-    "captured_at": 1791813178,
-    "server_pubkey": "c3496b877eaa0e7d328d04b748e74c8d23a210f2c53b541bc3e2c79e827bac78",
-    "client_pubkey": "eb6afa04deed0c114d0607d1a4274698076be81ab0d4568a4dac879ec7036267",
-    "relays": [
-     "wss://relay2.orangesync.tech"
-    ],
-    "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
-    "checks": [
-     {
-      "name": "initialize",
-      "ok": true,
-      "detail": "serverInfo.name=contextvm-venue-server"
-     },
-     {
-      "name": "tools/list",
-      "ok": true,
-      "detail": "tools=[\"menu\",\"order\"]"
-     },
-     {
-      "name": "tools/call:menu",
-      "ok": true,
-      "detail": "total_items=100 venues=[\"three-buddies-berlin\"] expected=[\"three-buddies-berlin\"]/100 sha256=38f4466251fc==38f4466251fc"
-     },
-     {
-      "name": "tools/call:order",
-      "ok": true,
-      "detail": "status=basket lines=2 total=13.5 venue=three-buddies-berlin deep_link=https://www.threebuddies.de/speisekarte/threebuddies"
-     }
-    ],
-    "tool": "services/restaurant-cvm/e2e_client.ts --json"
-   }
-  },
-  {
-   "venue_slug": "doppelt-kaese-berlin",
-   "name": "Doppelt Käse Laubacher Straße",
-   "currency": "EUR",
-   "captured_at": "2026-10-05",
-   "adapter": {
-    "class": "deep_link_human",
-    "capabilities": {
-     "menu": true,
-     "quote": true,
-     "submit": false,
-     "status": false
+     "scope": "the venue's own page is public; the CVM holds no credential for this venue"
     },
     "human_steps": [
      "the CVM returns the basket and the venue's own deep link; it places nothing",
-     "a human places the order on the venue's own rail (its own web store or by telephone)",
-     "a human pays the venue on its own rail; the CVM never takes payment",
-     "a human records the venue's own order confirmation as the receipt"
+     "a human telephones the venue or orders in the house and places the order there",
+     "a human pays the venue directly (in the house); the CVM never takes payment",
+     "a human records the venue's own confirmation (staff name + time) as the receipt"
     ],
-    "credentials": {
-     "owner": "none",
-     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue"
-    },
-    "payment_authority": {
-     "authority": "the human who places the order, on the venue's own rail",
-     "cvm_cap_sats": 0
-    },
     "idempotency": {
      "key": "venue_slug + basket_sha256 + fulfilment + when",
-     "on_duplicate": "the CVM places nothing, so it cannot double-place; the venue's own order record is the authority"
+     "on_duplicate": "the CVM places nothing, so it cannot double-place; the venue's own telephone record is the authority"
+    },
+    "payment_authority": {
+     "authority": "the human who places the order, on the venue's own premises",
+     "cvm_cap_sats": 0
     },
     "receipt": {
-     "form": "the venue's own order confirmation on its own rail (order id)",
-     "durable": "the venue's own record"
-    },
-    "menu_source": "the venue's own storefront JSON API (FoodAmigos), fetched by venues/doppelt-kaese-berlin/adapter.py"
+     "durable": "the venue's own record; the operator log for the manual test",
+     "form": "the venue's own confirmation (staff name + time for a telephone order)"
+    }
    },
-   "item_count": 76,
+   "item_count": 167,
    "from_priced_count": 0,
    "priced_methods": [
-    "delivery",
-    "dine_in",
-    "pickup",
-    "room_service"
+    "dine_in"
    ],
    "min_price": 0.5,
-   "max_price": 13,
+   "max_price": 95,
    "items": [
     {
-     "id": "",
-     "sku": "331227",
-     "name": "Cheeseburger",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 9.5,
-      "pickup": 8.9,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68405",
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331233",
-     "name": "Curly Fries",
-     "prices_by_order_method": {
-      "delivery": 4.9,
-      "dine_in": 4.9,
-      "pickup": 4.5,
-      "room_service": 4.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331230",
-     "name": "Der Doppelt Käse-Burger",
-     "prices_by_order_method": {
-      "delivery": 11.5,
-      "dine_in": 11.5,
-      "pickup": 10.9,
-      "room_service": 11.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331235",
-     "name": "Parmesan Pommes frites",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 7.5,
-      "pickup": 6.8,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331243",
-     "name": "Beyond Meat-Burger",
-     "prices_by_order_method": {
-      "delivery": 10.2,
-      "dine_in": 10.2,
-      "pickup": 9.9,
-      "room_service": 10.2
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "68408",
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331246",
-     "name": "Beyond Chili-Cheeseburger",
-     "prices_by_order_method": {
-      "delivery": 10.6,
-      "dine_in": 10.6,
-      "pickup": 10.2,
-      "room_service": 10.6
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331234",
-     "name": "Süßkartoffel-Pommes",
-     "prices_by_order_method": {
-      "delivery": 5.2,
-      "dine_in": 5.2,
-      "pickup": 4.9,
-      "room_service": 5.2
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331267",
-     "name": "Sweet Dreams",
-     "prices_by_order_method": {
-      "delivery": 8,
-      "dine_in": 8,
-      "pickup": 7.2,
-      "room_service": 8
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331237",
-     "name": "Chili Cheese Pommes frites",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 7.5,
-      "pickup": 6.8,
-      "room_service": 7.5
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334624",
-     "name": "Chicken Fingers 6 Stück",
-     "prices_by_order_method": {
-      "delivery": 6.9,
-      "dine_in": 6.9,
-      "pickup": 6.5,
-      "room_service": 6.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "Hühnchen"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331291",
-     "name": "Potato Tots",
-     "prices_by_order_method": {
-      "delivery": 5.6,
-      "dine_in": 5.6,
-      "pickup": 5.5,
-      "room_service": 5.6
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331226",
-     "name": "Hamburger",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 8.5,
-      "pickup": 7.9,
-      "room_service": 8.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68405",
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331228",
-     "name": "BBQ Burger",
-     "prices_by_order_method": {
-      "delivery": 9.9,
-      "dine_in": 9.9,
-      "pickup": 9.5,
-      "room_service": 9.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331229",
-     "name": "Chili-Cheeseburger",
-     "prices_by_order_method": {
-      "delivery": 10.9,
-      "dine_in": 10.9,
-      "pickup": 9.5,
-      "room_service": 10.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331259",
-     "name": "Habanero Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 10.5,
-      "pickup": 9.9,
-      "room_service": 10.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331260",
-     "name": "Gorgonzola-Preiselbeere-Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 10.5,
-      "pickup": 9.9,
-      "room_service": 10.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331261",
-     "name": "Classic Burger",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 8.9,
-      "pickup": 8.5,
-      "room_service": 8.9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331262",
-     "name": "Pilz-Burger",
-     "prices_by_order_method": {
-      "delivery": 10.5,
-      "dine_in": 10.5,
-      "pickup": 9.9,
-      "room_service": 10.5
-     },
-     "available": false,
-     "allergens": [
-      "MILCH",
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331231",
-     "name": "Chicken Burger",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 9.5,
-      "pickup": 8.5,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331232",
-     "name": "Pommes frites",
-     "prices_by_order_method": {
-      "delivery": 4.2,
-      "dine_in": 4.2,
-      "pickup": 3.9,
-      "room_service": 4.2
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331236",
-     "name": "Guacamole Pommes frites",
-     "prices_by_order_method": {
-      "delivery": 7.5,
-      "dine_in": 7.5,
-      "pickup": 6.8,
-      "room_service": 7.5
-     },
-     "available": false,
-     "allergens": [
-      "AVOCADO"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331292",
-     "name": "Loaded Potato Tots",
-     "prices_by_order_method": {
-      "delivery": 8.5,
-      "dine_in": 8.5,
-      "pickup": 7.7,
-      "room_service": 8.5
-     },
-     "available": false,
-     "allergens": [
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331238",
-     "name": "Chicken Wings 6 Stück",
-     "prices_by_order_method": {
-      "delivery": 6.5,
-      "dine_in": 6.5,
-      "pickup": 6,
-      "room_service": 6.5
-     },
-     "available": true,
-     "allergens": [
-      "WEIZEN",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334622",
-     "name": "Chicken Wings 9 Stück",
-     "prices_by_order_method": {
-      "delivery": 9,
-      "dine_in": 9,
-      "pickup": 8.5,
-      "room_service": 9
-     },
-     "available": true,
-     "allergens": [
-      "GEFLÜGEL"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334623",
-     "name": "Chicken Wings 12 Stück",
-     "prices_by_order_method": {
-      "delivery": 11,
-      "dine_in": 11,
-      "pickup": 10.5,
-      "room_service": 11
-     },
-     "available": true,
-     "allergens": [
-      "Hühnchen"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331239",
-     "name": "Chicken Fingers 9 Stück",
-     "prices_by_order_method": {
-      "delivery": 9.9,
-      "dine_in": 9.9,
-      "pickup": 9,
-      "room_service": 9.9
-     },
-     "available": false,
-     "allergens": [
-      "WEIZEN",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334625",
-     "name": "Chicken Fingers 12 Stück",
-     "prices_by_order_method": {
-      "delivery": 11.9,
-      "dine_in": 11.9,
-      "pickup": 11,
-      "room_service": 11.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "Hühnchen"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331240",
-     "name": "Onion Rings 6 Stück",
-     "prices_by_order_method": {
-      "delivery": 7,
-      "dine_in": 7,
-      "pickup": 6.3,
-      "room_service": 7
-     },
-     "available": true,
-     "allergens": [
-      "WEIZEN",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334626",
-     "name": "Onion Rings 12 Stück",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 9.5,
-      "pickup": 9,
-      "room_service": 9.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "334627",
-     "name": "Onion Rings 18 Stück",
-     "prices_by_order_method": {
-      "delivery": 13,
-      "dine_in": 13,
-      "pickup": 12.5,
-      "room_service": 13
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "369053",
-     "name": "Bunter Krautsalat",
-     "prices_by_order_method": {
-      "delivery": 3.5,
-      "dine_in": 3.5,
-      "pickup": 3.2,
-      "room_service": 3.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331241",
-     "name": "Caesar-Salat",
-     "prices_by_order_method": {
-      "delivery": 9,
-      "dine_in": 9,
-      "pickup": 8.1,
-      "room_service": 9
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331244",
-     "name": "Ratatouille Burger",
-     "prices_by_order_method": {
-      "delivery": 11.5,
-      "dine_in": 11.5,
-      "pickup": 11.5,
-      "room_service": 11.5
-     },
-     "available": false,
-     "allergens": [
-      "SOJA",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331245",
-     "name": "Beyond BBQ-Burger",
-     "prices_by_order_method": {
-      "delivery": 10.2,
-      "dine_in": 10.2,
-      "pickup": 9.9,
-      "room_service": 10.2
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "GLUTEN"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331263",
-     "name": "Beyond Habanero Burger",
-     "prices_by_order_method": {
-      "delivery": 11.6,
-      "dine_in": 11.6,
-      "pickup": 11.5,
-      "room_service": 11.6
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331264",
-     "name": "Beyond Preiselbeere-Burger",
-     "prices_by_order_method": {
-      "delivery": 11.2,
-      "dine_in": 11.2,
-      "pickup": 11.2,
-      "room_service": 11.2
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331265",
-     "name": "Beyond Klassik Burger",
-     "prices_by_order_method": {
-      "delivery": 10.6,
-      "dine_in": 10.6,
-      "pickup": 9.9,
-      "room_service": 10.6
-     },
-     "available": true,
-     "allergens": [
-      "SOJA",
-      "SENF"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331266",
-     "name": "Beyond Pilz-Burger",
-     "prices_by_order_method": {
-      "delivery": 11.6,
-      "dine_in": 11.6,
-      "pickup": 11.5,
-      "room_service": 11.6
-     },
-     "available": false,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [
-      "68406"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331248",
-     "name": "Burgersoße",
-     "prices_by_order_method": {
-      "delivery": 1,
-      "dine_in": 1,
-      "pickup": 0.9,
-      "room_service": 1
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "SENF"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331249",
-     "name": "Getrüffelte Haussoße",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.4,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "SENF"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331250",
-     "name": "Ketchup",
-     "prices_by_order_method": {
-      "delivery": 0.5,
-      "dine_in": 0.5,
-      "pickup": 0.5,
-      "room_service": 0.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331251",
-     "name": "Mayonnaise",
-     "prices_by_order_method": {
-      "delivery": 0.5,
-      "dine_in": 0.5,
-      "pickup": 0.5,
-      "room_service": 0.5
-     },
-     "available": true,
-     "allergens": [
-      "EIER",
-      "SENF"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331252",
-     "name": "Vegane Mayonnaise",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.4,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331253",
-     "name": "Barbecuesoße",
-     "prices_by_order_method": {
-      "delivery": 1,
-      "dine_in": 1,
-      "pickup": 0.9,
-      "room_service": 1
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331254",
-     "name": "Käsesoße",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.7,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331255",
-     "name": "Sour Cream",
-     "prices_by_order_method": {
-      "delivery": 1,
-      "dine_in": 1,
-      "pickup": 0.9,
-      "room_service": 1
-     },
-     "available": true,
-     "allergens": [
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331256",
-     "name": "Süß-Sauer-Soße",
-     "prices_by_order_method": {
-      "delivery": 1,
-      "dine_in": 1,
-      "pickup": 0.9,
-      "room_service": 1
-     },
-     "available": true,
-     "allergens": [
-      "SOJA"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331257",
-     "name": "Trüffelmayonnaise",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.4,
-      "room_service": 1.5
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331258",
-     "name": "Guacamole",
-     "prices_by_order_method": {
-      "delivery": 3.5,
-      "dine_in": 3.5,
-      "pickup": 3.2,
-      "room_service": 3.5
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331268",
-     "name": "Aioli-Soße",
-     "prices_by_order_method": {
-      "delivery": 1.5,
-      "dine_in": 1.5,
-      "pickup": 1.4,
-      "room_service": 1.5
-     },
-     "available": false,
-     "allergens": [
-      "EIER"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331270",
-     "name": "Club Mate 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331271",
-     "name": "Coca-Cola® 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331272",
-     "name": "Coca-Cola® 1,0 l",
-     "prices_by_order_method": {
-      "delivery": 3.95,
-      "dine_in": 3.95,
-      "pickup": 3.6,
-      "room_service": 3.95
-     },
-     "available": false,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331273",
-     "name": "Coca-Cola® Zero 1,0 l",
-     "prices_by_order_method": {
-      "delivery": 3.95,
-      "dine_in": 3.95,
-      "pickup": 3.6,
-      "room_service": 3.95
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331274",
-     "name": "Coca-Cola® Zero 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331275",
-     "name": "Fanta 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331276",
-     "name": "Fanta 1,0 l",
-     "prices_by_order_method": {
-      "delivery": 3.95,
-      "dine_in": 3.95,
-      "pickup": 3.6,
-      "room_service": 3.95
-     },
-     "available": true,
-     "allergens": [
-      ""
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331278",
-     "name": "Mezzo Mix 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      "KOFFEIN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331279",
-     "name": "Mezzo Mix 1,0 l",
-     "prices_by_order_method": {
-      "delivery": 3.95,
-      "dine_in": 3.95,
-      "pickup": 3.6,
-      "room_service": 3.95
-     },
-     "available": true,
-     "allergens": [
-      "KOFFEIN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331281",
-     "name": "Vio Schorle Apfel 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": false,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331282",
-     "name": "Sprite 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.9,
-      "room_service": 3
-     },
-     "available": false,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331283",
-     "name": "Sprite 1,0 l",
-     "prices_by_order_method": {
-      "delivery": 3.95,
-      "dine_in": 3.95,
-      "pickup": 3.6,
-      "room_service": 3.95
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331284",
-     "name": "Vio Still 0,5 l",
-     "prices_by_order_method": {
-      "delivery": 2.5,
-      "dine_in": 2.5,
-      "pickup": 2.3,
-      "room_service": 2.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331285",
-     "name": "Vio Spritzig 0,5 l",
-     "prices_by_order_method": {
-      "delivery": 2.5,
-      "dine_in": 2.5,
-      "pickup": 2.3,
-      "room_service": 2.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331289",
-     "name": "Warsteiner Alkoholfrei 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3.58,
-      "dine_in": 3.58,
-      "pickup": 3.3,
-      "room_service": 3.58
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "331290",
-     "name": "Rixdorfer Fassbrause 0,33 l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.7,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "369054",
-     "name": "Ice Tea Peach 0.33l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.7,
-      "room_service": 3
-     },
-     "available": true,
-     "allergens": [
-      "SULFITE"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "369055",
-     "name": "Ice Tea Lemon Sparkling 0.33l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.7,
-      "room_service": 3
-     },
-     "available": false,
-     "allergens": [
-      "SULFITE"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "369056",
-     "name": "Ice Tea Pineapple Mango 0,33l",
-     "prices_by_order_method": {
-      "delivery": 3,
-      "dine_in": 3,
-      "pickup": 2.7,
-      "room_service": 3
-     },
-     "available": false,
-     "allergens": [
-      "SULFITE"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550614",
-     "name": "1. Classic Bun",
-     "prices_by_order_method": {
-      "delivery": 6.9,
-      "dine_in": 6.9,
-      "pickup": 6.3,
-      "room_service": 6.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550615",
-     "name": "2. Avocado Bun",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 9.5,
-      "pickup": 8.6,
-      "room_service": 9.5
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550616",
-     "name": "3. Parmesan Trüffel Bun",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 8.9,
-      "pickup": 8.1,
-      "room_service": 8.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550617",
-     "name": "4. Pilz Bun",
-     "prices_by_order_method": {
-      "delivery": 8.9,
-      "dine_in": 8.9,
-      "pickup": 8.1,
-      "room_service": 8.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550618",
-     "name": "5. Preiselbeere Bun",
-     "prices_by_order_method": {
-      "delivery": 7.9,
-      "dine_in": 7.9,
-      "pickup": 7.2,
-      "room_service": 7.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550619",
-     "name": "6. Chicken Bun",
-     "prices_by_order_method": {
-      "delivery": 9.5,
-      "dine_in": 9.5,
-      "pickup": 8.6,
-      "room_service": 9.5
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH",
-      "EI"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "",
-     "sku": "550620",
-     "name": "7. Pastrami Bun",
-     "prices_by_order_method": {
-      "delivery": 9.9,
-      "dine_in": 9.9,
-      "pickup": 9,
-      "room_service": 9.9
-     },
-     "available": false,
-     "allergens": [
-      "GLUTEN",
-      "MILCH"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    }
-   ],
-   "_capture": {
-    "captured_at": 1791813184,
-    "server_pubkey": "fe700a09094950660077447bedd4e0b3abc14a82e95227b313aebf83b7798984",
-    "client_pubkey": "d58b1a666a1037e5f2ce54aff17ee2c98327048570f6d7ea38d1c6c8e93ee9a9",
-    "relays": [
-     "wss://relay2.orangesync.tech"
-    ],
-    "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
-    "checks": [
-     {
-      "name": "initialize",
-      "ok": true,
-      "detail": "serverInfo.name=contextvm-venue-server"
-     },
-     {
-      "name": "tools/list",
-      "ok": true,
-      "detail": "tools=[\"menu\",\"order\"]"
-     },
-     {
-      "name": "tools/call:menu",
-      "ok": true,
-      "detail": "total_items=76 venues=[\"doppelt-kaese-berlin\"] expected=[\"doppelt-kaese-berlin\"]/76 sha256=1cd53a212147==1cd53a212147"
-     },
-     {
-      "name": "tools/call:order",
-      "ok": true,
-      "detail": "status=basket lines=2 total=15.8 venue=doppelt-kaese-berlin deep_link=https://www.doppelt-kaese-berlin.de/speisekarte/doppeltkase"
-     }
-    ],
-    "tool": "services/restaurant-cvm/e2e_client.ts --json"
-   }
-  },
-  {
-   "venue_slug": "pizza-e-pasta-ruedesheimerplatz",
-   "name": "Pizza e Pasta",
-   "currency": "EUR",
-   "captured_at": "2026-10-05",
-   "adapter": {
-    "class": "deep_link_human",
-    "capabilities": {
-     "menu": true,
-     "quote": true,
-     "submit": false,
-     "status": false
-    },
-    "human_steps": [
-     "the CVM returns the basket and the venue's own deep link; it places nothing",
-     "a human places the order on the venue's own rail (its own web store or by telephone)",
-     "a human pays the venue on its own rail; the CVM never takes payment",
-     "a human records the venue's own order confirmation as the receipt"
-    ],
-    "credentials": {
-     "owner": "none",
-     "scope": "the venue's own storefront is public; the CVM holds no credential for this venue"
-    },
-    "payment_authority": {
-     "authority": "the human who places the order, on the venue's own rail",
-     "cvm_cap_sats": 0
-    },
-    "idempotency": {
-     "key": "venue_slug + basket_sha256 + fulfilment + when",
-     "on_duplicate": "the CVM places nothing, so it cannot double-place; the venue's own order record is the authority"
-    },
-    "receipt": {
-     "form": "the venue's own order confirmation on its own rail (order id)",
-     "durable": "the venue's own record"
-    },
-    "menu_source": "the venue's own storefront JSON API, fetched by venues/pizza-e-pasta-ruedesheimerplatz/adapter.py"
-   },
-   "item_count": 112,
-   "from_priced_count": 0,
-   "priced_methods": [
-    "pickup"
-   ],
-   "min_price": 2.7,
-   "max_price": 16.65,
-   "items": [
-    {
-     "id": "6943925",
+     "id": "1",
      "sku": "1",
-     "name": "Pizza Funghi Vegan",
+     "name": "Subzi Shorba A, G",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943928",
-     "sku": "10",
-     "name": "Pizza Capperi Vegan",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "SULPHUR_DIOXIDE"
-     ],
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943882",
-     "sku": "100",
-     "name": "Pizza Margherita",
-     "prices_by_order_method": {
-      "pickup": 9.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943883",
-     "sku": "101",
-     "name": "Pizza Salami",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943884",
-     "sku": "102",
-     "name": "Pizza Prosciutto",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943885",
-     "sku": "103",
-     "name": "Pizza Funghi",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943886",
-     "sku": "104",
-     "name": "Pizza Bolognese",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943887",
-     "sku": "105",
-     "name": "Pizza Hawaii",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943888",
-     "sku": "106",
-     "name": "Pizza Tonno",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": [
-      "FISH"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943889",
-     "sku": "107",
-     "name": "Pizza Gorgonzola",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943890",
-     "sku": "109",
-     "name": "Pizza Mista",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943850",
-     "sku": "11",
-     "name": "Caprese di Bufala",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943892",
-     "sku": "110",
-     "name": "Pizza Picante (scharf)",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943891",
-     "sku": "110",
-     "name": "Pizza Sardelle",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "SULPHUR_DIOXIDE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943893",
-     "sku": "111",
-     "name": "Pizza Verdura",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943894",
-     "sku": "112",
-     "name": "Pizza Peperoni",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943895",
-     "sku": "113",
-     "name": "Pizza Spinaci",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS",
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943896",
-     "sku": "114",
-     "name": "Pizza Parma",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943897",
-     "sku": "115",
-     "name": "Pizza Scampi",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943898",
-     "sku": "116",
-     "name": "Pizza Romana",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943899",
-     "sku": "117",
-     "name": "Pizza Palermo",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943900",
-     "sku": "118",
-     "name": "Pizza Primavera",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943901",
-     "sku": "119",
-     "name": "Pizza Diavolo (scharf)",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "SULPHUR_DIOXIDE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943902",
-     "sku": "120",
-     "name": "Pizza Formaggi",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943903",
-     "sku": "121",
-     "name": "Pizza Frutti di Mare",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS",
-      "MOLLUSCS"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943912",
-     "sku": "122",
-     "name": "Pizza Focaccia",
-     "prices_by_order_method": {
-      "pickup": 8.1
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4318514",
-      "4318515"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943911",
-     "sku": "123",
-     "name": "Pizza Calzone",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4318512",
-      "4318513"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943904",
-     "sku": "124",
-     "name": "Pizza Bacon",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943905",
-     "sku": "125",
-     "name": "Pizza Caprese",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943906",
-     "sku": "126",
-     "name": "Pizza Calabrese",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943907",
-     "sku": "127",
-     "name": "Pizza Broccoli",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943908",
-     "sku": "128",
-     "name": "Pizza Dolomiti",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943909",
-     "sku": "129",
-     "name": "Pizza Capricciosa",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943851",
-     "sku": "13",
-     "name": "Gemischter Salat",
-     "prices_by_order_method": {
-      "pickup": 9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943910",
-     "sku": "130",
-     "name": "Pizza Büffelmozzarella",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943916",
-     "sku": "131",
-     "name": "Pizza Quattro Stagione",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943913",
-     "sku": "132",
-     "name": "Pizza Sucuk",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943914",
-     "sku": "133",
-     "name": "Pizza Bresaola",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454494",
-      "4454495",
-      "4454496"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943915",
-     "sku": "134",
-     "name": "Pizza Salmone (32cm)",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "FISH"
-     ],
-     "option_group_ids": [
-      "4318522",
-      "4318523"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943918",
-     "sku": "135",
-     "name": "Pizza Tartufo (32cm)",
-     "prices_by_order_method": {
-      "pickup": 16.65
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "LACTOSE",
-      "WHEAT"
-     ],
-     "option_group_ids": [
-      "4318529",
-      "4318530"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943852",
-     "sku": "14",
-     "name": "Salat Tonno",
-     "prices_by_order_method": {
-      "pickup": 10.8
-     },
-     "available": true,
-     "allergens": [
-      "FISH"
-     ],
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943853",
-     "sku": "15",
-     "name": "Salat Formaggi",
-     "prices_by_order_method": {
-      "pickup": 10.8
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943854",
-     "sku": "16",
-     "name": "Salat Pollo",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943855",
-     "sku": "17",
-     "name": "Insalata di Scampi",
-     "prices_by_order_method": {
-      "pickup": 12.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943856",
-     "sku": "18",
-     "name": "Insalata di Rucola",
-     "prices_by_order_method": {
-      "pickup": 9
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454489"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943929",
-     "sku": "19",
-     "name": "Tiramisu (hausgemacht)",
-     "prices_by_order_method": {
-      "pickup": 6.3
+      "dine_in": 6
      },
      "available": true,
      "allergens": null,
@@ -4558,28 +58,11 @@
      "price_qualifier": null
     },
     {
-     "id": "6943919",
+     "id": "2",
      "sku": "2",
-     "name": "Pizza Verdura Vegan",
+     "name": "Madras Rasam A, G",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "7660384",
-     "sku": "20",
-     "name": "2 Gefüllte Schokorollen",
-     "prices_by_order_method": {
-      "pickup": 4.5
+      "dine_in": 6
      },
      "available": true,
      "allergens": null,
@@ -4588,28 +71,11 @@
      "price_qualifier": null
     },
     {
-     "id": "6943920",
+     "id": "3",
      "sku": "3",
-     "name": "Pizza Peperoni Vegan",
+     "name": "Badam Shorba A, G, H",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943931",
-     "sku": "30",
-     "name": "Coca Cola 0,2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
+      "dine_in": 7
      },
      "available": true,
      "allergens": null,
@@ -4618,239 +84,11 @@
      "price_qualifier": null
     },
     {
-     "id": "6943932",
-     "sku": "30a",
-     "name": "Fanta 0,2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943933",
-     "sku": "30b",
-     "name": "Sprite 0,2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943945",
-     "sku": "31",
-     "name": "Coca Cola Light 0,2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943946",
-     "sku": "32",
-     "name": "Coca Cola Zero 0,2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943937",
-     "sku": "33",
-     "name": "Mezzo Mix 0.2l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943934",
-     "sku": "34",
-     "name": "Apfelschorle 0,33l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943947",
-     "sku": "35",
-     "name": "Eistee 0,33l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943935",
-     "sku": "36",
-     "name": "Bionade Ingwer-Orange 0,33l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943943",
-     "sku": "36",
-     "name": "Vitamalz 0.33l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943936",
-     "sku": "36a",
-     "name": "Bionade Holunder 0,33l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943938",
-     "sku": "36b",
-     "name": "Bionade Kräuter 0.33l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943939",
-     "sku": "37",
-     "name": "Mineralwasser still 0.25l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943940",
-     "sku": "37a",
-     "name": "Mineralwasser sprudel 0.25l",
-     "prices_by_order_method": {
-      "pickup": 2.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943941",
-     "sku": "38",
-     "name": "Mineralwasser still 0.75l",
-     "prices_by_order_method": {
-      "pickup": 5.4
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943942",
-     "sku": "38a",
-     "name": "Mineralwasser sprudel 0.75l",
-     "prices_by_order_method": {
-      "pickup": 5.4
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943944",
-     "sku": "39",
-     "name": "Bier alkoholfrei 0.5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943921",
+     "id": "4",
      "sku": "4",
-     "name": "Pizza Vegan",
+     "name": "Mulligatawney A, G",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943948",
-     "sku": "41",
-     "name": "Heiniken 0,5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
+      "dine_in": 7.5
      },
      "available": true,
      "allergens": null,
@@ -4859,121 +97,11 @@
      "price_qualifier": null
     },
     {
-     "id": "6943950",
-     "sku": "42",
-     "name": "Veltins Bier 0.5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943951",
-     "sku": "43",
-     "name": "König Ludwig Weißbier 0.5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943952",
-     "sku": "44",
-     "name": "König Ludwig Dunkel 0.5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943953",
-     "sku": "44",
-     "name": "König Ludwig Kristal 0.5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943949",
-     "sku": "46",
-     "name": "Natur Radler (Gösser) 0,5l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943954",
-     "sku": "47",
-     "name": "Desperados Tequila 0,33l",
-     "prices_by_order_method": {
-      "pickup": 3.6
-     },
-     "available": true,
-     "allergens": [
-      "GLUTEN",
-      "WHEAT"
-     ],
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943922",
+     "id": "5",
      "sku": "5",
-     "name": "Pizza Palermo Vegan",
+     "name": "Sauer-Scharf-Suppe A, G nach indischer Art",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943955",
-     "sku": "51",
-     "name": "Nero Davola Sicilia (trocken) Rotwein 0.2l",
-     "prices_by_order_method": {
-      "pickup": 5.4
+      "dine_in": 7.5
      },
      "available": true,
      "allergens": null,
@@ -4982,67 +110,11 @@
      "price_qualifier": null
     },
     {
-     "id": "6943956",
-     "sku": "52",
-     "name": "Riesling (Trocken) Weißwein 0.2l",
-     "prices_by_order_method": {
-      "pickup": 5.4
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943957",
-     "sku": "53",
-     "name": "Pinot Grigio 0.2l",
-     "prices_by_order_method": {
-      "pickup": 5.4
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943958",
-     "sku": "54",
-     "name": "Aperolspritz 0.5l",
-     "prices_by_order_method": {
-      "pickup": 7.2
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943923",
+     "id": "6",
      "sku": "6",
-     "name": "Pizza Primavera Vegan",
+     "name": "Knoblauchsuppe A, G nach indischer Art",
      "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943960",
-     "sku": "62",
-     "name": "Riesling 1l",
-     "prices_by_order_method": {
-      "pickup": 16.2
+      "dine_in": 7.5
      },
      "available": true,
      "allergens": null,
@@ -5051,501 +123,2105 @@
      "price_qualifier": null
     },
     {
-     "id": "6943964",
-     "sku": "63",
-     "name": "Pinot Grigio 0.75l",
-     "prices_by_order_method": {
-      "pickup": 10.8
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4761625"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943961",
-     "sku": "64",
-     "name": "Riesling Sekt 0.75l",
-     "prices_by_order_method": {
-      "pickup": 15.3
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943962",
-     "sku": "65",
-     "name": "Weisser Burgunder 0.75l",
-     "prices_by_order_method": {
-      "pickup": 15.3
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943963",
-     "sku": "66",
-     "name": "Spätburgunder (Rose) 0.75l",
-     "prices_by_order_method": {
-      "pickup": 15.3
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943965",
-     "sku": "67",
-     "name": "Nero Davola",
-     "prices_by_order_method": {
-      "pickup": 10.8
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4318561"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "7660389",
-     "sku": "69",
-     "name": "Spaghetti Tartufo",
-     "prices_by_order_method": {
-      "pickup": 16.65
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943924",
+     "id": "7",
      "sku": "7",
-     "name": "Pizza Broccoli Vegan",
+     "name": "Tomatensuppe A, G nach indischer Art",
      "prices_by_order_method": {
-      "pickup": 11.7
+      "dine_in": 7
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     },
     {
-     "id": "6943859",
-     "sku": "70",
-     "name": "Spaghetti Aglio Olio",
+     "id": "17",
+     "sku": "17",
+     "name": "Fischsuppe A, G nach indischer Art",
      "prices_by_order_method": {
-      "pickup": 9.9
+      "dine_in": 9
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     },
     {
-     "id": "6943860",
-     "sku": "71",
-     "name": "Spaghetti Pollo",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943861",
-     "sku": "72",
-     "name": "Spaghetti Amore",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943862",
-     "sku": "73",
-     "name": "Spaghetti Ragout",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943863",
-     "sku": "74",
-     "name": "Spaghetti Carbonara",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "EGGS",
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943864",
-     "sku": "75",
-     "name": "Spaghetti al Pomodoro",
-     "prices_by_order_method": {
-      "pickup": 9.9
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943865",
-     "sku": "76",
-     "name": "Spaghetti Frutti di Mare",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS",
-      "MOLLUSCS"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943866",
-     "sku": "77",
-     "name": "Penne Arrabiatta",
-     "prices_by_order_method": {
-      "pickup": 10.8
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943867",
-     "sku": "78",
-     "name": "Penne Calabrese",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943868",
-     "sku": "79",
-     "name": "Penne Mozzarella",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943926",
+     "id": "8",
      "sku": "8",
-     "name": "Pizza Spinaci Vegan",
+     "name": "Samosas A, G, H",
      "prices_by_order_method": {
-      "pickup": 11.7
+      "dine_in": 7.5
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     },
     {
-     "id": "6943869",
-     "sku": "80",
-     "name": "Penne Gorgonzola",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943870",
-     "sku": "81",
-     "name": "Penne Bolognese",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943871",
-     "sku": "82",
-     "name": "Penne Contadino",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943872",
-     "sku": "83",
-     "name": "Penne Siciliana",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943873",
-     "sku": "84",
-     "name": "Penne Broccoli",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943874",
-     "sku": "85",
-     "name": "Tagliatelle Scampi",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943875",
-     "sku": "86",
-     "name": "Tagliatelle Salmone",
-     "prices_by_order_method": {
-      "pickup": 13.5
-     },
-     "available": true,
-     "allergens": [
-      "CRUSTACEANS"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943876",
-     "sku": "87",
-     "name": "Gnocchi al Gorgonzola",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943877",
-     "sku": "88",
-     "name": "Tortellini Panna",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943880",
-     "sku": "89",
-     "name": "Tortellini Spinaci",
-     "prices_by_order_method": {
-      "pickup": 11.7
-     },
-     "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
-     "price_is_from": false,
-     "price_qualifier": null
-    },
-    {
-     "id": "6943927",
+     "id": "9",
      "sku": "9",
-     "name": "Pizza Cipolla Vegan",
+     "name": "Paneer Pakoras G",
      "prices_by_order_method": {
-      "pickup": 11.7
+      "dine_in": 7.5
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": [
-      "4454519",
-      "4454520",
-      "4454521"
-     ],
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     },
     {
-     "id": "6943878",
+     "id": "10",
+     "sku": "10",
+     "name": "Champignon Pakoras",
+     "prices_by_order_method": {
+      "dine_in": 6.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "11",
+     "sku": "11",
+     "name": "Chicken Pakoras",
+     "prices_by_order_method": {
+      "dine_in": 7.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "12",
+     "sku": "12",
+     "name": "Onion Bhaji",
+     "prices_by_order_method": {
+      "dine_in": 6.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "13",
+     "sku": "13",
+     "name": "Fisch Pakoras D",
+     "prices_by_order_method": {
+      "dine_in": 8.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "14",
+     "sku": "14",
+     "name": "Gobhi Pakoras",
+     "prices_by_order_method": {
+      "dine_in": 6.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "15",
+     "sku": "15",
+     "name": "Für 1 Person",
+     "prices_by_order_method": {
+      "dine_in": 9.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "16",
+     "sku": "16",
+     "name": "Für 2 Personen",
+     "prices_by_order_method": {
+      "dine_in": 15
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "21",
+     "sku": "21",
+     "name": "Grüner Salat J",
+     "prices_by_order_method": {
+      "dine_in": 8.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "22",
+     "sku": "22",
+     "name": "Chandi Salat J",
+     "prices_by_order_method": {
+      "dine_in": 13
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "23",
+     "sku": "23",
+     "name": "Chicken Salat J",
+     "prices_by_order_method": {
+      "dine_in": 13.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "24",
+     "sku": "24",
+     "name": "Punjabi Salat G, J",
+     "prices_by_order_method": {
+      "dine_in": 13.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "31",
+     "sku": "31",
+     "name": "Daal Tarka G (auch vegan)",
+     "prices_by_order_method": {
+      "dine_in": 11.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "32",
+     "sku": "32",
+     "name": "Subzi Curry (vegan)",
+     "prices_by_order_method": {
+      "dine_in": 11.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "33",
+     "sku": "33",
+     "name": "Mattar Paneer G",
+     "prices_by_order_method": {
+      "dine_in": 13.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "34",
+     "sku": "34",
+     "name": "Aloo Gobhi (vegan) pikant",
+     "prices_by_order_method": {
+      "dine_in": 12.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "35",
+     "sku": "35",
+     "name": "Shahi Paneer G, H indischer Rahmkäse mit",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "36",
+     "sku": "36",
+     "name": "Shahi Bengan G, H (auch vegan)",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "37",
+     "sku": "37",
+     "name": "Saag Paneer G",
+     "prices_by_order_method": {
+      "dine_in": 13.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "38",
+     "sku": "38",
+     "name": "Malai Kofta G",
+     "prices_by_order_method": {
+      "dine_in": 13.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "39",
+     "sku": "39",
+     "name": "Tinda Masala G, 1 (auch vegan) pikant",
+     "prices_by_order_method": {
+      "dine_in": 13.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "40",
+     "sku": "40",
+     "name": "Channa Masala 1 (vegan) pikant",
+     "prices_by_order_method": {
+      "dine_in": 12.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "41",
+     "sku": "41",
+     "name": "Paneer Jhalfrezi G, 1 scharf",
+     "prices_by_order_method": {
+      "dine_in": 14.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "46",
+     "sku": "46",
+     "name": "Chicken Curry",
+     "prices_by_order_method": {
+      "dine_in": 12.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "47",
+     "sku": "47",
+     "name": "Chili Chicken 1 scharf",
+     "prices_by_order_method": {
+      "dine_in": 14.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "48",
+     "sku": "48",
+     "name": "Chicken Masala scharf",
+     "prices_by_order_method": {
+      "dine_in": 14.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "49",
+     "sku": "49",
+     "name": "Chicken Saag",
+     "prices_by_order_method": {
+      "dine_in": 13.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "50",
+     "sku": "50",
+     "name": "Chicken Sabzi",
+     "prices_by_order_method": {
+      "dine_in": 13.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "51",
+     "sku": "51",
+     "name": "Chicken Mango G, H",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "52",
+     "sku": "52",
+     "name": "Chicken Jakhni G , H",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "53",
+     "sku": "53",
+     "name": "Chicken Korma G, H",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "54",
+     "sku": "54",
+     "name": "Chicken Vindaloo scharf",
+     "prices_by_order_method": {
+      "dine_in": 15.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "61",
+     "sku": "61",
+     "name": "Mutton Curry",
+     "prices_by_order_method": {
+      "dine_in": 13.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "62",
+     "sku": "62",
+     "name": "Mutton Saag",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "63",
+     "sku": "63",
+     "name": "Mutton Sabzi",
+     "prices_by_order_method": {
+      "dine_in": 14.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "64",
+     "sku": "64",
+     "name": "Mutton Jakhni G, H",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "65",
+     "sku": "65",
+     "name": "Mutton Masala scharf",
+     "prices_by_order_method": {
+      "dine_in": 16.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "66",
+     "sku": "66",
+     "name": "Mutton Khumbi G",
+     "prices_by_order_method": {
+      "dine_in": 15.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "67",
+     "sku": "67",
+     "name": "Mutton Korma G, H",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "68",
+     "sku": "68",
+     "name": "Mutton Madras 1 scharf",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "71",
+     "sku": "71",
+     "name": "Vegetable Jhalfrezi",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "72",
+     "sku": "72",
+     "name": "Fisch Dughri D",
+     "prices_by_order_method": {
+      "dine_in": 17.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "73",
+     "sku": "73",
+     "name": "Mutton Jhalfrezi",
+     "prices_by_order_method": {
+      "dine_in": 17.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "75",
+     "sku": "75",
+     "name": "Fisch Masala D (scharf)",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "76",
+     "sku": "76",
+     "name": "Fisch Madras D",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "77",
+     "sku": "77",
+     "name": "Chicken Jhalfrezi 1 (scharf)",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "78",
+     "sku": "78",
+     "name": "Fisch Vindaloo D, 1 (scharf)",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "79",
+     "sku": "79",
+     "name": "Chicken Madras 1",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "80",
+     "sku": "80",
+     "name": "Mutton Vindaloo (scharf)",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "81",
+     "sku": "81",
+     "name": "Scampi Curry B",
+     "prices_by_order_method": {
+      "dine_in": 22.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "82",
+     "sku": "82",
+     "name": "Scampi Vindaloo B (scharf)",
+     "prices_by_order_method": {
+      "dine_in": 23.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "85",
+     "sku": "85",
+     "name": "Vegetable Biryani",
+     "prices_by_order_method": {
+      "dine_in": 14.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "86",
+     "sku": "86",
+     "name": "Chicken Biryani H pikant",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "87",
+     "sku": "87",
+     "name": "Mutton Biryani H pikant",
+     "prices_by_order_method": {
+      "dine_in": 17.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "88",
+     "sku": "88",
+     "name": "Chandi Biryani H pikant",
+     "prices_by_order_method": {
+      "dine_in": 18.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "89",
+     "sku": "89",
+     "name": "Scampi Biryani B, H pikant",
+     "prices_by_order_method": {
+      "dine_in": 21.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "90",
      "sku": "90",
-     "name": "Penne Pollo al Broccoli",
+     "name": "Ente Tikka G",
      "prices_by_order_method": {
-      "pickup": 13.5
+      "dine_in": 20.9
      },
      "available": true,
-     "allergens": [
-      "LACTOSE"
-     ],
-     "option_group_ids": [
-      "4454492"
-     ],
+     "allergens": null,
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     },
     {
-     "id": "6943879",
+     "id": "91",
      "sku": "91",
-     "name": "Penne Funghi",
+     "name": "Chandi Mixed Grill B",
      "prices_by_order_method": {
-      "pickup": 11.7
+      "dine_in": 23.5
      },
      "available": true,
      "allergens": null,
-     "option_group_ids": [
-      "4454492"
-     ],
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "92",
+     "sku": "92",
+     "name": "Chicken Tandoori G",
+     "prices_by_order_method": {
+      "dine_in": 15.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "93",
+     "sku": "93",
+     "name": "Butter Chicken G",
+     "prices_by_order_method": {
+      "dine_in": 16.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "94",
+     "sku": "94",
+     "name": "Mutton Tikka G",
+     "prices_by_order_method": {
+      "dine_in": 18.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "95",
+     "sku": "95",
+     "name": "Chicken Tikka G",
+     "prices_by_order_method": {
+      "dine_in": 16.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "96",
+     "sku": "96",
+     "name": "Scampi Tikka Masala B scharf",
+     "prices_by_order_method": {
+      "dine_in": 22.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "97",
+     "sku": "97",
+     "name": "Paneer Tikka G",
+     "prices_by_order_method": {
+      "dine_in": 18.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "101",
+     "sku": "101",
+     "name": "Tinda Masala Gosht",
+     "prices_by_order_method": {
+      "dine_in": 17.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "102",
+     "sku": "102",
+     "name": "Paneer Makhani G",
+     "prices_by_order_method": {
+      "dine_in": 16.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "103",
+     "sku": "103",
+     "name": "Butter Scampi B, G",
+     "prices_by_order_method": {
+      "dine_in": 22.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "104",
+     "sku": "104",
+     "name": "Ente Korma H",
+     "prices_by_order_method": {
+      "dine_in": 20.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "105",
+     "sku": "105",
+     "name": "Chicken Kesari G, H",
+     "prices_by_order_method": {
+      "dine_in": 19.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "106",
+     "sku": "106",
+     "name": "Ente Makhani G",
+     "prices_by_order_method": {
+      "dine_in": 20.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "2-2",
+     "sku": "2-2",
+     "name": "Personen",
+     "prices_by_order_method": {
+      "dine_in": 48.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "2-3",
+     "sku": "2-3",
+     "name": "Personen",
+     "prices_by_order_method": {
+      "dine_in": 46.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "2-4",
+     "sku": "2-4",
+     "name": "Personen",
+     "prices_by_order_method": {
+      "dine_in": 52.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "111",
+     "sku": "111",
+     "name": "Butter Chicken G",
+     "prices_by_order_method": {
+      "dine_in": 9.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "112",
+     "sku": "112",
+     "name": "Chicken Spezial A, H",
+     "prices_by_order_method": {
+      "dine_in": 9.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "116",
+     "sku": "116",
+     "name": "Papadam",
+     "prices_by_order_method": {
+      "dine_in": 0.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "117",
+     "sku": "117",
+     "name": "Naan Natur A, G",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "114",
+     "sku": "114",
+     "name": "Naan mit Käse A, G",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "115",
+     "sku": "115",
+     "name": "Naan mit Knoblauch A, G",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "118",
+     "sku": "118",
+     "name": "Bhatura A, C, G",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "119",
+     "sku": "119",
+     "name": "Chapati A",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "120",
+     "sku": "120",
+     "name": "Raita G",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "130",
+     "sku": "130",
+     "name": "Mixed Pickles",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "131",
+     "sku": "131",
+     "name": "Mango Chutney",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "122",
+     "sku": "122",
+     "name": "Indisches Matka-Eis G, H, 1 Portion",
+     "prices_by_order_method": {
+      "dine_in": 5.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "124",
+     "sku": "124",
+     "name": "Gulab Jamun G",
+     "prices_by_order_method": {
+      "dine_in": 5.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "201",
+     "sku": "201",
+     "name": "Campari Soda 1 / Orange 1 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 6.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "202",
+     "sku": "202",
+     "name": "Martini 12 bianco, rosso 1 oder extra dry 5 cl",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "203",
+     "sku": "203",
+     "name": "Sandeman Sherry 12 medium, dry, secco 5 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "204",
+     "sku": "204",
+     "name": "Prosecco 12 Glas 0,1 l",
+     "prices_by_order_method": {
+      "dine_in": 5.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "205",
+     "sku": "205",
+     "name": "Aperol Spritz 1, 8, 12 Glas 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 7.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "206",
+     "sku": "206",
+     "name": "Hugo 12 Glas 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 7.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "211",
+     "sku": "211",
+     "name": "Espresso 2 Tasse",
+     "prices_by_order_method": {
+      "dine_in": 2.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "212",
+     "sku": "212",
+     "name": "Doppelter Espresso 2 Tasse",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "214",
+     "sku": "214",
+     "name": "Italienischer Kaffee 2 Tasse",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "216",
+     "sku": "216",
+     "name": "Latte Macchiato 2, G Tasse",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "218",
+     "sku": "218",
+     "name": "Heiße Schokolade G Tasse",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "220",
+     "sku": "220",
+     "name": "Grog von 4 cl Pott Rum Mischgetränk Tasse",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "222",
+     "sku": "222",
+     "name": "Heiße Zitrone Tasse",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "226",
+     "sku": "226",
+     "name": "Tee im Pyramidenbeutel Glas",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "227",
+     "sku": "227",
+     "name": "Tee Kännchen",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "228",
+     "sku": "228",
+     "name": "Frischer Ingwertee frischer Ingwer mit Honig Glas",
+     "prices_by_order_method": {
+      "dine_in": 5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "229",
+     "sku": "229",
+     "name": "Tee „Chandiwala“ Schwarztee mit frischer Minze Glas",
+     "prices_by_order_method": {
+      "dine_in": 5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "230",
+     "sku": "230",
+     "name": "Yogi Tee Indischer Tee mit Milch Glas",
+     "prices_by_order_method": {
+      "dine_in": 3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "241",
+     "sku": "241",
+     "name": "Beck’s A Fl. 0,33 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "242",
+     "sku": "242",
+     "name": "König Ludwig Hefeweizen Dunkel A Fl. 0,50 l",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "243",
+     "sku": "243",
+     "name": "König Ludwig Kristallweizen A Fl. 0,50 l",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "244",
+     "sku": "244",
+     "name": "König Ludwig Hefeweizen A Fl. 0,50 l",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "245",
+     "sku": "245",
+     "name": "König Ludwig Hefeweizen Alkoholfrei A Fl. 0,50 l",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "246",
+     "sku": "246",
+     "name": "Warsteiner Alkoholfrei A Fl. 0,33 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "247",
+     "sku": "247",
+     "name": "Berliner Weisse A rot 1 oder grün 1 Fl. 0,33 l",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "249",
+     "sku": "249",
+     "name": "Kingfisher A Indisches Bier Fl. 0,33 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "250",
+     "sku": "250",
+     "name": "Cobra A Indisches Bier Fl. 0,33 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "257",
+     "sku": "257",
+     "name": "Fassbrause",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "259",
+     "sku": "259",
+     "name": "Selters Mineralwasser mit oder ohne Kohlensäure Fl. 0,25 l",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "260",
+     "sku": "260",
+     "name": "Selters Mineralwasser mit oder ohne Kohlensäure Fl. 0,75 l",
+     "prices_by_order_method": {
+      "dine_in": 7.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "262",
+     "sku": "262",
+     "name": "San Pellegrino italienisches Mineralwasser Fl. 0,25 l",
+     "prices_by_order_method": {
+      "dine_in": 3.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "264",
+     "sku": "264",
+     "name": "Bionade Holunder, Litschi oder Kräuter Fl. 0,20 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "271",
+     "sku": "271",
+     "name": "Rhabarbersaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "272",
+     "sku": "272",
+     "name": "Apfelsaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "273",
+     "sku": "273",
+     "name": "Orangensaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "275",
+     "sku": "275",
+     "name": "Ananassaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "276",
+     "sku": "276",
+     "name": "Bananen-Fruchtsaftgetränk 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "277",
+     "sku": "277",
+     "name": "Kirsch-Fruchtsaftgetränk 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "278",
+     "sku": "278",
+     "name": "Kiba Kirsch- & Bananenfruchtsaftgetränk 0,4 l",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "279",
+     "sku": "279",
+     "name": "Cranberry Juice Preiselbernektar 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "280",
+     "sku": "280",
+     "name": "Marcujanektar 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "281",
+     "sku": "281",
+     "name": "Mangonektar 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "282",
+     "sku": "282",
+     "name": "Litschisaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "283",
+     "sku": "283",
+     "name": "Guavensaft 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "284",
+     "sku": "284",
+     "name": "Saftschorle 0,2 l",
+     "prices_by_order_method": {
+      "dine_in": 3.7
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "285",
+     "sku": "285",
+     "name": "Große Saftschorle 0,4 l",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "286",
+     "sku": "286",
+     "name": "Große Säfte / Nektare 0,4 l",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "293",
+     "sku": "293",
+     "name": "Malteserkreuz Acquavit 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "294",
+     "sku": "294",
+     "name": "Aalborg Jubiläums Akvavit 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "295",
+     "sku": "295",
+     "name": "Russian Standard A 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "296",
+     "sku": "296",
+     "name": "Grappa Hausmarke 12 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "297",
+     "sku": "297",
+     "name": "Mangoschnaps 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 3.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "306",
+     "sku": "306",
+     "name": "Tequila Sierra Silver 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "307",
+     "sku": "307",
+     "name": "Old Monk 1 Indischer brauner Rum 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "312",
+     "sku": "312",
+     "name": "Vecchia Romagna 12 italienischer Brandy 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "313",
+     "sku": "313",
+     "name": "Remy Martin V.S.O.P 12 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "314",
+     "sku": "314",
+     "name": "Hennessy V.S. 12 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.9
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "321",
+     "sku": "321",
+     "name": "Jim Beam A Bourbon 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "322",
+     "sku": "322",
+     "name": "Jack Daniels A Tennesse 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "325",
+     "sku": "325",
+     "name": "Balantine’s A, 1 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "326",
+     "sku": "326",
+     "name": "Johnnie Walker Red Label A, 1 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "327",
+     "sku": "327",
+     "name": "Johnnie Walker Black Label A, 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "328",
+     "sku": "328",
+     "name": "Dimple A 12 years 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 5.5
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "337",
+     "sku": "337",
+     "name": "Baileys Irish Cream 1, G 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "338",
+     "sku": "338",
+     "name": "Amaretto Disaronno 1, H 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "339",
+     "sku": "339",
+     "name": "Sambuca Molinari 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "340",
+     "sku": "340",
+     "name": "Amaro Averna 1 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "341",
+     "sku": "341",
+     "name": "Ramazzotti 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "342",
+     "sku": "342",
+     "name": "Fernet Branca 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "343",
+     "sku": "343",
+     "name": "Branca Menta 1 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "344",
+     "sku": "344",
+     "name": "Jägermeister 2 cl",
+     "prices_by_order_method": {
+      "dine_in": 4.3
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
+     "price_is_from": false,
+     "price_qualifier": null
+    },
+    {
+     "id": "347",
+     "sku": "347",
+     "name": "Moët & Chandon Rosé",
+     "prices_by_order_method": {
+      "dine_in": 95
+     },
+     "available": true,
+     "allergens": null,
+     "option_group_ids": [],
      "price_is_from": false,
      "price_qualifier": null
     }
    ],
    "_capture": {
-    "captured_at": 1791813191,
-    "server_pubkey": "ef070a5dcaaa368d05d6a248041195e9f3b388ea323ca0c0a1d73ed44e31ea2b",
-    "client_pubkey": "6f49f6b469e3bc64b7fac2099a88d91f60fa64eb666d8b76b3c1ba0bacd23652",
+    "captured_at": 1791847006,
+    "server_pubkey": "afcf8418fe73e5dfe2faf2bc337129027ea53a2b541f79bca1b529d7a85977a2",
+    "client_pubkey": "e2a58d888cc203a2ffd357d05bf26058bf66e956031acc560ded674feb9d02b3",
     "relays": [
-     "wss://relay2.orangesync.tech"
+     "wss://relay.primal.net"
     ],
     "method": "tools/call menu (JSON-RPC over ContextVM; kind 1059 gift-wrap, NIP-44)",
     "checks": [
@@ -5562,12 +2238,12 @@
      {
       "name": "tools/call:menu",
       "ok": true,
-      "detail": "total_items=112 venues=[\"pizza-e-pasta-ruedesheimerplatz\"] expected=[\"pizza-e-pasta-ruedesheimerplatz\"]/112 sha256=4107fe9577ef==4107fe9577ef"
+      "detail": "total_items=167 venues=[\"chandi-berlin\"] expected=[\"chandi-berlin\"]/167 sha256=920e3aafb826==920e3aafb826"
      },
      {
       "name": "tools/call:order",
       "ok": true,
-      "detail": "status=basket lines=2 total=17.1 venue=pizza-e-pasta-ruedesheimerplatz deep_link=https://pizzaepasta-ruedesheimerplatz.de/pizza-e-pasta/takeaway"
+      "detail": "status=basket lines=2 total=18 venue=chandi-berlin deep_link=https://chandi-restaurant.com/menue/"
      }
     ],
     "tool": "services/restaurant-cvm/e2e_client.ts --json"
@@ -5583,8 +2259,15 @@
   "why": "site/app.js reads exactly this file; the dashboard must not invent a menu.",
   "how": "tools/capture_menu.py -> services/restaurant-cvm/e2e_client.ts --json",
   "relays": [
-   "wss://relay2.orangesync.tech"
+   "wss://relay.primal.net"
   ],
-  "note": "Regenerate rather than hand-edit; each venue block carries its own _capture block."
+  "note": "Regenerate rather than hand-edit; each venue block carries its own _capture block.",
+  "not_served": [
+   "doppelt-kaese-berlin",
+   "doreedos-steakhaus-berlin",
+   "la-mama-berlin",
+   "pizza-e-pasta-ruedesheimerplatz",
+   "three-buddies-berlin"
+  ]
  }
 }
