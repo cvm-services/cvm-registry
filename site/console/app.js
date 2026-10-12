@@ -260,7 +260,7 @@ function placingView() {
       <div class="dsec"><h3>Basket to enter at the venue</h3><div class="ckbox" style="background:var(--card);border-color:var(--line);color:var(--ink)">${lineItems(b)}
         <div class="cksum" style="border-color:var(--line)"><span>Venue total</span><b>${fiat(b.total_fiat)}</b></div></div></div>
       <div class="dsec"><h3>After the checkout, record</h3>
-        <div class="kv"><span>Venue order number</span><input class="ck dark" data-receipt="venue_reference" placeholder="#4471"></div>
+        <div class="kv"><span>Venue order number <b class="tag ok">→ customer</b></span><input class="ck dark" data-receipt="venue_reference" placeholder="#4471"></div>
         <div class="kv"><span>Ready time told</span><input class="ck dark" data-receipt="ready_at" placeholder="18:25"></div>
         <div class="kv"><span>Paid with</span><input class="ck dark" data-receipt="paid_with" placeholder="card at venue terminal / 2fiat card"></div>
         <div class="kv"><span>Payment reference</span><input class="ck dark" data-receipt="payment_reference" placeholder="pi_… or txn id — never a card number"></div>
