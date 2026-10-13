@@ -7,16 +7,28 @@ import { RECEIPT_KIND, DETAIL_KIND, RECORD_TAG, readReceipt } from "./order_reco
 /** Ours first, then an independent second home: either being down is survivable. */
 export const RELAYS = ["wss://relay2.orangesync.tech", "wss://relay.primal.net"];
 
-/** Publish both records. Returns the ids that were accepted by >=1 relay. */
+/**
+ * Publish both records to every relay.
+ *
+ * `SimplePool.publish(relays, event)` takes an ARRAY of relays and returns an
+ * ARRAY OF PROMISES (one per relay), not a promise — awaiting it directly is a
+ * no-op that silently publishes nothing. That mistake shipped once; the test
+ * below pins the shape.
+ */
 export async function publishOrderRecords(pool, relays, { receipt, detail }) {
-  const results = await Promise.allSettled(
-    relays.map(async (url) => {
-      const out = await Promise.all([pool.publish(url, receipt), pool.publish(url, detail)]);
-      return out.length;
-    }),
-  );
-  const ok = results.filter((r) => r.status === "fulfilled").length;
-  return { relays_ok: ok, relays_total: relays.length, receipt_id: receipt.id, detail_id: detail.id };
+  const settle = async (event) => {
+    const results = await Promise.allSettled(pool.publish(relays, event));
+    return results.filter((r) => r.status === "fulfilled").length;
+  };
+  const receiptOk = await settle(receipt);
+  const detailOk = await settle(detail);
+  // A relay counts as reached when BOTH records landed on it.
+  return {
+    relays_ok: Math.min(receiptOk, detailOk),
+    relays_total: relays.length,
+    receipt_id: receipt.id,
+    detail_id: detail.id,
+  };
 }
 
 /**

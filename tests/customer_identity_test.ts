@@ -16,14 +16,17 @@ function fakePool() {
   const store: any[] = [];
   return {
     store,
-    async publish(_url: string, ev: any) {
-      // Addressable semantics: a newer event for the same (kind,pubkey,d) wins.
-      const d = (ev.tags ?? []).find((t: string[]) => t[0] === "d")?.[1];
-      const i = store.findIndex((x) => x.kind === ev.kind && x.pubkey === ev.pubkey &&
-        (x.tags ?? []).find((t: string[]) => t[0] === "d")?.[1] === d);
-      if (i >= 0) store[i] = ev;
-      else store.push(ev);
-      return "ok";
+    // Same shape as SimplePool.publish(relays, event) -> Promise[] (one per relay).
+    publish(urls: string[], ev: any) {
+      return urls.map(async () => {
+        // Addressable semantics: a newer event for the same (kind,pubkey,d) wins.
+        const d = (ev.tags ?? []).find((t: string[]) => t[0] === "d")?.[1];
+        const i = store.findIndex((x) => x.kind === ev.kind && x.pubkey === ev.pubkey &&
+          (x.tags ?? []).find((t: string[]) => t[0] === "d")?.[1] === d);
+        if (i >= 0) store[i] = ev;
+        else store.push(ev);
+        return "ok";
+      });
     },
     subscribeMany(_urls: string[], filter: any, handlers: any) {
       setTimeout(() => {

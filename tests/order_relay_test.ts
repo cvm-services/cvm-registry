@@ -11,10 +11,15 @@ function fakePool(events: any[] = [], { failUrls = [] }: { failUrls?: string[] }
   return {
     published,
     seenFilters,
-    async publish(url: string, ev: any) {
-      if (failUrls.includes(url)) throw new Error("relay down");
-      published.push({ url, id: ev.id, kind: ev.kind });
-      return "ok";
+    // Mirrors SimplePool.publish(relays, event) -> Promise[] — one promise per
+    // relay, NOT a single promise. Awaiting the array itself is the bug this
+    // shape exists to prevent.
+    publish(urls: string[], ev: any) {
+      return urls.map(async (url: string) => {
+        if (failUrls.includes(url)) throw new Error("relay down");
+        published.push({ url, id: ev.id, kind: ev.kind });
+        return "ok";
+      });
     },
     subscribeMany(urls: string[], filter: any, handlers: any) {
       seenFilters.push({ urls, filter });
