@@ -69,29 +69,75 @@ def pubkey_of(slug: str) -> str:
     return pk
 
 
-def capture(slug: str, timeout_ms: int) -> dict:
-    """Run one live tools/list + tools/call menu round-trip; return the shaped venue."""
-    pk = pubkey_of(slug)
-    cmd = [
-        DENO, "run", "--allow-net", "--allow-read", "--allow-env", str(CLIENT),
-        "--server", pk,
-        *[a for relay in RELAYS.split(",") for a in ("--relay", relay.strip())],
-        "--venue", slug,
-        "--json",
-        "--timeout-ms", str(timeout_ms),
-    ]
-    print(f"[capture] {slug}: {pk[:16]}... over {RELAYS}", file=sys.stderr)
-    proc = subprocess.run(cmd, cwd=CTXVM_REPO, capture_output=True, text=True)
-    if proc.returncode != 0:
-        sys.exit(f"e2e_client failed for {slug} (exit {proc.returncode}):\n{proc.stdout[-1500:]}\n{proc.stderr[-1500:]}")
-    try:
-        doc = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        sys.exit(f"e2e_client did not emit JSON for {slug}:\n{proc.stdout[-1500:]}")
+def candidate_relays(slug: str) -> list[str]:
+    """Relays to try, in order, for this venue.
 
-    if not doc.get("all_passed"):
-        failed = [c for c in doc.get("checks", []) if not c.get("ok")]
-        sys.exit(f"{slug}: the round-trip did not pass all checks: {failed}")
+    A venue server subscribes to the relays its own systemd unit declares, so
+    those come first; the configured default set is appended as a fallback. The
+    relay line is read from the unit that names the slug, and also from the
+    legacy generic `venue-cvm-server.service` unit (doppelt-kaese runs under that
+    name and declares no slug at all).
+    """
+    order: list[str] = []
+    candidates: list[str] = []
+    unit_dir = Path.home() / ".config" / "systemd" / "user"
+    for name in (f"venue-cvm-server-{slug}.service", "venue-cvm-server.service"):
+        unit = unit_dir / name
+        if unit.is_file():
+            candidates.append(unit.read_text())
+    candidates.append("")
+    for text in candidates:
+        m = re.search(r"VENUE_SERVER_RELAYS=([^\s\"]+)", text)
+        if m:
+            for r in m.group(1).split(","):
+                r = r.strip()
+                if r and r not in order:
+                    order.append(r)
+    for r in (x.strip() for x in RELAYS.split(",")):
+        if r and r not in order:
+            order.append(r)
+    return order
+
+
+def capture(slug: str, timeout_ms: int) -> dict:
+    """Run one live tools/list + tools/call menu round-trip; return the shaped venue.
+
+    Tries each candidate relay ONE AT A TIME and keeps the first that passes every
+    check. Attaching several relays to a single run is measurably flaky: observed
+    2026-10-13, doppelt-kaese / pizza / three-buddies each dropped a check (usually
+    `initialize`) when run against both relays at once, while every one of them
+    passes cleanly against a single relay it is subscribed to.
+    """
+    pk = pubkey_of(slug)
+    attempts: list[str] = []
+    doc: dict | None = None
+    used_relay: str | None = None
+    for relay in candidate_relays(slug):
+        cmd = [
+            DENO, "run", "--allow-net", "--allow-read", "--allow-env", str(CLIENT),
+            "--server", pk,
+            "--relay", relay,
+            "--venue", slug,
+            "--json",
+            "--timeout-ms", str(timeout_ms),
+        ]
+        print(f"[capture] {slug}: {pk[:16]}... over {relay}", file=sys.stderr)
+        proc = subprocess.run(cmd, cwd=CTXVM_REPO, capture_output=True, text=True)
+        if proc.returncode != 0:
+            attempts.append(f"{relay}: exit {proc.returncode}")
+            continue
+        try:
+            candidate = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            attempts.append(f"{relay}: non-JSON output")
+            continue
+        failed = [c.get("name") for c in candidate.get("checks", []) if not c.get("ok")]
+        if candidate.get("all_passed"):
+            doc, used_relay = candidate, relay
+            break
+        attempts.append(f"{relay}: checks failed {failed}")
+    if doc is None:
+        sys.exit(f"e2e_client failed for {slug} on every relay tried: {'; '.join(attempts)}")
 
     def call_text(entry: dict) -> str:
         return ((entry.get("mcp") or {}).get("result") or {}).get("content", [{}])[0].get("text", "")
@@ -195,6 +241,7 @@ def main() -> int:
             "why": "site/app.js reads exactly this file; the dashboard must not invent a menu.",
             "how": "tools/capture_menu.py -> services/restaurant-cvm/e2e_client.ts --json",
             "relays": [r.strip() for r in RELAYS.split(",")],
+            "relays_note": "Default relay set. Each venue is captured on the first single relay it is subscribed to that passes every check (see candidate_relays()); the relay actually used is in the venue's own _capture.relays.",
             "note": "Regenerate rather than hand-edit; each venue block carries its own _capture block.",
             "not_served": skipped,
         },
