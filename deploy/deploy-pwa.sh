@@ -38,15 +38,42 @@ for asset in "${ORDER_PWA_ASSETS[@]}"; do
     echo "ERROR: site/order/$asset missing — the order client would ship un-installable" >&2; exit 1; }
 done
 
+# Every module the order app imports, transitively (ADR-0017). These are NOT
+# optional: a missing one is a page that loads and then dies on import. The
+# vendor bundle lives in a SUBDIRECTORY, which a plain `cp dir/*` silently drops
+# — exactly how it first deployed. tests/order_shell_coverage_test.ts asserts the
+# same set against the service worker's shell list.
+ORDER_APP_MODULES=(
+  app.js
+  identity.js
+  signer.js
+  order_records.js
+  order_relay.js
+  vendor/nostr.mjs
+)
+for m in "${ORDER_APP_MODULES[@]}"; do
+  [ -f "$REPO/site/order/$m" ] || {
+    echo "ERROR: site/order/$m missing — the order client would fail on import" >&2; exit 1; }
+done
+
 BUNDLE="$(mktemp -d /tmp/cvm-pwa-bundle-XXXX)"
 mkdir -p "$BUNDLE/order" "$BUNDLE/console" "$BUNDLE/vocab"
-cp "$REPO"/site/order/* "$BUNDLE/order/"
+# Files only at the top level: a bare glob also matches the vendor DIRECTORY,
+# and `cp` then exits non-zero ("omitting directory"), which under `set -e`
+# aborts the whole deploy after copying nothing — a silent no-op deploy.
+find "$REPO/site/order" -maxdepth 1 -type f -exec cp {} "$BUNDLE/order/" \;
+# -r for the vendored Nostr bundle (a subdirectory the glob above cannot copy).
+cp -r "$REPO/site/order/vendor" "$BUNDLE/order/vendor"
 # The glob above is what actually carries the PWA assets; assert it did, because
 # a bundle that silently lost them deploys a green-looking site (same class of
 # failure as the caddy-user 403 below).
 for asset in "${ORDER_PWA_ASSETS[@]}"; do
   [ -f "$BUNDLE/order/$asset" ] || {
     echo "ERROR: site/order/$asset did not reach the bundle — check the cp glob" >&2; exit 1; }
+done
+for m in "${ORDER_APP_MODULES[@]}"; do
+  [ -f "$BUNDLE/order/$m" ] || {
+    echo "ERROR: site/order/$m did not reach the bundle — the app would fail on import" >&2; exit 1; }
 done
 # The facilitator console (PLAN-0007 T4). Same origin as the customer PWA so both UIs
 # talk to the same /api -> cvm-orders proxy; card data never leaves the facilitator's
@@ -76,6 +103,22 @@ grep -q "^$DOMAIN {" "$REPO/deploy/caddy-vhost-cvm-pwa.caddy" || {
   echo "ERROR: deploy/caddy-vhost-cvm-pwa.caddy has no block for $DOMAIN" >&2; exit 1; }
 grep -q "^	root \* $DEST\$" "$REPO/deploy/caddy-vhost-cvm-pwa.caddy" || {
   echo "ERROR: the vhost file does not serve $DEST — update it or unset DEST (it is the source of truth)" >&2; exit 1; }
+# The service worker version must move whenever the modules it caches change.
+# Compare the ACTUAL module bytes, not the version string alone: a re-run of an
+# unchanged deploy is idempotent and must not fail, but shipping changed modules
+# under an unchanged SW_VERSION means every existing client keeps the old shell
+# and never loads them — a deploy that looks green and changes nothing.
+local_modules_hash="$(cat $(printf "$REPO/site/order/%s\n" "${ORDER_APP_MODULES[@]}") | sha256sum | cut -c1-16)"
+remote_modules_hash="$(ssh "${SSH_OPTS[@]}" "$HOST" "cat $(printf "$DEST/order/%s " "${ORDER_APP_MODULES[@]}") 2>/dev/null | sha256sum | cut -c1-16" || true)"
+LOCAL_SW_V="$(grep -oE 'SW_VERSION = "[^"]+"' "$REPO/site/order/sw.js" | head -1)"
+REMOTE_SW_V="$(ssh "${SSH_OPTS[@]}" "$HOST" "grep -oE 'SW_VERSION = \"[^\"]+\"' $DEST/order/sw.js 2>/dev/null | head -1" || true)"
+if [ -n "$remote_modules_hash" ] && [ "$local_modules_hash" != "$remote_modules_hash" ] &&
+   [ "$LOCAL_SW_V" = "$REMOTE_SW_V" ]; then
+  echo "ERROR: the order modules changed but site/order/sw.js still declares $LOCAL_SW_V." >&2
+  echo "       Bump SW_VERSION: clients would keep the old shell and never load them." >&2
+  exit 1
+fi
+echo "   service worker: $LOCAL_SW_V (host: ${REMOTE_SW_V:-none}); modules ${local_modules_hash}"
 scp -q "${SSH_OPTS[@]}" "$REPO/deploy/caddy-vhost-cvm-pwa.caddy" "$HOST":/tmp/cvm-pwa.caddy
 scp -q "${SSH_OPTS[@]}" "$REPO/deploy/rewrite-caddy-vhost.py" "$HOST":/tmp/rewrite-caddy-vhost.py
 ssh "${SSH_OPTS[@]}" "$HOST" "sudo bash -s" <<REMOTE
