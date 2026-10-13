@@ -13,3 +13,5 @@ playwright-report/
 blob-report/
 .cache/
 coverage/
+__pycache__/
+deno.lock
