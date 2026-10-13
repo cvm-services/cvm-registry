@@ -178,9 +178,24 @@ async function refresh() {
 
 function basketOf(order) {
   const b = order?.payload?.basket;
-  if (b) return b;
+  if (b && (b.total_fiat || b.total_sats)) return b;
+  // The service does not send payload.basket: the money lives at the TOP LEVEL
+  // (subtotal/fee/total, recomputed server-side from the catalog — ADR-0008).
+  // Before this derivation the console rendered a genuine paid order as
+  // "0.00 € / 0 sats" because the fallback produced zeros.
+  const SATS_PER_EUR = 1000;
   const items = Array.isArray(order?.payload?.items) ? order.payload.items : [];
-  return { venue_slug: order?.payload?.venue_slug ?? "unknown", venue_name: order?.payload?.venue_slug ?? "unknown venue", items, total_fiat: 0, total_sats: 0, fee_sats: 0 };
+  const subtotal = order?.subtotal ?? 0;
+  const fee = order?.fee ?? 0;
+  const total = order?.total ?? subtotal + fee;
+  return {
+    venue_slug: order?.venue_slug ?? order?.payload?.venue_slug ?? "unknown",
+    venue_name: order?.venue_slug ?? order?.payload?.venue_slug ?? "unknown venue",
+    items,
+    total_fiat: +(total / SATS_PER_EUR).toFixed(2),
+    total_sats: total,
+    fee_sats: fee,
+  };
 }
 
 function sla(order) {

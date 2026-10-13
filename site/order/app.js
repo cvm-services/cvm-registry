@@ -2,7 +2,31 @@ const state = {
   screen: 1, venue: null, method: "pickup", item: null, qty: 1,
   options: { sauce: "House", extras: ["Bacon"], size: "Single" },
   basket: [], order: null, invoice: null, catalog: null, inputRegister: null,
- };
+};
+// Order recovery (customer surface): the order id is the customer's ONLY handle
+// on a live payment — losing it on refresh stranded a paid order with no way to
+// see it. Persist the id (never card material, never a secret) and resume the
+// status screen on load; the id alone is enough because GET /orders/:id is the
+// customer's own poll and the invoice is re-fetched from the service.
+const ORDER_KEY = "cvm-order-id-v1";
+function rememberOrder(o) { try { if (o?.id) localStorage.setItem(ORDER_KEY, o.id); } catch {} }
+function forgetOrder() { try { localStorage.removeItem(ORDER_KEY); } catch {} }
+async function resumeOrder() {
+  let id = null;
+  try { id = localStorage.getItem(ORDER_KEY); } catch {}
+  if (!id) return false;
+  try {
+    const r = await fetch(`/api/orders/${encodeURIComponent(id)}`);
+    if (!r.ok) { if (r.status === 404) forgetOrder(); return false; }
+    state.order = await r.json();
+    try {
+      const p = await fetch(`/api/orders/${encodeURIComponent(id)}/invoice`);
+      if (p.ok) state.invoice = await p.json();
+    } catch {}
+    state.screen = 5;
+    return true;
+  } catch { return false; }
+}
  const ORDER_INPUT_REGISTER_URL = "../../vocab/service-inputs.json";
 const app = document.querySelector("#app");
 const sats = (n) => `${Math.round(n * 1000).toLocaleString("en-US").replaceAll(",", " ")} sats`;
@@ -67,8 +91,11 @@ function status(){const o=state.order||{};const vr=o.venue_reference;
 return `${header(`Order #${esc(o.id||"pending")}` , state.venue?.name || "")}<section class="screen status"><div class="timeline">${[["Paid",PAID_STATES.includes(o.state),"Payment received"],["Facilitator placing your order",PLACING_STATES.includes(o.state),"usually under 3 min"],["Order placed at venue",["placed","ready"].includes(o.state),vr?`venue order #${esc(vr)}`:"awaiting venue confirmation"],["Ready for pickup",o.state==="ready","venue confirmation"]].map(([x,done,n])=>`<div class="tl"><span class="dot ${done?'done':''}">${done?'✓':'·'}</span><div><b>${x}</b><small>${n}</small></div></div>`).join("")}</div>${vr?`<div class="venue-ref"><span>Venue order number</span><b>#${esc(vr)}</b><p>Quote this at ${esc(state.venue?.name||"the venue")}. The venue's own tracker is account-scoped, so this is your reference to check with them — not a number the venue's public website looks up.</p></div>`:""}<div class="order-card"><b>${state.basket.map(x=>`${x.qty}× ${esc(x.name)}`).join(", ")}</b><p>${o.state||"awaiting_payment"} · ${esc(methodLabel(state.method))}</p></div><p class="next">The facilitator confirms each step here. If the venue cannot take the order, you are refunded in full.</p><button class="secondary" data-refresh>Refresh status</button></section>`;}
 function render(){ if(!state.catalog){app.innerHTML='<p class="loading">Loading venues…</p>';return} app.innerHTML=state.screen===1?venueList():state.screen===2?menu():state.screen===3?itemSheet():state.screen===4?basket():state.screen===5?pay():status(); bind(); }
 function bind(){app.querySelector("[data-back]")?.addEventListener("click",()=>navigate(Math.max(1,state.screen-1)));app.querySelectorAll("[data-venue]").forEach(b=>b.onclick=()=>{state.venue=state.catalog.venues.find(v=>v.venue_slug===b.dataset.venue);setVenue(state.venue);navigate(2)});app.querySelectorAll("[data-method]").forEach(b=>b.onclick=()=>{state.method=b.dataset.method;render()});app.querySelectorAll("[data-item]").forEach(b=>b.onclick=()=>{state.item=state.venue.items.find(i=>i.sku===b.dataset.item);state.qty=1;navigate(3)});app.querySelectorAll("[data-sauce]").forEach(b=>b.onclick=()=>{state.options.sauce=b.dataset.sauce;render()});app.querySelectorAll("[data-size]").forEach(b=>b.onclick=()=>{state.options.size=b.dataset.size;render()});app.querySelectorAll("[data-extra]").forEach(b=>b.onclick=()=>{const x=b.dataset.extra;state.options.extras=state.options.extras.includes(x)?state.options.extras.filter(y=>y!==x):[...state.options.extras,x];render()});app.querySelectorAll("[data-qty]").forEach(b=>b.onclick=()=>{state.qty=Math.max(1,state.qty+Number(b.dataset.qty));render()});app.querySelector("[data-add]")?.addEventListener("click",()=>{state.basket.push({name:state.item.name,qty:state.qty,amount:itemTotal()/state.qty,options:`${state.options.sauce} · ${state.options.extras.map(x=>`+${x.toLowerCase()}`).join(" · ")} · ${state.options.size}`});navigate(2)});app.querySelector("[data-basket]")?.addEventListener("click",()=>navigate(4));app.querySelector("[data-pay]")?.addEventListener("click",createOrder);app.querySelector("[data-paid]")?.addEventListener("click",()=>{navigate(6);beginPolling()});app.querySelector("[data-refresh]")?.addEventListener("click",pollStatus);}
-async function createOrder(){const inputs={};for(const field of app.querySelectorAll("[data-input]")){if(field.required&&!field.value.trim()){field.focus();return}if(field.value.trim())inputs[field.dataset.input]=field.type==="number"?Number(field.value):field.value.trim()}const payload={venue_slug:state.venue.venue_slug,items:state.basket,fulfilment:state.method,inputs};try{const r=await fetch("/api/orders",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!r.ok)throw Error("order service unavailable");state.order=await r.json();const p=await fetch(`/api/orders/${encodeURIComponent(state.order.id)}/invoice`);if(!p.ok)throw Error("invoice unavailable");state.invoice=await p.json();if(!state.invoice.bolt11||!state.invoice.qr)throw Error("invalid invoice response");navigate(5)}catch(e){app.insertAdjacentHTML("beforeend",`<p class="error">${esc(e.message)}. No payment was created; try again.</p>`)} }
+async function createOrder(){const inputs={};for(const field of app.querySelectorAll("[data-input]")){if(field.required&&!field.value.trim()){field.focus();return}if(field.value.trim())inputs[field.dataset.input]=field.type==="number"?Number(field.value):field.value.trim()}const payload={venue_slug:state.venue.venue_slug,items:state.basket,fulfilment:state.method,inputs};try{const r=await fetch("/api/orders",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!r.ok)throw Error("order service unavailable");state.order=await r.json();rememberOrder(state.order);const p=await fetch(`/api/orders/${encodeURIComponent(state.order.id)}/invoice`);if(!p.ok)throw Error("invoice unavailable");state.invoice=await p.json();if(!state.invoice.bolt11||!state.invoice.qr)throw Error("invalid invoice response");navigate(5)}catch(e){app.insertAdjacentHTML("beforeend",`<p class="error">${esc(e.message)}. No payment was created; try again.</p>`)} }
 let pollTimer;
 async function pollStatus(){if(!state.order?.id)return;try{const r=await fetch(`/api/orders/${encodeURIComponent(state.order.id)}`);if(r.ok)state.order=await r.json()}catch{}render()}
 function beginPolling(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(state.screen===6)pollStatus();else clearInterval(pollTimer)},5000)}
-Promise.all([fetch("../menu.json").then(r=>r.json()),fetch(ORDER_INPUT_REGISTER_URL).then(r=>r.json())]).then(([catalog,register])=>{state.catalog=catalog;state.inputRegister=register;render()}).catch(()=>{app.innerHTML='<p class="error">Catalog or input register unavailable. Try again later.</p>'});
+Promise.all([fetch("../menu.json").then(r=>r.json()),fetch(ORDER_INPUT_REGISTER_URL).then(r=>r.json())]).then(async([catalog,register])=>{state.catalog=catalog;state.inputRegister=register;
+// Resume a live order before painting the venue list, so a refresh lands the
+// customer back on their order instead of losing it.
+if(await resumeOrder()){beginPolling()}render()}).catch(()=>{app.innerHTML='<p class="error">Catalog or input register unavailable. Try again later.</p>'});
