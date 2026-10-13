@@ -132,7 +132,12 @@ export function custodyPlan(order) {
   const url = order?.payload?.venue?.checkout_url;
   const rail = order?.payload?.venue?.rail ?? "unknown";
   if (url) return { mode: "venue-checkout", rail, url, note: "the venue's own checkout — card data is entered there, on this device, never sent to us" };
-  return { mode: "psp-hosted-fields", rail, url: null, note: "no venue checkout URL declared: pay at the venue's terminal, or hand off to the PSP's hosted card fields once the 2fiat card CVM (ADR-0013) is wired. Card data never enters this console." };
+  // No online checkout declared. Per the operator rule (2026-10-14), only
+  // venues that take payment ONLINE are supportable: a venue whose settlement
+  // is a physical terminal needs the card (or cash) at the counter, which this
+  // flow cannot serve. So say that plainly — "pay at the terminal" read as if
+  // it were a route we support, and it is not.
+  return { mode: "not-orderable", rail, url: null, note: "This venue takes payment only in person (terminal or cash), so its orders cannot be settled in sats yet. Only venues with an online checkout are supportable — an adapter would be needed first." };
 }
 
 const state = { screen: "signin", challenge: null, auth: null, queue: [], selected: null, order: null, error: null, notice: null, dm: null, receipts: loadReceipts(), meltPlan: null };
@@ -322,7 +327,7 @@ function queueView() {
     </div>
     <div class="actions">
       <button class="btn gold" data-place="${esc(o.id)}" ${gate.ok ? "" : "disabled"}>Place order at venue →</button>
-      <button class="btn line blue" data-handoff="${esc(o.id)}">Open venue checkout ↗</button>
+      <button class="btn line blue" data-handoff="${esc(o.id)}" ${custodyPlan(o).url ? "" : "disabled"}>Open venue checkout ↗</button>
       ${o.state === "placed" ? `<button class="btn line" data-ready="${esc(o.id)}">Mark ready — venue handed it over</button>` : ""}
       <button class="btn ghost" data-refund="${esc(o.id)}">Can't place? Refund the customer in full</button>
     </div></aside>`;

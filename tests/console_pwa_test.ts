@@ -65,10 +65,20 @@ Deno.test("card custody hands off instead of collecting", () => {
   const withUrl = mod.custodyPlan({ payload: { venue: { checkout_url: "https://venue.example/pay", rail: "FoodAmigos" } } });
   assertEquals(withUrl.mode, "venue-checkout");
   assertEquals(withUrl.url, "https://venue.example/pay");
+  // A venue with NO online checkout is NOT orderable: our sats flow cannot pay
+  // at a physical terminal (operator rule 2026-10-14). The old wording "pay at
+  // the venue's terminal" read as if that were a route we support — it is not.
   const without = mod.custodyPlan({ payload: {} });
-  assertEquals(without.mode, "psp-hosted-fields");
+  assertEquals(without.mode, "not-orderable");
   assertEquals(without.url, null);
-  assert(without.note.toLowerCase().includes("card data never enters this console"));
+  assert(
+    without.note.toLowerCase().includes("cannot be settled in sats"),
+    `the note must state the venue is unsupportable, got: ${without.note}`,
+  );
+  assert(
+    !without.note.toLowerCase().includes("pay at the venue's terminal"),
+    "must not present an in-person terminal as a supported route",
+  );
   assert(source.includes('globalThis.open(plan.url, "_blank", "noopener,noreferrer")'), "hand-off is a real navigation, not a form");
 });
 
