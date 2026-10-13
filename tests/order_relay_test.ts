@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { fetchDetail, fetchReceipts, publishOrderRecords } from "../site/render/order_relay.js";
-import { DETAIL_KIND, RECEIPT_KIND, orderKey } from "../site/render/order_records.js";
+import { fetchDetail, fetchReceipts, publishOrderRecords } from "../site/order/order_relay.js";
+import { DETAIL_KIND, RECEIPT_KIND, orderKey } from "../site/order/order_records.js";
 
 const PK = "a".repeat(64);
 

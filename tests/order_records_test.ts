@@ -12,7 +12,7 @@ import {
   readReceipt,
   saveIdentity,
   storeKey,
-} from "../site/render/order_records.js";
+} from "../site/order/order_records.js";
 
 const ORDER = "b6c61954-935d-4dcb-b8a5-5463e402da31";
 const SIGNER = makeLocalSigner(new Uint8Array(32).fill(7));

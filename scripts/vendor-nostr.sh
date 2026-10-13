@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate site/vendor/nostr.mjs from site/vendor/nostr-entry.js.
+# Regenerate site/order/vendor/nostr.mjs from site/order/vendor/nostr-entry.js.
 #
 # The committed bundle is what ships — this script exists so the bundle can be
 # reproduced byte-for-byte from a clean checkout. It resolves nostr-tools from a
@@ -10,8 +10,8 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-ENTRY="$REPO/site/vendor/nostr-entry.js"
-OUT="$REPO/site/vendor/nostr.mjs"
+ENTRY="$REPO/site/order/vendor/nostr-entry.js"
+OUT="$REPO/site/order/vendor/nostr.mjs"
 ROOT="${NOSTR_TOOLS_ROOT:-/data/repos/auditable-voting/web/node_modules}"
 VERSION="2.23.3"
 

@@ -10,7 +10,7 @@
 // NIP-07 does not define nip44Encrypt on every implementation, so the
 // encryption is routed through a locally-held key ONLY when the extension
 // genuinely cannot do it — see `supportsExtensionCrypto`.
-import { BunkerSigner, generateSecretKey } from "../vendor/nostr.mjs";
+import { BunkerSigner, generateSecretKey } from "./vendor/nostr.mjs";
 
 /**
  * True when a NIP-07 provider is present.

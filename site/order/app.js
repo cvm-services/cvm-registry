@@ -1,3 +1,6 @@
+import { currentIdentity } from "./identity.js";
+import { loadOrders, saveOrder, signIn } from "./identity.js";
+
 const state = {
   screen: 1, venue: null, method: "pickup", item: null, qty: 1,
   options: { sauce: "House", extras: ["Bacon"], size: "Single" },
@@ -88,13 +91,99 @@ function status(){const o=state.order||{};const vr=o.venue_reference;
 // shown alongside our sats reference — never instead of it — and the venue
 // verification line is only claimed when the number actually exists, because the
 // storefront's tracker is account-scoped and cannot be checked by number alone.
-return `${header(`Order #${esc(o.id||"pending")}` , state.venue?.name || "")}<section class="screen status"><div class="timeline">${[["Paid",PAID_STATES.includes(o.state),"Payment received"],["Facilitator placing your order",PLACING_STATES.includes(o.state),"usually under 3 min"],["Order placed at venue",["placed","ready"].includes(o.state),vr?`venue order #${esc(vr)}`:"awaiting venue confirmation"],["Ready for pickup",o.state==="ready","venue confirmation"]].map(([x,done,n])=>`<div class="tl"><span class="dot ${done?'done':''}">${done?'✓':'·'}</span><div><b>${x}</b><small>${n}</small></div></div>`).join("")}</div>${vr?`<div class="venue-ref"><span>Venue order number</span><b>#${esc(vr)}</b><p>Quote this at ${esc(state.venue?.name||"the venue")}. The venue's own tracker is account-scoped, so this is your reference to check with them — not a number the venue's public website looks up.</p></div>`:""}<div class="order-card"><b>${state.basket.map(x=>`${x.qty}× ${esc(x.name)}`).join(", ")}</b><p>${o.state||"awaiting_payment"} · ${esc(methodLabel(state.method))}</p></div><p class="next">The facilitator confirms each step here. If the venue cannot take the order, you are refunded in full.</p><button class="secondary" data-refresh>Refresh status</button></section>`;}
-function render(){ if(!state.catalog){app.innerHTML='<p class="loading">Loading venues…</p>';return} app.innerHTML=state.screen===1?venueList():state.screen===2?menu():state.screen===3?itemSheet():state.screen===4?basket():state.screen===5?pay():status(); bind(); }
-function bind(){app.querySelector("[data-back]")?.addEventListener("click",()=>navigate(Math.max(1,state.screen-1)));app.querySelectorAll("[data-venue]").forEach(b=>b.onclick=()=>{state.venue=state.catalog.venues.find(v=>v.venue_slug===b.dataset.venue);setVenue(state.venue);navigate(2)});app.querySelectorAll("[data-method]").forEach(b=>b.onclick=()=>{state.method=b.dataset.method;render()});app.querySelectorAll("[data-item]").forEach(b=>b.onclick=()=>{state.item=state.venue.items.find(i=>i.sku===b.dataset.item);state.qty=1;navigate(3)});app.querySelectorAll("[data-sauce]").forEach(b=>b.onclick=()=>{state.options.sauce=b.dataset.sauce;render()});app.querySelectorAll("[data-size]").forEach(b=>b.onclick=()=>{state.options.size=b.dataset.size;render()});app.querySelectorAll("[data-extra]").forEach(b=>b.onclick=()=>{const x=b.dataset.extra;state.options.extras=state.options.extras.includes(x)?state.options.extras.filter(y=>y!==x):[...state.options.extras,x];render()});app.querySelectorAll("[data-qty]").forEach(b=>b.onclick=()=>{state.qty=Math.max(1,state.qty+Number(b.dataset.qty));render()});app.querySelector("[data-add]")?.addEventListener("click",()=>{state.basket.push({name:state.item.name,qty:state.qty,amount:itemTotal()/state.qty,options:`${state.options.sauce} · ${state.options.extras.map(x=>`+${x.toLowerCase()}`).join(" · ")} · ${state.options.size}`});navigate(2)});app.querySelector("[data-basket]")?.addEventListener("click",()=>navigate(4));app.querySelector("[data-pay]")?.addEventListener("click",createOrder);app.querySelector("[data-paid]")?.addEventListener("click",()=>{navigate(6);beginPolling()});app.querySelector("[data-refresh]")?.addEventListener("click",pollStatus);}
+return `${header(`Order #${esc(o.id||"pending")}` , state.venue?.name || "")}<section class="screen status"><div class="timeline">${[["Paid",PAID_STATES.includes(o.state),"Payment received"],["Facilitator placing your order",PLACING_STATES.includes(o.state),"usually under 3 min"],["Order placed at venue",["placed","ready"].includes(o.state),vr?`venue order #${esc(vr)}`:"awaiting venue confirmation"],["Ready for pickup",o.state==="ready","venue confirmation"]].map(([x,done,n])=>`<div class="tl"><span class="dot ${done?'done':''}">${done?'✓':'·'}</span><div><b>${x}</b><small>${n}</small></div></div>`).join("")}</div>${vr?`<div class="venue-ref"><span>Venue order number</span><b>#${esc(vr)}</b><p>Quote this at ${esc(state.venue?.name||"the venue")}. The venue's own tracker is account-scoped, so this is your reference to check with them — not a number the venue's public website looks up.</p></div>`:""}<div class="order-card"><b>${state.basket.map(x=>`${x.qty}× ${esc(x.name)}`).join(", ")}</b><p>${o.state||"awaiting_payment"} · ${esc(methodLabel(state.method))}</p></div><p class="next">The facilitator confirms each step here. If the venue cannot take the order, you are refunded in full.</p><button class="secondary" data-refresh>Refresh status</button>
+${identitySummary()?`<button class="primary" data-save-order>${state.saved?(state.saved.error?"Save failed — retry":"Saved to relays ✓"):"Save this order to my Nostr account"}</button>
+<button class="secondary" data-my-orders>My orders</button>`:`<button class="secondary" data-signin>Save my orders (sign in)</button>`}
+${state.saved?.error?`<p class="error">${esc(state.saved.error)}</p>`:""}</section>`;}
+function signInScreen(){
+  const has07 = Boolean(globalThis.nostr?.signEvent);
+  return `<section class="screen"><div class="top"><div><h1>Save my orders</h1><p class="sub">Sign in with Nostr so your orders follow you</p></div></div>
+  <div class="order-card"><b>Why sign in?</b><p>Your orders are stored on relays as your own records, so a new phone or a cleared browser can get them back. The public receipt proves the order; the details stay encrypted to your key.</p></div>
+  ${has07?`<button class="primary" data-signin-nip07>Use this device's Nostr extension</button>`:""}
+  <label class="field"><span>Or paste a bunker:// URL (works on a phone)</span><input data-bunker placeholder="bunker://…" autocapitalize="off" spellcheck="false"></label>
+  <button class="primary" data-signin-bunker>Connect bunker</button>
+  <p class="next">Signing in is optional. You can always pay without an account.</p>
+  <button class="secondary" data-back>Back</button></section>`;
+}
+function myOrdersScreen(){
+  const m = state.myOrders || {};
+  const id = currentIdentity();
+  if(m.loading) return `<section class="screen"><p class="loading">Looking for your orders on relays…</p></section>`;
+  const rows = (m.orders||[]).map(o=>`<div class="order-card"><b>${esc(o.venue_slug||"order")}</b><p>#${esc(o.order_id||"")} · ${esc(o.state||"")}${Number.isFinite(o.total)?` · ${o.total} sats`:""}</p>${o.detail?.items?.length?`<p>${o.detail.items.map(i=>`${i.qty}× ${esc(i.name)}`).join(", ")}</p>`:""}${o.venue_reference?`<p class="venue-ref-inline">Venue order #${esc(o.venue_reference)}</p>`:""}</div>`).join("");
+  return `<section class="screen"><div class="top"><div><h1>My orders</h1><p class="sub">${id?`Signed in as ${esc(id.pubkey.slice(0,8))}…`:"Not signed in"}</p></div></div>
+  ${m.error?`<p class="error">Could not read relays: ${esc(m.error)}</p>`:""}
+  ${rows||`<p class="next">No orders found for this key yet.</p>`}
+  <button class="secondary" data-refresh-orders>Refresh</button>
+  <button class="secondary" data-back>Back</button></section>`;
+}
+function render(){ if(!state.catalog){app.innerHTML='<p class="loading">Loading venues…</p>';return} app.innerHTML=state.screen===1?venueList():state.screen===2?menu():state.screen===3?itemSheet():state.screen===4?basket():state.screen===5?pay():state.screen===7?signInScreen():state.screen===8?myOrdersScreen():status(); bind(); }
+function bind(){app.querySelector("[data-back]")?.addEventListener("click",()=>navigate(Math.max(1,state.screen-1)));app.querySelectorAll("[data-venue]").forEach(b=>b.onclick=()=>{state.venue=state.catalog.venues.find(v=>v.venue_slug===b.dataset.venue);setVenue(state.venue);navigate(2)});app.querySelectorAll("[data-method]").forEach(b=>b.onclick=()=>{state.method=b.dataset.method;render()});app.querySelectorAll("[data-item]").forEach(b=>b.onclick=()=>{state.item=state.venue.items.find(i=>i.sku===b.dataset.item);state.qty=1;navigate(3)});app.querySelectorAll("[data-sauce]").forEach(b=>b.onclick=()=>{state.options.sauce=b.dataset.sauce;render()});app.querySelectorAll("[data-size]").forEach(b=>b.onclick=()=>{state.options.size=b.dataset.size;render()});app.querySelectorAll("[data-extra]").forEach(b=>b.onclick=()=>{const x=b.dataset.extra;state.options.extras=state.options.extras.includes(x)?state.options.extras.filter(y=>y!==x):[...state.options.extras,x];render()});app.querySelectorAll("[data-qty]").forEach(b=>b.onclick=()=>{state.qty=Math.max(1,state.qty+Number(b.dataset.qty));render()});app.querySelector("[data-add]")?.addEventListener("click",()=>{state.basket.push({name:state.item.name,qty:state.qty,amount:itemTotal()/state.qty,options:`${state.options.sauce} · ${state.options.extras.map(x=>`+${x.toLowerCase()}`).join(" · ")} · ${state.options.size}`});navigate(2)});app.querySelector("[data-basket]")?.addEventListener("click",()=>navigate(4));app.querySelector("[data-pay]")?.addEventListener("click",createOrder);app.querySelector("[data-paid]")?.addEventListener("click",()=>{navigate(6);beginPolling()});app.querySelector("[data-refresh]")?.addEventListener("click",pollStatus);
+app.querySelector("[data-signin]")?.addEventListener("click",()=>{state.screen=7;render()});
+app.querySelector("[data-signin-nip07]")?.addEventListener("click",async()=>{if(await doSignIn()){state.screen=6;state.saved=null;render()}});
+app.querySelector("[data-signin-bunker]")?.addEventListener("click",async()=>{const u=app.querySelector("[data-bunker]")?.value?.trim();if(!u){app.insertAdjacentHTML("beforeend",'<p class="error">Paste a bunker:// URL first.</p>');return}if(await doSignIn(u)){state.screen=6;state.saved=null;render()}});
+app.querySelector("[data-save-order]")?.addEventListener("click",doSaveOrder);
+app.querySelector("[data-my-orders]")?.addEventListener("click",()=>{state.screen=8;doShowMyOrders()});
+app.querySelector("[data-refresh-orders]")?.addEventListener("click",doShowMyOrders);}
 async function createOrder(){const inputs={};for(const field of app.querySelectorAll("[data-input]")){if(field.required&&!field.value.trim()){field.focus();return}if(field.value.trim())inputs[field.dataset.input]=field.type==="number"?Number(field.value):field.value.trim()}const payload={venue_slug:state.venue.venue_slug,items:state.basket,fulfilment:state.method,inputs};try{const r=await fetch("/api/orders",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(payload)});if(!r.ok)throw Error("order service unavailable");state.order=await r.json();rememberOrder(state.order);const p=await fetch(`/api/orders/${encodeURIComponent(state.order.id)}/invoice`);if(!p.ok)throw Error("invoice unavailable");state.invoice=await p.json();if(!state.invoice.bolt11||!state.invoice.qr)throw Error("invalid invoice response");navigate(5)}catch(e){app.insertAdjacentHTML("beforeend",`<p class="error">${esc(e.message)}. No payment was created; try again.</p>`)} }
 let pollTimer;
 async function pollStatus(){if(!state.order?.id)return;try{const r=await fetch(`/api/orders/${encodeURIComponent(state.order.id)}`);if(r.ok)state.order=await r.json()}catch{}render()}
 function beginPolling(){clearInterval(pollTimer);pollTimer=setInterval(()=>{if(state.screen===6)pollStatus();else clearInterval(pollTimer)},5000)}
+
+// ---- Nostr identity (ADR-0017): optional, never required to pay ------------
+// The signer lives in memory only. A reload reconnects (NIP-46 re-authorises).
+let SIGNER = null;
+const signerOf = () => SIGNER;
+function identitySummary(){
+  const id = currentIdentity();
+  if(!id) return null;
+  if(!SIGNER && id.bunker) return {pubkey:id.pubkey, method:id.method, reconnect:true};
+  return {pubkey:id.pubkey, method:id.method, reconnect:false};
+}
+async function doSignIn(uri){
+  try{
+    SIGNER = await signIn({uri:uri||undefined});
+    return true;
+  }catch(e){
+    app.insertAdjacentHTML("beforeend",`<p class="error">${esc(e.message)}. You can still order without signing in.</p>`);
+    return false;
+  }
+}
+async function doSaveOrder(){
+  if(!state.order?.id){return}
+  if(!SIGNER){
+    // A stored bunker URL means we can reconnect without the customer pasting
+    // it again; anything else needs the sign-in form.
+    const id = currentIdentity();
+    if(id?.bunker){ if(!await doSignIn(id.bunker)) return; }
+    else { state.screen = 7; return render(); }
+  }
+  try{
+    const out = await saveOrder(SIGNER, {...state.order, inputs: contactInputs(), items: state.order.items ?? state.basket});
+    state.saved = out;
+    render();
+  }catch(e){
+    state.saved = {error: e.message};
+    render();
+  }
+}
+async function doShowMyOrders(){
+  const id = currentIdentity();
+  if(!id){ state.screen = 7; return render(); }
+  if(!SIGNER && id.bunker){ if(!await doSignIn(id.bunker)) return; }
+  state.myOrders = {loading:true};
+  render();
+  try{
+    state.myOrders = {orders: await loadOrders(id.pubkey, {decrypt: Boolean(signerOf()), signer: signerOf()})};
+  }catch(e){
+    state.myOrders = {error: e.message};
+  }
+  render();
+}
+function contactInputs(){
+  const inputs = {};
+  for(const f of app.querySelectorAll("[data-input]")){ if(f.value?.trim()) inputs[f.dataset.input] = f.type==="number"?Number(f.value):f.value.trim(); }
+  return inputs;
+}
 Promise.all([fetch("../menu.json").then(r=>r.json()),fetch(ORDER_INPUT_REGISTER_URL).then(r=>r.json())]).then(async([catalog,register])=>{state.catalog=catalog;state.inputRegister=register;
 // Resume a live order before painting the venue list, so a refresh lands the
 // customer back on their order instead of losing it.

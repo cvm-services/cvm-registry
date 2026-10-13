@@ -1,6 +1,6 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { __setPool, currentIdentity, loadOrders, saveOrder, signIn, signOut } from "../site/order/identity.js";
-import { makeLocalSigner, RECEIPT_KIND, DETAIL_KIND } from "../site/render/order_records.js";
+import { makeLocalSigner, RECEIPT_KIND, DETAIL_KIND } from "../site/order/order_records.js";
 
 function fakeStorage() {
   const m = new Map();

@@ -26,7 +26,7 @@
  * app owns and nothing else — other apps on this origin share the CacheStorage.
  */
 
-const SW_VERSION = "1";
+const SW_VERSION = "2";
 const CACHE_PREFIX = "cvm-order-";
 const SHELL_CACHE = CACHE_PREFIX + "shell-v" + SW_VERSION;
 
@@ -50,6 +50,15 @@ const SHELL = [
   "/order/index.html",
   "/order/app.js",
   "/order/style.css",
+  // The order surface's own modules (ADR-0017). Every module app.js imports,
+  // transitively, must be here AND inside the scope above; the coverage test
+  // fails the build otherwise, because this is a bug that only shows up
+  // offline in the field.
+  "/order/identity.js",
+  "/order/signer.js",
+  "/order/vendor/nostr.mjs",
+  "/order/order_records.js",
+  "/order/order_relay.js",
   "/order/manifest.webmanifest",
   "/order/icon-192.png",
   "/order/icon-512.png",

@@ -2,7 +2,7 @@
 //
 // Kept out of app.js so the payment flow stays readable and testable: this
 // module owns the signer, the relay round-trips, and the "my orders" list.
-import { SimplePool } from "../vendor/nostr.mjs";
+import { SimplePool } from "./vendor/nostr.mjs";
 import {
   buildDetailRecord,
   buildReceiptRecord,
@@ -11,8 +11,8 @@ import {
   makeLocalSigner,
   readDetail,
   saveIdentity,
-} from "../render/order_records.js";
-import { RELAYS, fetchDetail, fetchReceipts, publishOrderRecords } from "../render/order_relay.js";
+} from "./order_records.js";
+import { RELAYS, fetchDetail, fetchReceipts, publishOrderRecords } from "./order_relay.js";
 import { bunkerSigner, hasNip07, nip07Signer, signerCapabilities } from "./signer.js";
 
 let pool = null;

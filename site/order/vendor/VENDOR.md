@@ -1,9 +1,16 @@
 # Vendored dependency — nostr-tools
 
 **Package:** `nostr-tools` **2.23.3** (MIT)
-**Entry:** `site/vendor/nostr-entry.js`
-**Output:** `site/vendor/nostr.mjs` (committed; ~171 KB, self-contained ESM)
+**Entry:** `site/order/vendor/nostr-entry.js`
+**Output:** `site/order/vendor/nostr.mjs` (committed; ~171 KB, self-contained ESM)
 **Regenerate:** `bash scripts/vendor-nostr.sh`
+
+## Why under /order/
+
+The bundle sits INSIDE the order service worker's scope. At `/vendor/` it was
+outside that scope, so the worker could not cache it and the SPA's offline claim
+was false in a way no online test would catch. `tests/order_shell_coverage_test.ts`
+fails the build if any imported module leaves the scope or misses the shell list.
 
 ## Why vendored
 
@@ -26,7 +33,7 @@ NIP-46 — checked, not assumed.
 ## b3sum / sha256
 
 ```
-e36264d372e8149c2ce56a26468bfea88b82d7f49162f0b6a193c3b7b918e45  site/vendor/nostr.mjs
+e36264d372e8149c2ce56a26468bfea88b82d7f49162f0b6a193c3b7b918e45  site/order/vendor/nostr.mjs
 ```
 
 `vendor-nostr.sh` pins the version and refuses to build against a different one,

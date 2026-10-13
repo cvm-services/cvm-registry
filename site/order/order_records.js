@@ -17,7 +17,7 @@
 //   * NIP-07 / NIP-46 → the key never reaches this code; the extension or the
 //     bunker signs and encrypts on request.
 //   * `makeLocalSigner(sk)` → tests only (and any future in-page key path).
-import { finalizeEvent, getPublicKey, nip44 } from "../vendor/nostr.mjs";
+import { finalizeEvent, getPublicKey, nip44 } from "./vendor/nostr.mjs";
 
 export const RECEIPT_KIND = 30318;
 export const DETAIL_KIND = 30319;
