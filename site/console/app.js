@@ -176,6 +176,28 @@ async function refresh() {
   state.order = orderById(state.selected) ?? state.order;
 }
 
+/**
+ * The customer's contact + identity, from the shapes the service actually
+ * stores. `payload.customer.{phone,npub}` was a shape the service never sent —
+ * the queue therefore always said "no phone" (and never showed a sign-in), which
+ * is why this reads both the documented nested shape and the flat one the
+ * order API really writes.
+ */
+function customerOf(order) {
+  const c = order?.payload?.customer ?? {};
+  const inputs = order?.inputs ?? order?.payload?.inputs ?? {};
+  return {
+    phone: c.phone ?? inputs["contact.phone"] ?? null,
+    // The service stores the bare hex key on the ORDER, not inside the payload.
+    npub: order?.customer_npub ?? c.npub ?? null,
+  };
+}
+
+/** Short, copyable form of a hex pubkey for the operator's eyes. */
+function shortKey(hex) {
+  return typeof hex === "string" && hex.length === 64 ? hex.slice(0, 8) + "…" : null;
+}
+
 function basketOf(order) {
   const b = order?.payload?.basket;
   if (b && (b.total_fiat || b.total_sats)) return b;
@@ -230,14 +252,14 @@ function queueView() {
       <div class="r1"><span class="oid">#${esc(o.id.slice(0, 8))} · ${esc(b.venue_name)}</span><span class="tag warn" style="margin-left:auto">${esc(s.text)}</span></div>
       <div class="r2"><span>${(b.items ?? []).map((i) => `${i.qty ?? 1}× ${esc(i.name ?? i.sku)}`).join(" · ") || "no basket"}</span>
       <span class="sat">${sats(b.total_sats)}</span><span class="fiat">${fiat(b.total_fiat)}</span>
-      <span>fee ${sats(b.fee_sats)}</span><span>${esc(o.payload?.customer?.phone ?? "no phone")}</span></div></button>`;
+      <span>fee ${sats(b.fee_sats)}</span><span>${esc(customerOf(o).phone ?? "no phone")}</span>${customerOf(o).npub ? `<span class="tag ok" title="${esc(customerOf(o).npub)}">npub ${esc(shortKey(customerOf(o).npub))}</span>` : ""}</div></button>`;
   }).join("");
   const o = orderById(state.selected);
   const gate = o ? requireSettled(o) : { ok: false, reason: "no order selected" };
   const receipt = o ? receiptOf(o) : null;
   const detail = !o ? `<aside class="pane"><div class="grow empty">No paid order in the queue.</div></aside>` : `<aside class="pane">
     <div class="phead"><h1 style="font-size:16px">#${esc(o.id.slice(0, 8))} — ${esc(basketOf(o).venue_name)}</h1>
-      <div class="sub">state ${esc(o.state)} · customer ${esc(o.payload?.customer?.phone ?? "—")}</div></div>
+      <div class="sub">state ${esc(o.state)} · customer ${esc(customerOf(o).phone ?? "—")}${customerOf(o).npub ? ` · <b class="tag ok">npub ${esc(shortKey(customerOf(o).npub))}</b>` : " · <span title=\"This customer did not sign in; send them a DM is not possible\">anonymous</span>"}</div></div>
     <div class="grow">
       <div class="dsec"><h3>Order</h3><div class="lines2">${lineItems(basketOf(o))}</div></div>
       <div class="dsec"><h3>Money</h3>
@@ -425,7 +447,7 @@ export async function escalate(order, reason) {
   if (!signer?.signEvent) { state.dm = { sent: false, reason: "no NIP-07 signer on this device", text }; return state.dm; }
   if (!signer.nip04?.encrypt) { state.dm = { sent: false, reason: "this signer exposes no NIP-04 encrypt", text }; return state.dm; }
   try {
-    const recipient = state.auth?.pubkey ?? order?.payload?.customer?.npub;
+    const recipient = state.auth?.pubkey ?? customerOf(order).npub;
     if (!recipient) throw new Error("no operator pubkey to DM");
     const ciphertext = await signer.nip04.encrypt(recipient, text);
     const event = await signer.signEvent({ kind: 4, created_at: nowSec(), tags: [["p", recipient]], content: ciphertext });

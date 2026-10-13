@@ -142,12 +142,32 @@ function identitySummary(){
 async function doSignIn(uri){
   try{
     SIGNER = await signIn({uri:uri||undefined});
+    // The customer usually pays first and signs in at the receipt, so the order
+    // already exists: hand the service the identity now (ADR-0018).
+    if(state.order?.id) state.attached = await attachIdentity(state.order.id, SIGNER.pubkey);
     return true;
   }catch(e){
     app.insertAdjacentHTML("beforeend",`<p class="error">${esc(e.message)}. You can still order without signing in.</p>`);
     return false;
   }
 }
+/**
+ * Tell the service who the customer is, so the facilitator can reach them about
+ * this order (ADR-0018). Deliberately best-effort: identity is a convenience for
+ * the human on the other side, and a failure here must never look like a failure
+ * of an order that is already paid for.
+ */
+async function attachIdentity(orderId, pubkey){
+  if(!orderId || !pubkey) return null;
+  try{
+    const r = await fetch(`/api/orders/${encodeURIComponent(orderId)}/identity`, {
+      method: "POST", headers: {"content-type": "application/json"},
+      body: JSON.stringify({customer_npub: pubkey}),
+    });
+    return await r.json();
+  }catch(e){ return {error: String(e)}; }
+}
+
 async function doSaveOrder(){
   if(!state.order?.id){return}
   if(!SIGNER){
@@ -159,6 +179,9 @@ async function doSaveOrder(){
   }
   try{
     const out = await saveOrder(SIGNER, {...state.order, inputs: contactInputs(), items: state.order.items ?? state.basket});
+    // Attach the identity to the order as well, so the facilitator sees who to
+    // contact even if the customer never opens the My-orders list again.
+    if(state.order?.id) state.attached = await attachIdentity(state.order.id, SIGNER.pubkey);
     state.saved = out;
     render();
   }catch(e){
