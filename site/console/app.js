@@ -28,7 +28,9 @@ const LEGAL = { paid: ["placing", "refunded"], placing: ["placed", "refunded"], 
 const CARD_KEY = /^(pan|card[_ -]?number|card[_ -]?no|cvv|cvc|cvn|csc|security[_ -]?code|expiry|exp[_ -]?date|expiration|cardholder|card[_ -]?holder|ccnum|creditcard)$/i;
 const DEAD_STATUSES = new Set(["refunded"]);
 
-const app = document.querySelector("#app");
+// Null outside a browser (Deno contract tests import this module); every use
+// is inside render/bind paths that only run in the page.
+const app = globalThis.document?.querySelector("#app") ?? null;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const sats = (n) => `${Math.round(Number(n) || 0).toLocaleString("en-US").replaceAll(",", " ")} sats`;
 const fiat = (n) => `${(Number(n) || 0).toFixed(2)} €`;
@@ -74,17 +76,58 @@ export function assertNoCardData(value, where = "payload") {
   return value;
 }
 
-/** ADR-0008/0013 gate. Fail-closed: an unproven sats payment is not a paid order. */
+/** ADR-0008/0013 gate. Fail-closed: an unproven sats payment is not a paid order.
+ *
+ * Accepts BOTH settlement shapes that exist in production:
+ *   nested  { status, method, settled_at, proof: { payment_hash } }
+ *            — what cvm-orders has written since the surfacing fix; the amount
+ *              is the order total, which the service recomputed and settled.
+ *   flat    { status, method, payment_hash, amount_sats }
+ *            — the older/legacy shape; still honoured so nothing that worked
+ *              before breaks.
+ * The third drift in this exact spot (`payload.basket`, `payload.customer`,
+ * settlement) each produced a feature that silently did nothing — the contract
+ * test holds the two ends together with VERBATIM production payloads.
+ */
 export function requireSettled(order) {
   const s = order?.payload?.settlement;
   if (!s) return { ok: false, reason: "the order carries no settlement record (sats not proven)" };
   if (s.status !== "settled") return { ok: false, reason: `sats payment is "${s.status}", not settled` };
-  if (!s.payment_hash && !s.payment_id) return { ok: false, reason: "settled sats payment has no payment id/hash to verify against" };
-  if (!(Number(s.amount_sats) > 0)) return { ok: false, reason: "settled sats payment has no amount" };
-  return { ok: true, proof: { method: s.method ?? "bolt11", payment_hash: s.payment_hash ?? s.payment_id, amount_sats: Number(s.amount_sats), settled_at: s.settled_at ?? null } };
+  const hash = s.payment_hash ?? s.payment_id ?? s.proof?.payment_hash ?? null;
+  if (!hash) return { ok: false, reason: "settled sats payment has no payment id/hash to verify against" };
+  const amount = Number(s.amount_sats ?? order?.total);
+  if (!(amount > 0)) return { ok: false, reason: "settled sats payment has no amount" };
+  return { ok: true, proof: { method: s.method ?? "bolt11", payment_hash: hash, amount_sats: amount, settled_at: s.settled_at ?? null } };
 }
 
 /** The card-custody hand-off. There is no card field in this document, by design. */
+/**
+ * The "Pay with 2fiat" plan (Phase C, PLAN-pay-with-2fiat): the service reports
+ * which legs can run RIGHT NOW and why the others cannot. The button is honest
+ * by construction — it renders the service's own verdict, never a guess.
+ */
+export async function fetchMeltPlan(orderId) {
+  try {
+    const res = await fetch(`${API}/orders/${encodeURIComponent(orderId)}/melt-plan`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function meltPlanView(plan) {
+  if (!plan) return "";
+  const rows = (plan.steps ?? []).map((s) =>
+    `<div class="kv"><span>${esc(s.label)}</span><b class="${s.ready ? "tag ok" : "tag warn"}">${s.ready ? "ready" : "waiting"}</b></div>` +
+    (s.reason ? `<div class="cknote dark" style="margin:0 0 6px">${esc(s.reason)}</div>` : "")).join("");
+  return `<div class="sec"><h3>Pay with 2fiat</h3>${rows}
+    ${plan.executable
+      ? `<button class="btn gold" style="width:100%">Pay with 2fiat →</button>`
+      : `<div class="cknote">One-click runs when every leg is ready. The sats melt (mint supports NUT-05); the top-up leg reports its own status above.</div>`}
+  </div>`;
+}
+
 export function custodyPlan(order) {
   const url = order?.payload?.venue?.checkout_url;
   const rail = order?.payload?.venue?.rail ?? "unknown";
@@ -92,7 +135,7 @@ export function custodyPlan(order) {
   return { mode: "psp-hosted-fields", rail, url: null, note: "no venue checkout URL declared: pay at the venue's terminal, or hand off to the PSP's hosted card fields once the 2fiat card CVM (ADR-0013) is wired. Card data never enters this console." };
 }
 
-const state = { screen: "signin", challenge: null, auth: null, queue: [], selected: null, order: null, error: null, notice: null, dm: null, receipts: loadReceipts() };
+const state = { screen: "signin", challenge: null, auth: null, queue: [], selected: null, order: null, error: null, notice: null, dm: null, receipts: loadReceipts(), meltPlan: null };
 
 function loadReceipts() {
   try { return JSON.parse(localStorage.getItem(RECEIPT_KEY) ?? "{}"); } catch { return {}; }
@@ -183,7 +226,7 @@ async function refresh() {
  * is why this reads both the documented nested shape and the flat one the
  * order API really writes.
  */
-function customerOf(order) {
+export function customerOf(order) {
   const c = order?.payload?.customer ?? {};
   const inputs = order?.inputs ?? order?.payload?.inputs ?? {};
   return {
@@ -198,7 +241,7 @@ function shortKey(hex) {
   return typeof hex === "string" && hex.length === 64 ? hex.slice(0, 8) + "…" : null;
 }
 
-function basketOf(order) {
+export function basketOf(order) {
   const b = order?.payload?.basket;
   if (b && (b.total_fiat || b.total_sats)) return b;
   // The service does not send payload.basket: the money lives at the TOP LEVEL
@@ -274,6 +317,7 @@ function queueView() {
         <div class="kv"><span>Checkout</span><b class="tag blue">${esc(custodyPlan(o).mode)}</b></div>
         <div class="kv"><span>Rail</span><b>${esc(custodyPlan(o).rail)}</b></div>
         <div class="cknote dark">${esc(custodyPlan(o).note)}</div></div>
+        ${meltPlanView(state.meltPlan)}
       ${receipt ? `<div class="dsec"><h3>Receipt (this device)</h3><div class="lines2">#${esc(receipt.venue_reference ?? "—")} · ready ${esc(receipt.ready_at ?? "—")}<br><span class="o">paid with ${esc(receipt.paid_with ?? "—")} · ref ${esc(receipt.payment_reference ?? "—")} · ${esc(receipt.captured_at ?? "")}</span></div></div>` : ""}
     </div>
     <div class="actions">
@@ -476,12 +520,20 @@ async function refund(orderId) {
   state.screen = "queue";
 }
 
-app.addEventListener("click", (ev) => {
+app?.addEventListener("click", (ev) => {
   const el = ev.target.closest("[data-signin],[data-goto],[data-order],[data-place],[data-placed],[data-handoff],[data-refund],[data-ready]");
   if (!el) return;
   if (el.dataset.signin !== undefined) return void guard(signIn);
   if (el.dataset.goto) { state.screen = el.dataset.goto; state.error = null; return render(); }
-  if (el.dataset.order) { state.selected = el.dataset.order; state.order = state.queue.find((o) => o.id === el.dataset.order) ?? null; state.error = null; return render(); }
+  if (el.dataset.order) {
+    state.selected = el.dataset.order;
+    state.order = state.queue.find((o) => o.id === el.dataset.order) ?? null;
+    state.error = null;
+    state.meltPlan = null;
+    render();
+    if (state.order) fetchMeltPlan(state.order.id).then((p) => { state.meltPlan = p; render(); });
+    return;
+  }
   if (el.dataset.place) return void guard(() => place(el.dataset.place));
   if (el.dataset.placed) return void guard(() => recordPlaced(el.dataset.placed));
   if (el.dataset.handoff) { const o = state.queue.find((x) => x.id === el.dataset.handoff) ?? state.order; return void guard(() => openHandoff(o)); }
