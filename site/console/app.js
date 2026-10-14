@@ -132,6 +132,12 @@ export function custodyPlan(order) {
   const url = order?.payload?.venue?.checkout_url;
   const rail = order?.payload?.venue?.rail ?? "unknown";
   if (url) return { mode: "venue-checkout", rail, url, note: "the venue's own checkout — card data is entered there, on this device, never sent to us" };
+  // NO venue block at all: this order was recorded before the hand-off field
+  // existed, so we simply do not know the venue's URL. Saying "unsupportable"
+  // here would be a false claim about the venue (and about sats already paid).
+  if (order?.payload && !("venue" in order.payload)) {
+    return { mode: "handoff-unrecorded", rail, url: null, note: "This order was recorded before the venue hand-off URL existed, so no checkout link was stored on it. The venue may well take online payment — open its shop manually, or place a fresh order to get the link." };
+  }
   // No online checkout declared. Per the operator rule (2026-10-14), only
   // venues that take payment ONLINE are supportable: a venue whose settlement
   // is a physical terminal needs the card (or cash) at the counter, which this

@@ -68,7 +68,28 @@ Deno.test("card custody hands off instead of collecting", () => {
   // A venue with NO online checkout is NOT orderable: our sats flow cannot pay
   // at a physical terminal (operator rule 2026-10-14). The old wording "pay at
   // the venue's terminal" read as if that were a route we support — it is not.
-  const without = mod.custodyPlan({ payload: {} });
+  // A legacy order (created before payload.venue existed) carries NO venue
+  // block. It must NOT be labelled unsupportable — the venue may well have an
+  // online checkout; we simply did not record the URL on this order. Claiming
+  // otherwise is a false statement about the venue (and about the money the
+  // customer already paid).
+  const legacy = mod.custodyPlan({ payload: { venue_slug: "three-buddies-berlin" } });
+  assertEquals(
+    legacy.mode,
+    "handoff-unrecorded",
+    "a missing venue block is 'we did not record the URL', not 'unsupportable'",
+  );
+  assertEquals(legacy.note.includes("before"), true, "the note says why it is missing");
+  assertEquals(
+    legacy.note.includes("cannot be settled"),
+    false,
+    "never claim a venue is unsupportable on the strength of a missing field",
+  );
+
+  // The TRUE not-orderable case: the venue block EXISTS and says the venue has
+  // no online checkout (orderable: false). This is a claim about the venue, made
+  // by the server that priced the order — not a missing field.
+  const without = mod.custodyPlan({ payload: { venue: { slug: "chandi-berlin", rail: "unknown", checkout_url: null, orderable: false } } });
   assertEquals(without.mode, "not-orderable");
   assertEquals(without.url, null);
   assert(

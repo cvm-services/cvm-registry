@@ -26,7 +26,7 @@
  * app owns and nothing else — other apps on this origin share the CacheStorage.
  */
 
-const SW_VERSION = "3";
+const SW_VERSION = "4";
 const CACHE_PREFIX = "cvm-order-";
 const SHELL_CACHE = CACHE_PREFIX + "shell-v" + SW_VERSION;
 
