@@ -65,6 +65,22 @@ Deno.test("the new customer UI has its own scoped fallback", () => {
   }
 });
 
+Deno.test("the facilitator LNURLP routes point at the T14 treasury server", () => {
+  if (!VHOST.includes("handle /.well-known/lnurlp/* {")) {
+    throw new Error("the LNURL discovery route disappeared");
+  }
+  if (!VHOST.includes("handle /lnurlp/* {")) {
+    throw new Error("the LNURL callback/status route disappeared");
+  }
+  if (!VHOST.includes("reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098")) {
+    throw new Error("the LNURL route no longer points at the T14 LNURLP server");
+  }
+  // It must not have replaced the old /api -> cvm-orders route.
+  if (!VHOST.includes("reverse_proxy 127.0.0.1:8788")) {
+    throw new Error("/api/* must stay on cvm-orders");
+  }
+});
+
 Deno.test("the x280 API's own error detail is not replaced by Caddy", () => {
   // The service returns structured 502s (invoice_failed) with a detail. A
   // handle_errors override for /order-next-api would replace that body and make

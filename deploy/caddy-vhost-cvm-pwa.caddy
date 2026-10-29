@@ -57,6 +57,16 @@ cvm-pwa.orangesync.tech {
 		reverse_proxy 127.0.0.1:8788
 	}
 
+	# Facilitator LNURLP on T14, backed by the OpenBao treasury. Receive-only:
+	# the public endpoint can create an invoice, never pay. The internal paths
+	# are bearer-token protected in the server.
+	handle /.well-known/lnurlp/* {
+		reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098
+	}
+	handle /lnurlp/* {
+		reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098
+	}
+
 	# New customer API on x280, reached over the FIPS mesh. The prefix is
 	# stripped so the service sees its own routes (/menu, /orders, /pay).
 	# The old /api -> cvm-orders path above stays untouched.
