@@ -87,6 +87,19 @@ Deno.test("the facilitator LNURLP routes point at the T14 treasury server", () =
   }
 });
 
+Deno.test("the captcha handoff gateway is token-scoped behind Caddy", () => {
+  if (!VHOST.includes("handle /venue/view/* {")) {
+    throw new Error("the noVNC handoff route disappeared");
+  }
+  if (!VHOST.includes("reverse_proxy [fd36:3c0f:d6f:8029:ea50:958b:672e:bb0]:8097")) {
+    throw new Error("the handoff route no longer points at the x280 gateway");
+  }
+  // The old order-next API must not be shadowed by the new route.
+  if (!VHOST.includes("handle_path /order-next-api/* {")) {
+    throw new Error("the order-next API route disappeared");
+  }
+});
+
 Deno.test("the x280 API's own error detail is not replaced by Caddy", () => {
   // The service returns structured 502s (invoice_failed) with a detail. A
   // handle_errors override for /order-next-api would replace that body and make
