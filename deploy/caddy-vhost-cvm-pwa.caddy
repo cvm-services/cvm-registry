@@ -63,9 +63,11 @@ cvm-pwa.orangesync.tech {
 	handle /.well-known/lnurlp/* {
 		reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098
 	}
-	# Internal order/confirm API: strip /lnurlp/internal so the server sees
-	# /internal/... (bearer/facilitator token protected).
-	handle_path /lnurlp/internal/* {
+	# Internal order/confirm API: strip only /lnurlp so the server sees
+	# /internal/... (bearer/facilitator token protected). handle_path would
+	# strip /lnurlp/internal too and the server would see /orders (404).
+	handle /lnurlp/internal/* {
+		uri strip_prefix /lnurlp
 		reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098
 	}
 	handle /lnurlp/* {
