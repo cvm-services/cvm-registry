@@ -123,10 +123,9 @@ cvm-pwa.orangesync.tech {
 		header @api Content-Type "application/json"
 		respond @api `{"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties the queue, it does not lose committed data"}` 502
 
-		# The new API crosses the FIPS mesh; a down x280 must be a JSON error,
-		# never the static UI document.
-		@order_next_api path /order-next-api/*
-		header @order_next_api Content-Type "application/json"
-		respond @order_next_api `{"error":"order service unavailable","detail":"customer API on x280 over FIPS did not answer"}` 502
+		# Deliberately no handler for /order-next-api/*: the x280 service returns
+		# structured 502s (invoice_failed) whose detail is what makes a failure
+		# diagnosable. Replacing them here with a generic body hides the reason.
+		# A genuinely down x280 gets Caddy's own 502.
 	}
 }
