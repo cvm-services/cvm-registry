@@ -65,12 +65,15 @@ Deno.test("the new customer UI has its own scoped fallback", () => {
   }
 });
 
-Deno.test("a down /order-next-api answers JSON, never the static document", () => {
-  if (!/@order_next_api path \/order-next-api\/\*/.test(VHOST)) {
-    throw new Error("the FIPS API error route is not scoped to /order-next-api/*");
+Deno.test("the x280 API's own error detail is not replaced by Caddy", () => {
+  // The service returns structured 502s (invoice_failed) with a detail. A
+  // handle_errors override for /order-next-api would replace that body and make
+  // the failure undiagnosable. The old /api handler stays.
+  if (VHOST.includes("@order_next_api")) {
+    throw new Error("a Caddy error override would hide the x280 service's error detail");
   }
-  if (!/respond @order_next_api `\{"error"/.test(VHOST)) {
-    throw new Error("the FIPS API error route does not answer JSON");
+  if (!VHOST.includes("handle_path /order-next-api/*")) {
+    throw new Error("the x280 API route disappeared");
   }
 });
 
