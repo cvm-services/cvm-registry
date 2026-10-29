@@ -74,6 +74,13 @@ cvm-pwa.orangesync.tech {
 		reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098
 	}
 
+	# Captcha handoff: the gateway maps a 32-byte token to one live websockify
+	# port and serves the noVNC client. The token is the grant; it disappears
+	# when the session is torn down.
+	handle /venue/view/* {
+		reverse_proxy [fd36:3c0f:d6f:8029:ea50:958b:672e:bb0]:8097
+	}
+
 	# New customer API on x280, reached over the FIPS mesh. The prefix is
 	# stripped so the service sees its own routes (/menu, /orders, /pay).
 	# The old /api -> cvm-orders path above stays untouched.
