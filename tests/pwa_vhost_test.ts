@@ -72,8 +72,11 @@ Deno.test("the facilitator LNURLP routes point at the T14 treasury server", () =
   if (!VHOST.includes("handle /lnurlp/* {")) {
     throw new Error("the LNURL callback/status route disappeared");
   }
-  if (!VHOST.includes("handle_path /lnurlp/internal/* {")) {
-    throw new Error("the internal LNURLP API is not prefix-stripped");
+  if (!VHOST.includes("handle /lnurlp/internal/* {")) {
+    throw new Error("the internal LNURLP API route disappeared");
+  }
+  if (!VHOST.includes("uri strip_prefix /lnurlp")) {
+    throw new Error("the internal LNURLP API is not prefix-stripped to /internal");
   }
   if (!VHOST.includes("reverse_proxy [fd79:f451:67b1:8084:2b2a:5b1e:9110:26d0]:8098")) {
     throw new Error("the LNURL route no longer points at the T14 LNURLP server");
