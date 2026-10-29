@@ -57,6 +57,13 @@ cvm-pwa.orangesync.tech {
 		reverse_proxy 127.0.0.1:8788
 	}
 
+	# New customer API on x280, reached over the FIPS mesh. The prefix is
+	# stripped so the service sees its own routes (/menu, /orders, /pay).
+	# The old /api -> cvm-orders path above stays untouched.
+	handle_path /order-next-api/* {
+		reverse_proxy [fd36:3c0f:d6f:8029:ea50:958b:672e:bb0]:8793
+	}
+
 	# BARE /api (exact match, no wildcard). It must never be answered with a
 	# document. A 308 to /api/ is chosen over a hand-written JSON 404 because the
 	# two paths name the same resource and /api/ is the form the prefix-stripping
@@ -96,6 +103,13 @@ cvm-pwa.orangesync.tech {
 		file_server
 	}
 
+	# New customer UI. Its own subtree, so /order/ and /console/ cannot fall
+	# back to it (and it cannot answer for them).
+	handle /order-next/* {
+		try_files {path} /order-next/index.html
+		file_server
+	}
+
 	# Catch-all: REAL files from the docroot only (menu.json, vocab/…, fixtures/…).
 	# No try_files, so an unknown path is a 404 and can never be a document.
 	handle {
@@ -108,5 +122,11 @@ cvm-pwa.orangesync.tech {
 		@api path /api/*
 		header @api Content-Type "application/json"
 		respond @api `{"error":"order service unavailable","detail":"cvm-orders on 127.0.0.1:8788 did not answer","note":"the order store is in memory: a restart empties the queue, it does not lose committed data"}` 502
+
+		# The new API crosses the FIPS mesh; a down x280 must be a JSON error,
+		# never the static UI document.
+		@order_next_api path /order-next-api/*
+		header @order_next_api Content-Type "application/json"
+		respond @order_next_api `{"error":"order service unavailable","detail":"customer API on x280 over FIPS did not answer"}` 502
 	}
 }

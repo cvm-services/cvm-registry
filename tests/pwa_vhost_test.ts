@@ -43,6 +43,37 @@ Deno.test("each PWA falls back to its OWN document", () => {
   }
 });
 
+Deno.test("the new customer API is proxied over FIPS on its own prefix", () => {
+  if (!VHOST.includes("handle_path /order-next-api/* {")) {
+    throw new Error("the vhost lost /order-next-api/*");
+  }
+  if (!VHOST.includes("reverse_proxy [fd36:3c0f:d6f:8029:ea50:958b:672e:bb0]:8793")) {
+    throw new Error("the vhost no longer proxies /order-next-api/* to x280 over FIPS");
+  }
+  // The old /api proxy must remain, so the demo/console are not repointed.
+  if (!VHOST.includes("reverse_proxy 127.0.0.1:8788")) {
+    throw new Error("/api/* must stay on cvm-orders");
+  }
+});
+
+Deno.test("the new customer UI has its own scoped fallback", () => {
+  if (!VHOST.includes("handle /order-next/* {")) {
+    throw new Error("/order-next/ has no handler");
+  }
+  if (!VHOST.includes("try_files {path} /order-next/index.html")) {
+    throw new Error("/order-next/ lost its SPA fallback");
+  }
+});
+
+Deno.test("a down /order-next-api answers JSON, never the static document", () => {
+  if (!/@order_next_api path \/order-next-api\/\*/.test(VHOST)) {
+    throw new Error("the FIPS API error route is not scoped to /order-next-api/*");
+  }
+  if (!/respond @order_next_api `\{"error"/.test(VHOST)) {
+    throw new Error("the FIPS API error route does not answer JSON");
+  }
+});
+
 Deno.test("the deploy replaces an existing vhost instead of skipping it", () => {
   if (!DEPLOY.includes("rewrite-caddy-vhost.py")) {
     throw new Error("deploy-pwa.sh must install the vhost via rewrite-caddy-vhost.py");
