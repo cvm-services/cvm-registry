@@ -140,18 +140,10 @@ for p in /order/ /console/ /menu.json /vocab/service-inputs.json /api/health; do
   curl -s -o /dev/null -w '%{http_code} %{size_download}b %{content_type}\n' -m 15 "https://$DOMAIN$p" || true
 done
 
-# /console/ must serve the CONSOLE's document, not the customer SPA fallback
-# (the pre-2026-10-10 vhost answered /console/ with /order/index.html).
-curl -s -m 15 "https://$DOMAIN/console/" -o /tmp/console-live.html
-if cmp -s /tmp/console-live.html "$REPO/site/console/index.html"; then
-  echo "   /console/ document == site/console/index.html"
-else
-  echo "   ERROR: /console/ is not serving site/console/index.html" >&2; exit 1
-fi
-for asset in app.js style.css; do
-  printf '   %-28s ' "/console/$asset"
-  curl -s -o /dev/null -w '%{http_code} %{size_download}b\n' -m 15 "https://$DOMAIN/console/$asset" || true
-done
+# The old cvm-orders console is retired; /console/ must redirect to the new
+# facilitator queue, never serve the old document or the customer SPA.
+printf '   %-28s ' "/console/ redirect"
+curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}\n' -m 15 "https://$DOMAIN/console/" || true
 
 # Installability, checked against the live origin rather than assumed: the
 # manifest must arrive as manifest JSON and must scope the app to /order/, the
@@ -206,4 +198,4 @@ case "$API_CT" in
   *) echo "   WARN: /api is not answering JSON ($API_CT) — is cvm-orders running?" >&2 ;;
 esac
 
-echo "done. customer https://$DOMAIN/order/ · facilitator https://$DOMAIN/console/"
+echo "done. customer https://$DOMAIN/order/ · facilitator https://$DOMAIN/lnurlp/facilitator"

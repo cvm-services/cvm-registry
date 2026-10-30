@@ -34,9 +34,12 @@ Deno.test("the in-memory store is stated in the vhost, where a restart is read",
   }
 });
 
-Deno.test("each PWA falls back to its OWN document", () => {
-  if (!VHOST.includes("try_files {path} /console/index.html")) {
-    throw new Error("/console/1 would fall back to the customer document");
+Deno.test("the old console redirects; the customer app keeps its own fallback", () => {
+  if (!VHOST.includes("redir * /lnurlp/facilitator 302")) {
+    throw new Error("/console/ must redirect to the new facilitator queue");
+  }
+  if (VHOST.includes("try_files {path} /console/index.html")) {
+    throw new Error("/console/ still serves the retired console document");
   }
   if (!VHOST.includes("try_files {path} /order/index.html")) {
     throw new Error("/order/ lost its SPA fallback");
@@ -120,8 +123,8 @@ Deno.test("the deploy replaces an existing vhost instead of skipping it", () => 
   if (/if ! grep -q "\$DOMAIN" \/etc\/caddy\/Caddyfile/.test(DEPLOY)) {
     throw new Error("deploy-pwa.sh still has the append-once vhost logic");
   }
-  if (!DEPLOY.includes("cd /tmp/console-live.html") && !DEPLOY.includes("console-live.html")) {
-    throw new Error("deploy-pwa.sh must assert which document /console/ serves");
+  if (!DEPLOY.includes("redirect_url") || !DEPLOY.includes("/console/ redirect")) {
+    throw new Error("deploy-pwa.sh must assert the /console/ redirect");
   }
 });
 
@@ -377,28 +380,16 @@ Deno.test("both PWA manifests are retyped as manifest JSON through a specific pa
   }
 });
 
-Deno.test("the console falls back to the console document only, and exactly one handler carries it", () => {
-  const console = blockFor("/console/*");
-  if (!console) {
-    throw new Error("no `handle /console/*`: the console would fall through to the catch-all and 404");
-  }
-  if (!console.body.includes("try_files {path} /console/index.html")) {
-    throw new Error("/console/ lost its SPA fallback — a deep link would 404 instead of loading the console");
-  }
-  // The console document must be reachable from exactly one handler, and that
-  // handler must be the console's own subtree.
-  const carriers = BLOCKS.filter((b) => /\/console\/index\.html/.test(b.body));
-  if (carriers.length !== 1) {
-    throw new Error(
-      "the console document is reachable from " + carriers.length + " handlers: " +
-        carriers.map((c) => c.matcher || "(catch-all)").join(", "),
-    );
-  }
-  // The console PWA artifacts land under /console/, so `try_files {path}` must
-  // be able to serve them: the fallback must be the LAST try_files argument,
-  // i.e. a real file at /console/manifest.webmanifest wins over the document.
-  if (!/try_files\s+\{path\}\s+\/console\/index\.html/.test(console.body)) {
-    throw new Error("the console fallback must try the real path first, or the manifest/SW/icons could never be served");
+Deno.test("the retired console redirects to the facilitator queue", () => {
+  for (const matcher of ["/console", "/console/*"]) {
+    const b = blockFor(matcher);
+    if (!b) throw new Error(`no \`handle ${matcher}\``);
+    if (!b.body.includes("redir * /lnurlp/facilitator 302")) {
+      throw new Error(`${matcher} must redirect to /lnurlp/facilitator`);
+    }
+    if (/try_files|file_server/.test(b.body)) {
+      throw new Error(`${matcher} still serves the retired console document`);
+    }
   }
 });
 
