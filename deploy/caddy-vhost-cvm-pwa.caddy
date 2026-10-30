@@ -115,11 +115,14 @@ cvm-pwa.orangesync.tech {
 		redir * /order/ 302
 	}
 
-	# Each app falls back to its OWN document: /console/ must never serve the
-	# customer ordering app, and /order/ must never serve the console.
+	# The old cvm-orders console is retired: it cannot see the LNURLP orders
+	# or the session/venue-checkout API, so its transition returns 409. Send
+	# old bookmarks and installed shortcuts to the queue that owns them.
+	handle /console {
+		redir * /lnurlp/facilitator 302
+	}
 	handle /console/* {
-		try_files {path} /console/index.html
-		file_server
+		redir * /lnurlp/facilitator 302
 	}
 
 	handle /order/* {
